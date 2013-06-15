@@ -1,10 +1,8 @@
 package bspkrs.mmv.gui;
 
-import immibis.bon.gui.BrowseActionListener;
 import immibis.bon.gui.Reference;
-import immibis.bon.gui.Side;
 
-import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -20,7 +18,6 @@ import java.util.Set;
 import java.util.prefs.Preferences;
 
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -43,22 +40,20 @@ public class GuiMain extends JFrame
     private final static String   PREFS_KEY_MCPDIR    = "mcpDir";
     
     //private JComboBox<Operation> opSelect;
-    private JComboBox<Side>       sideSelect;
-    private JTextField            inputField, outputField, mcpField;
+    //private JComboBox<Side>       sideSelect;
+    private JTextField            mcpField;
     private JButton               goButton;
     private JProgressBar          progressBar;
     private JLabel                progressLabel;
     
     private Thread                curTask             = null;
     
-    // the last directory the user was browsing, for the input/output files
-    private final Reference<File> browseDir           = new Reference<File>();
     // the last directory the user was browsing, for the MCP directory
     private final Reference<File> mcpBrowseDir        = new Reference<File>();
+    private JPanel                panel;
     
     private void savePrefs()
     {
-        prefs.put(PREFS_KEY_BROWSEDIR, browseDir.val.toString());
         prefs.put(PREFS_KEY_MCPDIR, mcpField.getText());
     }
     
@@ -71,11 +66,11 @@ public class GuiMain extends JFrame
         savePrefs();
         
         //final Operation op = (Operation)opSelect.getSelectedItem();
-        final Side side = (Side) sideSelect.getSelectedItem();
+        //final Side side = (Side) sideSelect.getSelectedItem();
         
         final File mcpDir = new File(mcpField.getText());
         final File confDir = new File(mcpDir, "conf");
-        final String[] refPathList = side.referencePath.split(File.pathSeparator);
+        //final String[] refPathList = side.referencePath.split(File.pathSeparator);
         
         String error = null;
         
@@ -281,7 +276,7 @@ public class GuiMain extends JFrame
     
     private static String getStackTraceMessage(Throwable e)
     {
-        String s = "An error has occurred - give immibis this stack trace (which has been copied to the clipboard)\n";
+        String s = "An error has occurred - give bspkrs this stack trace (which has been copied to the clipboard)\n";
         
         s += "\n" + getPrintableStackTrace(e, Collections.<StackTraceElement> emptySet());
         while (e.getCause() != null)
@@ -296,7 +291,6 @@ public class GuiMain extends JFrame
     public GuiMain()
     {
         JPanel contentPane = new JPanel();
-        contentPane.setLayout(new GridBagLayout());
         GridBagConstraints gbc;
         
         gbc = new GridBagConstraints();
@@ -304,85 +298,79 @@ public class GuiMain extends JFrame
         gbc.gridy = 0;
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.anchor = GridBagConstraints.LINE_END;
-        contentPane.add(new JLabel("Input file"), gbc.clone());
         gbc.gridy = 1;
-        contentPane.add(new JLabel("Output file"), gbc.clone());
-        gbc.gridy = 2;
-        contentPane.add(new JLabel("MCP folder"), gbc.clone());
-        gbc.gridy = 3;
-        contentPane.add(new JLabel("Side"), gbc.clone());
-        gbc.gridy = 4;
-        contentPane.add(new JLabel("Operation"), gbc.clone());
+        GridBagLayout gbl_contentPane = new GridBagLayout();
+        gbl_contentPane.columnWeights = new double[] { 0.0 };
+        gbl_contentPane.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0 };
+        contentPane.setLayout(gbl_contentPane);
+        
+        panel = new JPanel();
+        GridBagConstraints gbc_panel = new GridBagConstraints();
+        gbc_panel.insets = new Insets(5, 5, 5, 5);
+        gbc_panel.fill = GridBagConstraints.BOTH;
+        gbc_panel.gridx = 0;
+        gbc_panel.gridy = 0;
+        contentPane.add(panel, gbc_panel);
+        panel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+        JLabel label = new JLabel("MCP folder");
+        panel.add(label);
+        mcpField = new JTextField();
+        mcpField.setColumns(30);
+        panel.add(mcpField);
         
         JButton chooseInputButton = new JButton("Browse");
-        JButton chooseOutputButton = new JButton("Browse");
-        JButton chooseMCPButton = new JButton("Browse");
-        
-        goButton = new JButton("Go");
-        
-        inputField = new JTextField();
-        outputField = new JTextField();
-        mcpField = new JTextField();
-        
-        sideSelect = new JComboBox<Side>(Side.values());
-        //        opSelect = new JComboBox<Operation>(Operation.values());
-        
-        progressBar = new JProgressBar(JProgressBar.HORIZONTAL, 0, 100);
-        progressLabel = new JLabel(" ", SwingConstants.LEFT);
-        
-        inputField.setMinimumSize(new Dimension(100, 0));
+        panel.add(chooseInputButton);
         
         gbc.gridx = 2;
         gbc.gridy = 0;
         gbc.anchor = GridBagConstraints.CENTER;
         gbc.fill = GridBagConstraints.BOTH;
-        contentPane.add(chooseInputButton, gbc.clone());
         gbc.gridy = 1;
-        contentPane.add(chooseOutputButton, gbc.clone());
         gbc.gridy = 2;
-        contentPane.add(chooseMCPButton, gbc.clone());
         
         gbc.gridx = 1;
         gbc.gridy = 0;
         gbc.ipadx = 200;
-        contentPane.add(inputField, gbc.clone());
         gbc.gridy = 1;
-        contentPane.add(outputField, gbc.clone());
         gbc.gridy = 2;
-        contentPane.add(mcpField, gbc.clone());
         gbc.gridy = 3;
-        contentPane.add(sideSelect, gbc.clone());
+        //contentPane.add(sideSelect, gbc.clone());
         //        gbc.gridy = 4;
         //        contentPane.add(opSelect, gbc.clone());
         
         gbc.gridx = 0;
         gbc.gridy = 5;
         gbc.gridwidth = 3;
-        contentPane.add(goButton, gbc.clone());
         gbc.gridy = 6;
-        contentPane.add(progressBar, gbc.clone());
         
         gbc.gridy = 7;
-        contentPane.add(progressLabel, gbc.clone());
         
         setContentPane(contentPane);
-        pack();
         
-        browseDir.val = new File(prefs.get(PREFS_KEY_BROWSEDIR, "."));
+        //sideSelect = new JComboBox<Side>(Side.values());
+        //        opSelect = new JComboBox<Operation>(Operation.values());
         
-        {
-            String mcpDirString = prefs.get(PREFS_KEY_MCPDIR, ".");
-            mcpField.setText(mcpDirString);
-            
-            if (!mcpDirString.equals(""))
-                mcpBrowseDir.val = new File(mcpDirString);
-            else
-                mcpBrowseDir.val = new File(".");
-        }
+        progressBar = new JProgressBar(JProgressBar.HORIZONTAL, 0, 100);
+        GridBagConstraints gbc_progressBar = new GridBagConstraints();
+        gbc_progressBar.insets = new Insets(5, 5, 5, 5);
+        gbc_progressBar.gridx = 0;
+        gbc_progressBar.gridy = 2;
+        contentPane.add(progressBar, gbc_progressBar);
+        progressLabel = new JLabel(" ", SwingConstants.LEFT);
+        GridBagConstraints gbc_progressLabel = new GridBagConstraints();
+        gbc_progressLabel.insets = new Insets(0, 0, 5, 5);
+        gbc_progressLabel.gridx = 0;
+        gbc_progressLabel.gridy = 3;
+        contentPane.add(progressLabel, gbc_progressLabel);
         
-        chooseInputButton.addActionListener(new BrowseActionListener(inputField, true, this, false, browseDir));
-        chooseOutputButton.addActionListener(new BrowseActionListener(outputField, false, this, false, browseDir));
-        chooseMCPButton.addActionListener(new BrowseActionListener(mcpField, true, this, true, mcpBrowseDir));
+        goButton = new JButton("Go");
+        GridBagConstraints gbc_goButton = new GridBagConstraints();
+        gbc_goButton.fill = GridBagConstraints.HORIZONTAL;
+        gbc_goButton.anchor = GridBagConstraints.NORTH;
+        gbc_goButton.insets = new Insets(0, 0, 0, 5);
+        gbc_goButton.gridx = 0;
+        gbc_goButton.gridy = 1;
+        contentPane.add(goButton, gbc_goButton);
         
         goButton.addActionListener(new ActionListener()
         {
@@ -392,6 +380,18 @@ public class GuiMain extends JFrame
                 goButtonPressed();
             }
         });
+        pack();
+        
+        {
+            String mcpDirString = prefs.get(PREFS_KEY_MCPDIR, ".");
+            
+            if (!mcpDirString.equals(""))
+                mcpBrowseDir.val = new File(mcpDirString);
+            else
+                mcpBrowseDir.val = new File(".");
+            
+            mcpField.setText(mcpDirString);
+        }
         
         addWindowListener(new WindowAdapter()
         {
@@ -403,7 +403,7 @@ public class GuiMain extends JFrame
         });
         
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setTitle("Bearded Octo Nemesis");
+        setTitle("MCP Mapping Viewer");
     }
     
     public static void main(String[] args)
