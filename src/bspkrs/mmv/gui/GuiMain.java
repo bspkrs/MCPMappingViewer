@@ -29,15 +29,14 @@ import javax.swing.SwingUtilities;
 
 public class GuiMain extends JFrame
 {
-    private static final long     serialVersionUID    = 1;
+    private static final long     serialVersionUID = 1;
     
     // The Java Preferences API is used to store the last directory the user was browsing
     // for the input/output files (PREFS_KEY_BROWSEDIR)
     // and the selected MCP directory (PREFS_KEY_MCPDIR).
     // Prefs are saved when the user clicks "Go" or closes the window.
-    private final Preferences     prefs               = Preferences.userNodeForPackage(GuiMain.class);
-    private final static String   PREFS_KEY_BROWSEDIR = "browseDir";
-    private final static String   PREFS_KEY_MCPDIR    = "mcpDir";
+    private final Preferences     prefs            = Preferences.userNodeForPackage(GuiMain.class);
+    private final static String   PREFS_KEY_MCPDIR = "mcpDir";
     
     //private JComboBox<Operation> opSelect;
     //private JComboBox<Side>       sideSelect;
@@ -46,10 +45,10 @@ public class GuiMain extends JFrame
     private JProgressBar          progressBar;
     private JLabel                progressLabel;
     
-    private Thread                curTask             = null;
+    private Thread                curTask          = null;
     
     // the last directory the user was browsing, for the MCP directory
-    private final Reference<File> mcpBrowseDir        = new Reference<File>();
+    private final Reference<File> mcpBrowseDir     = new Reference<File>();
     private JPanel                panel;
     
     private void savePrefs()
@@ -319,6 +318,12 @@ public class GuiMain extends JFrame
         panel.add(mcpField);
         
         JButton chooseInputButton = new JButton("Browse");
+        chooseInputButton.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent arg0)
+            {}
+        });
         panel.add(chooseInputButton);
         
         gbc.gridx = 2;

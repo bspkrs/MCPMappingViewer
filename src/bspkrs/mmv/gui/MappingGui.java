@@ -7,11 +7,12 @@ package bspkrs.mmv.gui;
 import java.awt.EventQueue;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Insets;
 
 import javax.swing.AbstractListModel;
 import javax.swing.JFrame;
 import javax.swing.JList;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.ListSelectionModel;
@@ -62,19 +63,22 @@ public class MappingGui
         frmMcpMappingViewer.setBounds(100, 100, 450, 300);
         frmMcpMappingViewer.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         GridBagLayout gridBagLayout = new GridBagLayout();
-        gridBagLayout.columnWidths = new int[] { 0, 0 };
-        gridBagLayout.rowHeights = new int[] { 0, 0 };
-        gridBagLayout.columnWeights = new double[] { 1.0, Double.MIN_VALUE };
-        gridBagLayout.rowWeights = new double[] { 1.0, 1.0 };
+        gridBagLayout.columnWidths = new int[] { 0 };
+        gridBagLayout.rowHeights = new int[] { 0 };
+        gridBagLayout.columnWeights = new double[] { 1.0 };
+        gridBagLayout.rowWeights = new double[] { 1.0 };
         frmMcpMappingViewer.getContentPane().setLayout(gridBagLayout);
         
+        JSplitPane splitPane_4 = new JSplitPane();
+        splitPane_4.setOrientation(JSplitPane.VERTICAL_SPLIT);
+        GridBagConstraints gbc_splitPane_4 = new GridBagConstraints();
+        gbc_splitPane_4.fill = GridBagConstraints.BOTH;
+        gbc_splitPane_4.gridx = 0;
+        gbc_splitPane_4.gridy = 0;
+        frmMcpMappingViewer.getContentPane().add(splitPane_4, gbc_splitPane_4);
+        
         JPanel panel = new JPanel();
-        GridBagConstraints gbc_panel = new GridBagConstraints();
-        gbc_panel.insets = new Insets(0, 0, 5, 0);
-        gbc_panel.fill = GridBagConstraints.BOTH;
-        gbc_panel.gridx = 0;
-        gbc_panel.gridy = 0;
-        frmMcpMappingViewer.getContentPane().add(panel, gbc_panel);
+        splitPane_4.setLeftComponent(panel);
         GridBagLayout gbl_panel = new GridBagLayout();
         gbl_panel.columnWidths = new int[] { 0 };
         gbl_panel.rowHeights = new int[] { 0, 0 };
@@ -154,12 +158,7 @@ public class MappingGui
         splitPane.setLeftComponent(listMCPClasses);
         
         JPanel panel_1 = new JPanel();
-        GridBagConstraints gbc_panel_1 = new GridBagConstraints();
-        gbc_panel_1.insets = new Insets(0, 0, 5, 0);
-        gbc_panel_1.fill = GridBagConstraints.BOTH;
-        gbc_panel_1.gridx = 0;
-        gbc_panel_1.gridy = 1;
-        frmMcpMappingViewer.getContentPane().add(panel_1, gbc_panel_1);
+        splitPane_4.setRightComponent(panel_1);
         GridBagLayout gbl_panel_1 = new GridBagLayout();
         gbl_panel_1.columnWidths = new int[] { 0 };
         gbl_panel_1.rowHeights = new int[] { 0 };
@@ -238,6 +237,12 @@ public class MappingGui
         });
         listObfClasses.setSelectedIndex(0);
         splitPane_2.setLeftComponent(listObfClasses);
+        
+        JMenuBar menuBar = new JMenuBar();
+        frmMcpMappingViewer.setJMenuBar(menuBar);
+        
+        JMenu mnFile = new JMenu("File");
+        menuBar.add(mnFile);
     }
     
 }
