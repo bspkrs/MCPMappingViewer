@@ -2,7 +2,6 @@ package bspkrs.mmv.gui;
 
 import immibis.bon.gui.Reference;
 
-import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -23,7 +22,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
-import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
@@ -37,10 +35,6 @@ public class GuiMain extends JFrame
     // Prefs are saved when the user clicks "Go" or closes the window.
     private final Preferences     prefs            = Preferences.userNodeForPackage(GuiMain.class);
     private final static String   PREFS_KEY_MCPDIR = "mcpDir";
-    
-    //private JComboBox<Operation> opSelect;
-    //private JComboBox<Side>       sideSelect;
-    private JTextField            mcpField;
     private JButton               goButton;
     private JProgressBar          progressBar;
     private JLabel                progressLabel;
@@ -49,7 +43,6 @@ public class GuiMain extends JFrame
     
     // the last directory the user was browsing, for the MCP directory
     private final Reference<File> mcpBrowseDir     = new Reference<File>();
-    private JPanel                panel;
     
     private void savePrefs()
     {
@@ -303,29 +296,6 @@ public class GuiMain extends JFrame
         gbl_contentPane.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0 };
         contentPane.setLayout(gbl_contentPane);
         
-        panel = new JPanel();
-        GridBagConstraints gbc_panel = new GridBagConstraints();
-        gbc_panel.insets = new Insets(5, 5, 5, 5);
-        gbc_panel.fill = GridBagConstraints.BOTH;
-        gbc_panel.gridx = 0;
-        gbc_panel.gridy = 0;
-        contentPane.add(panel, gbc_panel);
-        panel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
-        JLabel label = new JLabel("MCP folder");
-        panel.add(label);
-        mcpField = new JTextField();
-        mcpField.setColumns(30);
-        panel.add(mcpField);
-        
-        JButton chooseInputButton = new JButton("Browse");
-        chooseInputButton.addActionListener(new ActionListener()
-        {
-            @Override
-            public void actionPerformed(ActionEvent arg0)
-            {}
-        });
-        panel.add(chooseInputButton);
-        
         gbc.gridx = 2;
         gbc.gridy = 0;
         gbc.anchor = GridBagConstraints.CENTER;
@@ -394,8 +364,6 @@ public class GuiMain extends JFrame
                 mcpBrowseDir.val = new File(mcpDirString);
             else
                 mcpBrowseDir.val = new File(".");
-            
-            mcpField.setText(mcpDirString);
         }
         
         addWindowListener(new WindowAdapter()
