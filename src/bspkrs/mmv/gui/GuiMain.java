@@ -46,7 +46,7 @@ public class GuiMain extends JFrame
     
     private void savePrefs()
     {
-        prefs.put(PREFS_KEY_MCPDIR, mcpField.getText());
+        //prefs.put(PREFS_KEY_MCPDIR, mcpField.getText());
     }
     
     synchronized void goButtonPressed()
@@ -60,20 +60,20 @@ public class GuiMain extends JFrame
         //final Operation op = (Operation)opSelect.getSelectedItem();
         //final Side side = (Side) sideSelect.getSelectedItem();
         
-        final File mcpDir = new File(mcpField.getText());
-        final File confDir = new File(mcpDir, "conf");
+        //final File mcpDir = new File(mcpField.getText());
+        //final File confDir = new File(mcpDir, "conf");
         //final String[] refPathList = side.referencePath.split(File.pathSeparator);
         
         String error = null;
         
-        if (!mcpDir.isDirectory())
-            error = "MCP folder not found (at " + mcpDir + ")";
-        else if (!confDir.isDirectory())
-            error = "'conf' folder not found in MCP folder (at " + confDir + ")";
+        //if (!mcpDir.isDirectory())
+        //    error = "MCP folder not found (at " + mcpDir + ")";
+        //else if (!confDir.isDirectory())
+        //    error = "'conf' folder not found in MCP folder (at " + confDir + ")";
         
         if (error != null)
         {
-            JOptionPane.showMessageDialog(this, error, "BON - Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, error, "MMV - Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
         

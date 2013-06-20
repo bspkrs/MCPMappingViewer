@@ -4,11 +4,19 @@ package bspkrs.mmv.gui;
  * This is mainly just a mock-up of the actual mapping GUI, so it is subject to change
  */
 
+import immibis.bon.gui.Reference;
+
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.File;
+import java.util.prefs.Preferences;
 
 import javax.swing.AbstractListModel;
 import javax.swing.JButton;
@@ -20,11 +28,19 @@ import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 
-public class MappingGui
+public class MappingGui extends JFrame
 {
+    private static final long     serialVersionUID = 1L;
+    private final Preferences     prefs            = Preferences.userNodeForPackage(GuiMain.class);
+    private JFrame                frmMcpMappingViewer;
+    private JTextField            mcpDirPath;
+    private final static String   PREFS_KEY_MCPDIR = "mcpDir";
+    private final Reference<File> mcpBrowseDir     = new Reference<File>();
     
-    private JFrame     frmMcpMappingViewer;
-    private JTextField textField;
+    private void savePrefs()
+    {
+        prefs.put(PREFS_KEY_MCPDIR, mcpDirPath.getText());
+    }
     
     /**
      * Launch the application.
@@ -70,7 +86,7 @@ public class MappingGui
         gridBagLayout.columnWidths = new int[] { 0 };
         gridBagLayout.rowHeights = new int[] { 0, 0 };
         gridBagLayout.columnWeights = new double[] { 1.0 };
-        gridBagLayout.rowWeights = new double[] { 1.0, 1.0 };
+        gridBagLayout.rowWeights = new double[] { 0.0, 1.0 };
         frmMcpMappingViewer.getContentPane().setLayout(gridBagLayout);
         
         JSplitPane splitPane_4 = new JSplitPane();
@@ -254,13 +270,37 @@ public class MappingGui
         JLabel label = new JLabel("MCP folder");
         panel_2.add(label);
         
-        textField = new JTextField();
-        textField.setText(".");
-        textField.setColumns(30);
-        panel_2.add(textField);
+        {
+            String mcpDirString = prefs.get(PREFS_KEY_MCPDIR, ".");
+            
+            if (!mcpDirString.equals(""))
+                mcpBrowseDir.val = new File(mcpDirString);
+            else
+                mcpBrowseDir.val = new File(".");
+        }
+        
+        mcpDirPath = new JTextField();
+        mcpDirPath.setText(mcpBrowseDir.val.getPath());
+        mcpDirPath.setColumns(40);
+        panel_2.add(mcpDirPath);
         
         JButton button = new JButton("Browse");
+        button.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent arg0)
+            {}
+        });
         panel_2.add(button);
+        
+        addWindowListener(new WindowAdapter()
+        {
+            @Override
+            public void windowClosing(WindowEvent e)
+            {
+                savePrefs();
+            }
+        });
     }
     
 }
