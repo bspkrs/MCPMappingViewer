@@ -4,13 +4,14 @@ package bspkrs.mmv.gui;
  * This is mainly just a mock-up of the actual mapping GUI, so it is subject to change
  */
 
+import immibis.bon.gui.BrowseActionListener;
 import immibis.bon.gui.Reference;
+import immibis.bon.gui.Side;
 
+import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
@@ -18,28 +19,55 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.util.prefs.Preferences;
 
-import javax.swing.AbstractListModel;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JTextField;
+import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.table.DefaultTableModel;
 
 public class MappingGui extends JFrame
 {
     private static final long     serialVersionUID = 1L;
-    private final Preferences     prefs            = Preferences.userNodeForPackage(GuiMain.class);
+    private final Preferences     prefs            = Preferences.userNodeForPackage(MappingGui.class);
     private JFrame                frmMcpMappingViewer;
-    private JTextField            mcpDirPath;
+    private JComboBox<String>     cmbMCPDirPath;
     private final static String   PREFS_KEY_MCPDIR = "mcpDir";
     private final Reference<File> mcpBrowseDir     = new Reference<File>();
+    private JTable                tblMembers;
+    private JTable                tblClasses;
     
     private void savePrefs()
     {
-        prefs.put(PREFS_KEY_MCPDIR, mcpDirPath.getText());
+        for (int i = 0; i < cmbMCPDirPath.getItemCount(); i++)
+            prefs.put(PREFS_KEY_MCPDIR + i, cmbMCPDirPath.getItemAt(i));
+    }
+    
+    private void loadPrefs()
+    {
+        for (int i = 0; i < 8; i++)
+        {
+            String item = prefs.get(PREFS_KEY_MCPDIR + i, "");
+            if (!item.equals(""))
+            {
+                DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) cmbMCPDirPath.getModel();
+                
+                if (model.getIndexOf(item) == -1)
+                    cmbMCPDirPath.addItem(item);
+            }
+            
+            if (i == 0)
+                if (!item.equals(""))
+                    mcpBrowseDir.val = new File(item);
+                else
+                    mcpBrowseDir.val = new File(".");
+        }
     }
     
     /**
@@ -78,220 +106,133 @@ public class MappingGui extends JFrame
      */
     private void initialize()
     {
-        frmMcpMappingViewer = new JFrame();
-        frmMcpMappingViewer.setTitle("MCP Mapping Viewer");
-        frmMcpMappingViewer.setBounds(100, 100, 778, 504);
-        frmMcpMappingViewer.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        GridBagLayout gridBagLayout = new GridBagLayout();
-        gridBagLayout.columnWidths = new int[] { 0 };
-        gridBagLayout.rowHeights = new int[] { 0, 0 };
-        gridBagLayout.columnWeights = new double[] { 1.0 };
-        gridBagLayout.rowWeights = new double[] { 0.0, 1.0 };
-        frmMcpMappingViewer.getContentPane().setLayout(gridBagLayout);
-        
-        JSplitPane splitPane_4 = new JSplitPane();
-        splitPane_4.setOrientation(JSplitPane.VERTICAL_SPLIT);
-        GridBagConstraints gbc_splitPane_4 = new GridBagConstraints();
-        gbc_splitPane_4.insets = new Insets(0, 0, 5, 0);
-        gbc_splitPane_4.fill = GridBagConstraints.BOTH;
-        gbc_splitPane_4.gridx = 0;
-        gbc_splitPane_4.gridy = 1;
-        frmMcpMappingViewer.getContentPane().add(splitPane_4, gbc_splitPane_4);
-        
-        JPanel panel = new JPanel();
-        splitPane_4.setLeftComponent(panel);
-        GridBagLayout gbl_panel = new GridBagLayout();
-        gbl_panel.columnWidths = new int[] { 0 };
-        gbl_panel.rowHeights = new int[] { 0, 0 };
-        gbl_panel.columnWeights = new double[] { 1.0 };
-        gbl_panel.rowWeights = new double[] { 1.0, Double.MIN_VALUE };
-        panel.setLayout(gbl_panel);
-        
-        JSplitPane splitPane = new JSplitPane();
-        GridBagConstraints gbc_splitPane = new GridBagConstraints();
-        gbc_splitPane.fill = GridBagConstraints.BOTH;
-        gbc_splitPane.gridx = 0;
-        gbc_splitPane.gridy = 0;
-        panel.add(splitPane, gbc_splitPane);
-        
-        JSplitPane splitPane_1 = new JSplitPane();
-        splitPane_1.setOrientation(JSplitPane.VERTICAL_SPLIT);
-        splitPane.setRightComponent(splitPane_1);
-        
-        JList listMCPMethods = new JList();
-        listMCPMethods.setModel(new AbstractListModel()
         {
-            String[] values = new String[] { "setBlock", "setBlockMetadata", "removeBlock" };
-            
-            @Override
-            public int getSize()
-            {
-                return values.length;
-            }
-            
-            @Override
-            public Object getElementAt(int index)
-            {
-                return values[index];
-            }
-        });
-        listMCPMethods.setSelectedIndex(0);
-        splitPane_1.setLeftComponent(listMCPMethods);
-        
-        JList listMCPFields = new JList();
-        listMCPFields.setModel(new AbstractListModel()
-        {
-            String[] values = new String[] { "blockList", "blockID", "metadata" };
-            
-            @Override
-            public int getSize()
-            {
-                return values.length;
-            }
-            
-            @Override
-            public Object getElementAt(int index)
-            {
-                return values[index];
-            }
-        });
-        listMCPFields.setSelectedIndex(0);
-        splitPane_1.setRightComponent(listMCPFields);
-        
-        JList listMCPClasses = new JList();
-        listMCPClasses.setModel(new AbstractListModel()
-        {
-            String[] values = new String[] { "Block", "Item", "World", "ItemInWorldManager" };
-            
-            @Override
-            public int getSize()
-            {
-                return values.length;
-            }
-            
-            @Override
-            public Object getElementAt(int index)
-            {
-                return values[index];
-            }
-        });
-        listMCPClasses.setSelectedIndex(0);
-        splitPane.setLeftComponent(listMCPClasses);
-        
-        JPanel panel_1 = new JPanel();
-        splitPane_4.setRightComponent(panel_1);
-        GridBagLayout gbl_panel_1 = new GridBagLayout();
-        gbl_panel_1.columnWidths = new int[] { 0 };
-        gbl_panel_1.rowHeights = new int[] { 0 };
-        gbl_panel_1.columnWeights = new double[] { 1.0 };
-        gbl_panel_1.rowWeights = new double[] { 1.0 };
-        panel_1.setLayout(gbl_panel_1);
-        
-        JSplitPane splitPane_2 = new JSplitPane();
-        GridBagConstraints gbc_splitPane_2 = new GridBagConstraints();
-        gbc_splitPane_2.fill = GridBagConstraints.BOTH;
-        gbc_splitPane_2.gridx = 0;
-        gbc_splitPane_2.gridy = 0;
-        panel_1.add(splitPane_2, gbc_splitPane_2);
-        
-        JSplitPane splitPane_3 = new JSplitPane();
-        splitPane_3.setOrientation(JSplitPane.VERTICAL_SPLIT);
-        splitPane_2.setRightComponent(splitPane_3);
-        
-        JList listObfMethods = new JList();
-        listObfMethods.setModel(new AbstractListModel()
-        {
-            String[] values = new String[] { "a", "b", "e", "d" };
-            
-            @Override
-            public int getSize()
-            {
-                return values.length;
-            }
-            
-            @Override
-            public Object getElementAt(int index)
-            {
-                return values[index];
-            }
-        });
-        listObfMethods.setSelectedIndex(0);
-        splitPane_3.setLeftComponent(listObfMethods);
-        
-        JList listObfFields = new JList();
-        listObfFields.setModel(new AbstractListModel()
-        {
-            String[] values = new String[] { "a", "b", "e", "h" };
-            
-            @Override
-            public int getSize()
-            {
-                return values.length;
-            }
-            
-            @Override
-            public Object getElementAt(int index)
-            {
-                return values[index];
-            }
-        });
-        listObfFields.setSelectedIndex(0);
-        listObfFields.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        splitPane_3.setRightComponent(listObfFields);
-        
-        JList listObfClasses = new JList();
-        listObfClasses.setModel(new AbstractListModel()
-        {
-            String[] values = new String[] { "aja", "qr", "lr", "asdf" };
-            
-            @Override
-            public int getSize()
-            {
-                return values.length;
-            }
-            
-            @Override
-            public Object getElementAt(int index)
-            {
-                return values[index];
-            }
-        });
-        listObfClasses.setSelectedIndex(0);
-        splitPane_2.setLeftComponent(listObfClasses);
-        
-        JPanel panel_2 = new JPanel();
-        GridBagConstraints gbc_panel_2 = new GridBagConstraints();
-        gbc_panel_2.fill = GridBagConstraints.BOTH;
-        gbc_panel_2.gridx = 0;
-        gbc_panel_2.gridy = 0;
-        frmMcpMappingViewer.getContentPane().add(panel_2, gbc_panel_2);
-        panel_2.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
-        
-        JLabel label = new JLabel("MCP folder");
-        panel_2.add(label);
-        
-        {
-            String mcpDirString = prefs.get(PREFS_KEY_MCPDIR, ".");
+            String mcpDirString = prefs.get(PREFS_KEY_MCPDIR + 0, ".");
             
             if (!mcpDirString.equals(""))
                 mcpBrowseDir.val = new File(mcpDirString);
             else
                 mcpBrowseDir.val = new File(".");
         }
+        frmMcpMappingViewer = new JFrame();
+        frmMcpMappingViewer.addWindowListener(new WindowAdapter()
+        {
+            @Override
+            public void windowClosing(WindowEvent arg0)
+            {
+                savePrefs();
+            }
+        });
+        frmMcpMappingViewer.setTitle("MCP Mapping Viewer");
+        frmMcpMappingViewer.setBounds(100, 100, 778, 521);
+        frmMcpMappingViewer.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         
-        mcpDirPath = new JTextField();
-        mcpDirPath.setText(mcpBrowseDir.val.getPath());
-        mcpDirPath.setColumns(40);
-        panel_2.add(mcpDirPath);
+        JPanel pnlHeader = new JPanel();
+        pnlHeader.setSize(new Dimension(0, 20));
+        pnlHeader.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
         
-        JButton button = new JButton("Browse");
-        button.addActionListener(new ActionListener()
+        JLabel lblSide = new JLabel("Side");
+        pnlHeader.add(lblSide);
+        
+        JComboBox<Side> cmbSide = new JComboBox<Side>();
+        cmbSide.addActionListener(new ActionListener()
         {
             @Override
             public void actionPerformed(ActionEvent arg0)
             {}
         });
-        panel_2.add(button);
+        pnlHeader.add(cmbSide);
+        
+        JLabel lblMCPFolder = new JLabel("MCP folder");
+        pnlHeader.add(lblMCPFolder);
+        
+        cmbMCPDirPath = new JComboBox<String>(new DefaultComboBoxModel<String>());
+        cmbMCPDirPath.setEditable(true);
+        loadPrefs();
+        cmbMCPDirPath.setSelectedItem(mcpBrowseDir.val.getAbsolutePath());
+        pnlHeader.add(cmbMCPDirPath);
+        
+        JButton btnBrowseFile = new JButton("Browse");
+        btnBrowseFile.addActionListener(new BrowseActionListener(cmbMCPDirPath, true, btnBrowseFile, true, mcpBrowseDir));
+        frmMcpMappingViewer.getContentPane().setLayout(new BorderLayout(0, 0));
+        
+        JSplitPane splitMain = new JSplitPane();
+        splitMain.setResizeWeight(0.3);
+        splitMain.setContinuousLayout(true);
+        splitMain.setMinimumSize(new Dimension(179, 80));
+        splitMain.setPreferredSize(new Dimension(179, 80));
+        splitMain.setOrientation(JSplitPane.VERTICAL_SPLIT);
+        
+        JScrollPane scrlpnClasses = new JScrollPane();
+        scrlpnClasses.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        splitMain.setLeftComponent(scrlpnClasses);
+        
+        tblClasses = new JTable();
+        scrlpnClasses.setViewportView(tblClasses);
+        tblClasses.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tblClasses.setModel(new DefaultTableModel(
+                new Object[][] {
+                        { null, null, null, null },
+                },
+                new String[] {
+                        "MCP name", "SRG name", "Obf name", "Pkg name"
+                }
+                )
+                {
+                    Class[] columnTypes = new Class[] {
+                                                String.class, String.class, String.class, String.class
+                                        };
+                    
+                    @Override
+                    public Class getColumnClass(int columnIndex)
+                    {
+                        return columnTypes[columnIndex];
+                    }
+                });
+        tblClasses.setFillsViewportHeight(true);
+        tblClasses.setCellSelectionEnabled(true);
+        
+        JScrollPane scrlpnMembers = new JScrollPane();
+        scrlpnMembers.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        splitMain.setRightComponent(scrlpnMembers);
+        
+        tblMembers = new JTable();
+        scrlpnMembers.setViewportView(tblMembers);
+        tblMembers.setColumnSelectionAllowed(true);
+        tblMembers.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tblMembers.setModel(new DefaultTableModel(
+                new Object[][] {
+                        { null, null, null, null },
+                },
+                new String[] {
+                        "Member Type", "Member Name", "Java Type", "Description"
+                }
+                )
+                {
+                    Class[] columnTypes = new Class[] {
+                                                String.class, String.class, String.class, String.class
+                                        };
+                    
+                    @Override
+                    public Class getColumnClass(int columnIndex)
+                    {
+                        return columnTypes[columnIndex];
+                    }
+                });
+        tblMembers.setCellSelectionEnabled(true);
+        tblMembers.setFillsViewportHeight(true);
+        frmMcpMappingViewer.getContentPane().add(splitMain, BorderLayout.CENTER);
+        pnlHeader.add(btnBrowseFile);
+        frmMcpMappingViewer.getContentPane().add(pnlHeader, BorderLayout.NORTH);
+        
+        {
+            String mcpDirString = prefs.get(PREFS_KEY_MCPDIR + 0, ".");
+            
+            if (!mcpDirString.equals(""))
+                mcpBrowseDir.val = new File(mcpDirString);
+            else
+                mcpBrowseDir.val = new File(".");
+        }
         
         addWindowListener(new WindowAdapter()
         {
@@ -302,5 +243,4 @@ public class MappingGui extends JFrame
             }
         });
     }
-    
 }

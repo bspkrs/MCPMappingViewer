@@ -21,24 +21,25 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
-import javax.swing.JTextField;
 import javax.swing.filechooser.FileFilter;
 
 public class BrowseActionListener implements ActionListener
 {
     
-    private JTextField      textbox;
-    private boolean         isOpen;
-    private Component       parent;
-    private JFileChooser    jfc;
-    private Reference<File> defaultDir;
+    private JComboBox<String> comboBox;
+    private boolean           isOpen;
+    private Component         parent;
+    private JFileChooser      jfc;
+    private Reference<File>   defaultDir;
     
-    public BrowseActionListener(JTextField inputField, boolean isOpen, Component parent, boolean dirOnly, Reference<File> defaultDir)
+    public BrowseActionListener(JComboBox<String> inputField, boolean isOpen, Component parent, boolean dirOnly, Reference<File> defaultDir)
     {
         
         this.defaultDir = defaultDir;
-        this.textbox = inputField;
+        this.comboBox = inputField;
         this.isOpen = isOpen;
         this.parent = parent;
         
@@ -77,17 +78,26 @@ public class BrowseActionListener implements ActionListener
         {
             File f = jfc.getSelectedFile();
             
+            String path;
             try
             {
-                textbox.setText(f.getCanonicalPath());
+                path = f.getCanonicalPath();
+                
             }
             catch (IOException e)
             {
-                textbox.setText(f.getAbsolutePath());
+                path = f.getAbsolutePath();
             }
+            
+            DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) comboBox.getModel();
+            
+            if (model.getIndexOf(path) != -1)
+                model.removeElement(path);
+            
+            comboBox.insertItemAt(path, 0);
+            comboBox.setSelectedItem(path);
         }
         
         defaultDir.val = jfc.getCurrentDirectory();
     }
-    
 }
