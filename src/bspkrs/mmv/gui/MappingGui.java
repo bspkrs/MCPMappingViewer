@@ -40,8 +40,9 @@ public class MappingGui extends JFrame
     private JComboBox<String>     cmbMCPDirPath;
     private final static String   PREFS_KEY_MCPDIR = "mcpDir";
     private final Reference<File> mcpBrowseDir     = new Reference<File>();
-    private JTable                tblMembers;
     private JTable                tblClasses;
+    private JTable                tblMethods;
+    private JTable                tblFields;
     
     private void savePrefs()
     {
@@ -124,7 +125,7 @@ public class MappingGui extends JFrame
             }
         });
         frmMcpMappingViewer.setTitle("MCP Mapping Viewer");
-        frmMcpMappingViewer.setBounds(100, 100, 778, 521);
+        frmMcpMappingViewer.setBounds(100, 100, 1051, 618);
         frmMcpMappingViewer.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         
         JPanel pnlHeader = new JPanel();
@@ -172,15 +173,15 @@ public class MappingGui extends JFrame
         tblClasses.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tblClasses.setModel(new DefaultTableModel(
                 new Object[][] {
-                        { null, null, null, null },
+                        { null, null, null },
                 },
                 new String[] {
-                        "MCP name", "SRG name", "Obf name", "Pkg name"
+                        "MCP name", "Obf name", "Pkg name"
                 }
                 )
                 {
                     Class[] columnTypes = new Class[] {
-                                                String.class, String.class, String.class, String.class
+                                                String.class, String.class, String.class
                                         };
                     
                     @Override
@@ -191,37 +192,67 @@ public class MappingGui extends JFrame
                 });
         tblClasses.setFillsViewportHeight(true);
         tblClasses.setCellSelectionEnabled(true);
+        frmMcpMappingViewer.getContentPane().add(splitMain, BorderLayout.CENTER);
         
-        JScrollPane scrlpnMembers = new JScrollPane();
-        scrlpnMembers.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-        splitMain.setRightComponent(scrlpnMembers);
+        JSplitPane splitMembers = new JSplitPane();
+        splitMembers.setResizeWeight(0.5);
+        splitMembers.setOrientation(JSplitPane.VERTICAL_SPLIT);
+        splitMain.setRightComponent(splitMembers);
         
-        tblMembers = new JTable();
-        scrlpnMembers.setViewportView(tblMembers);
-        tblMembers.setColumnSelectionAllowed(true);
-        tblMembers.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        tblMembers.setModel(new DefaultTableModel(
+        JScrollPane scrlpnMethods = new JScrollPane();
+        scrlpnMethods.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        splitMembers.setLeftComponent(scrlpnMethods);
+        
+        tblMethods = new JTable();
+        tblMethods.setCellSelectionEnabled(true);
+        tblMethods.setFillsViewportHeight(true);
+        tblMethods.setModel(new DefaultTableModel(
                 new Object[][] {
-                        { null, null, null, null },
+                        { null, null, null, null, null, null },
                 },
                 new String[] {
-                        "Member Type", "Member Name", "Java Type", "Description"
+                        "MCP Name", "SRG Name", "Obf. Name", "Return Type", "Descriptor", "Comment"
                 }
                 )
                 {
-                    Class[] columnTypes = new Class[] {
-                                                String.class, String.class, String.class, String.class
-                                        };
+                    boolean[] columnEditables = new boolean[] {
+                                                      false, false, false, false, false, false
+                                              };
                     
                     @Override
-                    public Class getColumnClass(int columnIndex)
+                    public boolean isCellEditable(int row, int column)
                     {
-                        return columnTypes[columnIndex];
+                        return columnEditables[column];
                     }
                 });
-        tblMembers.setCellSelectionEnabled(true);
-        tblMembers.setFillsViewportHeight(true);
-        frmMcpMappingViewer.getContentPane().add(splitMain, BorderLayout.CENTER);
+        scrlpnMethods.setViewportView(tblMethods);
+        
+        JScrollPane scrlpnFields = new JScrollPane();
+        scrlpnFields.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        splitMembers.setRightComponent(scrlpnFields);
+        
+        tblFields = new JTable();
+        tblFields.setModel(new DefaultTableModel(
+                new Object[][] {
+                        { null, null, null, null, null },
+                },
+                new String[] {
+                        "MCP Name", "SRG Name", "Obf. Name", "Type", "Comment"
+                }
+                )
+                {
+                    boolean[] columnEditables = new boolean[] {
+                                                      false, false, false, false, false
+                                              };
+                    
+                    @Override
+                    public boolean isCellEditable(int row, int column)
+                    {
+                        return columnEditables[column];
+                    }
+                });
+        tblFields.setFillsViewportHeight(true);
+        scrlpnFields.setViewportView(tblFields);
         pnlHeader.add(btnBrowseFile);
         frmMcpMappingViewer.getContentPane().add(pnlHeader, BorderLayout.NORTH);
         
