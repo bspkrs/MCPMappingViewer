@@ -38,7 +38,7 @@ public abstract class CsvFile
                 String searge = in.next();
                 String name = in.next();
                 String side = in.next();
-                /*String desc =*/in.nextLine();
+                String desc = in.nextLine();
                 if (side.equals(s_side))
                 {
                     data.put(searge, name);

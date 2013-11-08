@@ -14,6 +14,10 @@ import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.InputMethodEvent;
+import java.awt.event.InputMethodListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -34,15 +38,16 @@ import javax.swing.table.DefaultTableModel;
 
 public class MappingGui extends JFrame
 {
-    private static final long     serialVersionUID = 1L;
-    private final Preferences     prefs            = Preferences.userNodeForPackage(MappingGui.class);
+    private static final long     serialVersionUID           = 1L;
+    private final Preferences     prefs                      = Preferences.userNodeForPackage(MappingGui.class);
     private JFrame                frmMcpMappingViewer;
     private JComboBox<String>     cmbMCPDirPath;
-    private final static String   PREFS_KEY_MCPDIR = "mcpDir";
-    private final Reference<File> mcpBrowseDir     = new Reference<File>();
+    private final static String   PREFS_KEY_MCPDIR           = "mcpDir";
+    private final Reference<File> mcpBrowseDir               = new Reference<File>();
     private JTable                tblClasses;
     private JTable                tblMethods;
     private JTable                tblFields;
+    private boolean               isCmbMCPDirPathTextChanged = false;
     
     private void savePrefs()
     {
@@ -148,6 +153,24 @@ public class MappingGui extends JFrame
         pnlHeader.add(lblMCPFolder);
         
         cmbMCPDirPath = new JComboBox<String>(new DefaultComboBoxModel<String>());
+        cmbMCPDirPath.addInputMethodListener(new InputMethodListener()
+        {
+            @Override
+            public void caretPositionChanged(InputMethodEvent event)
+            {}
+            
+            @Override
+            public void inputMethodTextChanged(InputMethodEvent event)
+            {
+                JComboBox jcb = (JComboBox) event.getSource();
+            }
+        });
+        cmbMCPDirPath.addFocusListener(new FocusAdapter()
+        {
+            @Override
+            public void focusLost(FocusEvent e)
+            {}
+        });
         cmbMCPDirPath.setEditable(true);
         loadPrefs();
         cmbMCPDirPath.setSelectedItem(mcpBrowseDir.val.getAbsolutePath());
