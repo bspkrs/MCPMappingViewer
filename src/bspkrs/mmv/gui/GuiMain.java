@@ -60,16 +60,16 @@ public class GuiMain extends JFrame
         //final Operation op = (Operation)opSelect.getSelectedItem();
         //final Side side = (Side) sideSelect.getSelectedItem();
         
-        //final File mcpDir = new File(mcpField.getText());
-        //final File confDir = new File(mcpDir, "conf");
+        //        final File mcpDir = new File(mcpField.getText());
+        //        final File confDir = new File(mcpDir, "conf");
         //final String[] refPathList = side.referencePath.split(File.pathSeparator);
         
         String error = null;
         
-        //if (!mcpDir.isDirectory())
-        //    error = "MCP folder not found (at " + mcpDir + ")";
-        //else if (!confDir.isDirectory())
-        //    error = "'conf' folder not found in MCP folder (at " + confDir + ")";
+        //        if (!mcpDir.isDirectory())
+        //            error = "MCP folder not found (at " + mcpDir + ")";
+        //        else if (!confDir.isDirectory())
+        //            error = "'conf' folder not found in MCP folder (at " + confDir + ")";
         
         if (error != null)
         {
