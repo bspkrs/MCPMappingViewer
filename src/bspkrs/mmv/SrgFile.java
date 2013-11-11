@@ -22,15 +22,19 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 
 public class SrgFile
 {
     
-    public final Map<String, ClassSrgData>  classes = new HashMap<String, ClassSrgData>();
-    public final Map<String, FieldSrgData>  fields  = new HashMap<String, FieldSrgData>();
-    public final Map<String, MethodSrgData> methods = new HashMap<String, MethodSrgData>();
+    public final Map<String, ClassSrgData>             classes      = new HashMap<String, ClassSrgData>();
+    public final Map<String, FieldSrgData>             fields       = new HashMap<String, FieldSrgData>();
+    public final Map<String, MethodSrgData>            methods      = new HashMap<String, MethodSrgData>();
+    public final Map<ClassSrgData, Set<MethodSrgData>> classMethods = new HashMap<ClassSrgData, Set<MethodSrgData>>();
+    public final Map<ClassSrgData, Set<FieldSrgData>>  classFields  = new HashMap<ClassSrgData, Set<FieldSrgData>>();
     
     public static String getLastComponent(String s)
     {
@@ -53,7 +57,12 @@ public class SrgFile
                     String deobf = in.next();
                     String srgName = getLastComponent(deobf);
                     String pkgName = deobf.substring(0, deobf.indexOf(srgName) - 1);
-                    classes.put(srgName, new ClassSrgData(obf, srgName, pkgName, in.hasNext("#C")));
+                    ClassSrgData classData = new ClassSrgData(obf, srgName, pkgName, in.hasNext("#C"));
+                    classes.put(srgName, classData);
+                    if (!classMethods.containsKey(classData))
+                        classMethods.put(classData, new HashSet<MethodSrgData>());
+                    if (!classFields.containsKey(classData))
+                        classFields.put(classData, new HashSet<FieldSrgData>());
                 }
                 else if (in.hasNext("FD:"))
                 {
@@ -65,7 +74,9 @@ public class SrgFile
                     String deobf = in.next();
                     String srgName = getLastComponent(deobf);
                     String srgOwner = getLastComponent(deobf.substring(0, deobf.indexOf(srgName) - 1));
-                    fields.put(srgName, new FieldSrgData(obfOwner, obfName, srgOwner, srgOwner, in.hasNext("#C")));
+                    FieldSrgData fieldData = new FieldSrgData(obfOwner, obfName, srgOwner, srgName, in.hasNext("#C"));
+                    fields.put(srgName, fieldData);
+                    classFields.get(classes.get(srgOwner)).add(fieldData);
                 }
                 else if (in.hasNext("MD:"))
                 {
@@ -79,7 +90,9 @@ public class SrgFile
                     String srgName = getLastComponent(deobf);
                     String srgOwner = getLastComponent(deobf.substring(0, deobf.indexOf(srgName) - 1));
                     String srgDescriptor = in.next();
-                    methods.put(srgName, new MethodSrgData(obfOwner, obfName, obfDescriptor, srgOwner, srgName, srgDescriptor, in.hasNext("#C")));
+                    MethodSrgData methodData = new MethodSrgData(obfOwner, obfName, obfDescriptor, srgOwner, srgName, srgDescriptor, in.hasNext("#C"));
+                    methods.put(srgName, methodData);
+                    classMethods.get(classes.get(srgOwner)).add(methodData);
                 }
                 else
                     in.nextLine();

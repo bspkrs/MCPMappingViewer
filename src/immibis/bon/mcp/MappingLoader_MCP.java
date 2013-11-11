@@ -61,7 +61,7 @@ public class MappingLoader_MCP
                                                                                      
     private ExcFile                  excFileData;
     
-    public MappingLoader_MCP(String mcVer, Side side, File mcpDir, IProgressListener progress) throws IOException, CantLoadMCPMappingException
+    public MappingLoader_MCP(String mcVer, Side side, File mcpDir, IProgressListener progress) throws IOException
     {
         this.mcVer = mcVer;
         this.mcpDir = mcpDir;
@@ -127,7 +127,7 @@ public class MappingLoader_MCP
         excFileData = new ExcFile(excFile);
     }
     
-    private void loadSRGMapping() throws IOException, CantLoadMCPMappingException
+    private void loadSRGMapping() throws IOException
     {
         SrgFile srg = new SrgFile(srgFile, false);
         
@@ -203,7 +203,7 @@ public class MappingLoader_MCP
         }
     }
     
-    private void loadCSVMapping() throws IOException, CantLoadMCPMappingException
+    private void loadCSVMapping() throws IOException
     {
         Map<String, String> fieldNames = CsvFile.read(new File(mcpDir, "conf/fields.csv"), sideNumber);
         Map<String, String> methodNames = CsvFile.read(new File(mcpDir, "conf/methods.csv"), sideNumber);

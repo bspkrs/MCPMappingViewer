@@ -16,19 +16,14 @@
 package bspkrs.mmv;
 
 import immibis.bon.IProgressListener;
-import immibis.bon.Mapping;
-import immibis.bon.NameSet;
-import immibis.bon.NameSet.Side;
+import immibis.bon.gui.Side;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Scanner;
-import java.util.Set;
 
 public class McpMappingLoader
 {
@@ -43,23 +38,19 @@ public class McpMappingLoader
         }
     }
     
+    private final Side                  side;
     @SuppressWarnings("unused")
-    private final Side               side;
+    private final String                mcVer;
+    private final File                  mcpDir;
+    private final File                  srgFile, excFile;
+    private SrgFile                     srgFileData;
+    private CsvFile                     csvFieldData, csvMethodData;
+    
+    private Map<MethodSrgData, CsvData> srg2csvMethods = new HashMap<MethodSrgData, CsvData>();
+    private Map<FieldSrgData, CsvData>  srg2csvFields  = new HashMap<FieldSrgData, CsvData>();
+    
     @SuppressWarnings("unused")
-    private final String             mcVer;
-    private final File               mcpDir;
-    private final int                sideNumber;
-    private final File               srgFile, excFile;
-    
-    // forward: obf -> searge -> mcp
-    // reverse: mcp -> searge -> obf
-    private Mapping                  forwardSRG, reverseSRG, forwardCSV, reverseCSV;
-    
-    private Map<String, String>      srgMethodDescriptors = new HashMap<>();        // SRG name -> SRG descriptor
-    private Map<String, Set<String>> srgMethodOwners      = new HashMap<>();        // SRG name -> SRG owners
-    private Map<String, Set<String>> srgFieldOwners       = new HashMap<>();        // SRG name -> SRG owners
-                                                                                     
-    private ExcFile                  excFileData;
+    private ExcFile                     excFileData;
     
     public McpMappingLoader(String mcVer, Side side, File mcpDir, IProgressListener progress) throws IOException, CantLoadMCPMappingException
     {
@@ -69,8 +60,7 @@ public class McpMappingLoader
         
         switch (side)
         {
-            case UNIVERSAL:
-                sideNumber = 2;
+            case Universal:
                 if (new File(mcpDir, "conf/packaged.srg").exists())
                 {
                     srgFile = new File(mcpDir, "conf/packaged.srg");
@@ -83,14 +73,12 @@ public class McpMappingLoader
                 }
                 break;
             
-            case CLIENT:
-                sideNumber = 0;
+            case Client:
                 srgFile = new File(mcpDir, "conf/client.srg");
                 excFile = new File(mcpDir, "conf/client.exc");
                 break;
             
-            case SERVER:
-                sideNumber = 1;
+            case Server:
                 srgFile = new File(mcpDir, "conf/server.srg");
                 excFile = new File(mcpDir, "conf/server.exc");
                 break;
@@ -99,27 +87,20 @@ public class McpMappingLoader
                 throw new AssertionError("side is " + side);
         }
         
-        NameSet obfNS = new NameSet(NameSet.Type.OBF, side, mcVer);
-        NameSet srgNS = new NameSet(NameSet.Type.SRG, side, mcVer);
-        NameSet mcpNS = new NameSet(NameSet.Type.MCP, side, mcVer);
-        
-        forwardSRG = new Mapping(obfNS, srgNS);
-        reverseSRG = new Mapping(srgNS, obfNS);
-        
-        forwardCSV = new Mapping(srgNS, mcpNS);
-        reverseCSV = new Mapping(mcpNS, srgNS);
-        
         if (progress != null)
-            progress.setMax(3);
+            progress.setMax(4);
         if (progress != null)
             progress.set(0);
         loadEXCFile();
         if (progress != null)
             progress.set(1);
-        loadSRGMapping();
+        loadCSVMapping();
         if (progress != null)
             progress.set(2);
-        loadCSVMapping();
+        loadSRGMapping();
+        if (progress != null)
+            progress.set(3);
+        linkSrgDataToCsvData();
     }
     
     private void loadEXCFile() throws IOException
@@ -127,144 +108,38 @@ public class McpMappingLoader
         excFileData = new ExcFile(excFile);
     }
     
-    private void loadSRGMapping() throws IOException, CantLoadMCPMappingException
+    private void loadSRGMapping() throws IOException
     {
-        SrgFile srg = new SrgFile(srgFile);
-        
-        forwardSRG.setDefaultPackage("net/minecraft/src/");
-        reverseSRG.addPrefix("net/minecraft/src/", "");
-        
-        for (Map.Entry<String, ClassSrgData> entry : srg.classes.entrySet())
-        {
-            String obfClass = entry.getKey();
-            ClassSrgData data = entry.getValue();
-            
-        }
-        
-        for (Map.Entry<String, FieldSrgData> entry : srg.fields.entrySet())
-        {
-            String obfOwnerAndName = entry.getKey();
-            FieldSrgData data = entry.getValue();
-            
-            String obfOwner = obfOwnerAndName.substring(0, obfOwnerAndName.lastIndexOf('/'));
-            String obfName = obfOwnerAndName.substring(obfOwnerAndName.lastIndexOf('/') + 1);
-            
-            ClassSrgData srgOwner = srg.classes.get(obfOwner);
-            
-            // Enum values don't use the CSV and don't start with field_
-            if (data.getSrgName().startsWith("field_"))
-            {
-                if (srgFieldOwners.containsKey(data))
-                    System.out.println("SRG field " + data + " appears in multiple classes (at least " + srgFieldOwners.get(data) + " and " + srgOwner + ")");
-                
-                Set<String> owners = srgFieldOwners.get(data.getSrgName());
-                if (owners == null)
-                    srgFieldOwners.put(data.getSrgName(), owners = new HashSet<String>());
-                owners.add(srgOwner.getSrgName());
-            }
-            
-        }
-        
-        for (Map.Entry<String, MethodSrgData> entry : srg.methods.entrySet())
-        {
-            String obfOwnerNameAndDesc = entry.getKey();
-            MethodSrgData srgData = entry.getValue();
-            
-            String obfOwnerAndName = obfOwnerNameAndDesc.substring(0, obfOwnerNameAndDesc.indexOf('('));
-            String obfOwner = obfOwnerAndName.substring(0, obfOwnerAndName.lastIndexOf('/'));
-            String obfName = obfOwnerAndName.substring(obfOwnerAndName.lastIndexOf('/') + 1);
-            String obfDesc = obfOwnerNameAndDesc.substring(obfOwnerNameAndDesc.indexOf('('));
-            
-            String srgDesc = forwardSRG.mapMethodDescriptor(obfDesc);
-            String srgOwner = srg.classes.get(obfOwner);
-            
-            srgMethodDescriptors.put(srgData, srgDesc);
-            
-            Set<String> srgMethodOwnersThis = srgMethodOwners.get(srgData);
-            if (srgMethodOwnersThis == null)
-                srgMethodOwners.put(srgData, srgMethodOwnersThis = new HashSet<>());
-            srgMethodOwnersThis.add(srgOwner);
-            
-            forwardSRG.setMethod(obfOwner, obfName, obfDesc, srgData);
-            reverseSRG.setMethod(srgOwner, srgData, srgDesc, obfName);
-            
-            String[] srgExceptions = excFileData.getExceptionClasses(srgOwner, srgData, srgDesc);
-            if (srgExceptions.length > 0)
-            {
-                List<String> obfExceptions = new ArrayList<>();
-                for (String s : srgExceptions)
-                    obfExceptions.add(reverseSRG.getClass(s));
-                forwardSRG.setExceptions(obfOwner, obfName, obfDesc, obfExceptions);
-            }
-        }
+        srgFileData = new SrgFile(srgFile);
     }
     
-    private void loadCSVMapping() throws IOException, CantLoadMCPMappingException
+    private void loadCSVMapping() throws IOException
     {
-        Map<String, String> fieldNames = CsvFile.read(new File(mcpDir, "conf/fields.csv"), sideNumber);
-        Map<String, String> methodNames = CsvFile.read(new File(mcpDir, "conf/methods.csv"), sideNumber);
-        
-        for (Map.Entry<String, String> entry : fieldNames.entrySet())
+        csvFieldData = new CsvFile(new File(mcpDir, "conf/fields.csv"), side);
+        csvMethodData = new CsvFile(new File(mcpDir, "conf/methods.csv"), side);
+    }
+    
+    private void linkSrgDataToCsvData()
+    {
+        for (Entry<String, MethodSrgData> methodData : srgFileData.methods.entrySet())
         {
-            String srgName = entry.getKey();
-            String mcpName = entry.getValue();
-            
-            if (srgFieldOwners.get(srgName) == null)
-                System.out.println("Field exists in CSV but not in SRG: " + srgName + " (CSV name: " + mcpName + ")");
-            else
+            if (!srg2csvMethods.containsKey(methodData.getValue()) && csvMethodData.data.containsKey(methodData.getKey()))
             {
-                for (String srgOwner : srgFieldOwners.get(srgName))
-                {
-                    String mcpOwner = srgOwner;
-                    
-                    forwardCSV.setField(srgOwner, srgName, mcpName);
-                    reverseCSV.setField(mcpOwner, mcpName, srgName);
-                }
+                srg2csvMethods.put(methodData.getValue(), csvMethodData.data.get(methodData.getKey()));
             }
+            else if (srg2csvMethods.containsKey(methodData.getValue()))
+                System.out.println("SRG method " + methodData.getKey() + " has multiple entries in CSV file!");
         }
         
-        for (Map.Entry<String, String> entry : methodNames.entrySet())
+        for (Entry<String, FieldSrgData> fieldData : srgFileData.fields.entrySet())
         {
-            String srgName = entry.getKey();
-            String mcpName = entry.getValue();
-            
-            if (srgMethodOwners.get(srgName) == null)
+            if (!srg2csvFields.containsKey(fieldData.getValue()) && csvFieldData.data.containsKey(fieldData.getKey()))
             {
-                System.out.println("Method exists in CSV but not in SRG: " + srgName + " (CSV name: " + mcpName + ")");
+                srg2csvFields.put(fieldData.getValue(), csvFieldData.data.get(fieldData.getKey()));
             }
-            else
-            {
-                for (String srgOwner : srgMethodOwners.get(srgName))
-                {
-                    String srgDesc = srgMethodDescriptors.get(srgName);
-                    String mcpOwner = srgOwner;
-                    String mcpDesc = srgDesc;
-                    
-                    forwardCSV.setMethod(srgOwner, srgName, srgDesc, mcpName);
-                    reverseCSV.setMethod(mcpOwner, mcpName, mcpDesc, srgName);
-                }
-            }
+            else if (srg2csvFields.containsKey(fieldData.getValue()))
+                System.out.println("SRG field " + fieldData.getKey() + " has multiple entries in CSV file!");
         }
-    }
-    
-    public Mapping getReverseSRG()
-    {
-        return reverseSRG;
-    }
-    
-    public Mapping getReverseCSV()
-    {
-        return reverseCSV;
-    }
-    
-    public Mapping getForwardSRG()
-    {
-        return forwardSRG;
-    }
-    
-    public Mapping getForwardCSV()
-    {
-        return forwardCSV;
     }
     
     public static String getMCVer(File mcpDir) throws IOException
@@ -279,5 +154,10 @@ public class McpMappingLoader
             }
             return "unknown";
         }
+    }
+    
+    public File getMcpDir()
+    {
+        return this.mcpDir;
     }
 }

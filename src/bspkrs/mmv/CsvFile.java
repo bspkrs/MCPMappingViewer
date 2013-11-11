@@ -31,20 +31,20 @@ import java.util.TreeMap;
 
 public class CsvFile
 {
-    private final File           file;
-    private Map<String, CsvData> data;
-    private final Side           side;
+    private final File                file;
+    public final Map<String, CsvData> data;
+    private final Side                side;
     
     public CsvFile(File file, Side side) throws IOException
     {
         this.file = file;
         this.side = side;
+        this.data = new TreeMap<String, CsvData>();
         readFromFile();
     }
     
     public void readFromFile() throws IOException
     {
-        data = new TreeMap<String, CsvData>();
         Scanner in = new Scanner(new BufferedReader(new FileReader(file)));
         String strSide = String.valueOf(side.intSide);
         try

@@ -1,6 +1,5 @@
 package bspkrs.mmv;
 
-@SuppressWarnings("rawtypes")
 public class CsvData implements Comparable<CsvData>
 {
     private final String srgName;
