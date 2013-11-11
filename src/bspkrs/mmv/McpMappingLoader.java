@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 
-public class MappingLoader_MCP
+public class McpMappingLoader
 {
     
     public static class CantLoadMCPMappingException extends Exception
@@ -61,7 +61,7 @@ public class MappingLoader_MCP
                                                                                      
     private ExcFile                  excFileData;
     
-    public MappingLoader_MCP(String mcVer, Side side, File mcpDir, IProgressListener progress) throws IOException, CantLoadMCPMappingException
+    public McpMappingLoader(String mcVer, Side side, File mcpDir, IProgressListener progress) throws IOException, CantLoadMCPMappingException
     {
         this.mcVer = mcVer;
         this.mcpDir = mcpDir;
@@ -129,50 +129,46 @@ public class MappingLoader_MCP
     
     private void loadSRGMapping() throws IOException, CantLoadMCPMappingException
     {
-        SrgFile srg = new SrgFile(srgFile, false);
+        SrgFile srg = new SrgFile(srgFile);
         
         forwardSRG.setDefaultPackage("net/minecraft/src/");
         reverseSRG.addPrefix("net/minecraft/src/", "");
         
-        for (Map.Entry<String, String> entry : srg.classes.entrySet())
+        for (Map.Entry<String, ClassSrgData> entry : srg.classes.entrySet())
         {
             String obfClass = entry.getKey();
-            String srgClass = entry.getValue();
+            ClassSrgData data = entry.getValue();
             
-            forwardSRG.setClass(obfClass, srgClass);
-            reverseSRG.setClass(srgClass, obfClass);
         }
         
-        for (Map.Entry<String, String> entry : srg.fields.entrySet())
+        for (Map.Entry<String, FieldSrgData> entry : srg.fields.entrySet())
         {
             String obfOwnerAndName = entry.getKey();
-            String srgName = entry.getValue();
+            FieldSrgData data = entry.getValue();
             
             String obfOwner = obfOwnerAndName.substring(0, obfOwnerAndName.lastIndexOf('/'));
             String obfName = obfOwnerAndName.substring(obfOwnerAndName.lastIndexOf('/') + 1);
             
-            String srgOwner = srg.classes.get(obfOwner);
+            ClassSrgData srgOwner = srg.classes.get(obfOwner);
             
             // Enum values don't use the CSV and don't start with field_
-            if (srgName.startsWith("field_"))
+            if (data.getSrgName().startsWith("field_"))
             {
-                if (srgFieldOwners.containsKey(srgName))
-                    System.out.println("SRG field " + srgName + " appears in multiple classes (at least " + srgFieldOwners.get(srgName) + " and " + srgOwner + ")");
+                if (srgFieldOwners.containsKey(data))
+                    System.out.println("SRG field " + data + " appears in multiple classes (at least " + srgFieldOwners.get(data) + " and " + srgOwner + ")");
                 
-                Set<String> owners = srgFieldOwners.get(srgName);
+                Set<String> owners = srgFieldOwners.get(data.getSrgName());
                 if (owners == null)
-                    srgFieldOwners.put(srgName, owners = new HashSet<String>());
-                owners.add(srgOwner);
+                    srgFieldOwners.put(data.getSrgName(), owners = new HashSet<String>());
+                owners.add(srgOwner.getSrgName());
             }
             
-            forwardSRG.setField(obfOwner, obfName, srgName);
-            reverseSRG.setField(srgOwner, srgName, obfName);
         }
         
-        for (Map.Entry<String, String> entry : srg.methods.entrySet())
+        for (Map.Entry<String, MethodSrgData> entry : srg.methods.entrySet())
         {
             String obfOwnerNameAndDesc = entry.getKey();
-            String srgName = entry.getValue();
+            MethodSrgData srgData = entry.getValue();
             
             String obfOwnerAndName = obfOwnerNameAndDesc.substring(0, obfOwnerNameAndDesc.indexOf('('));
             String obfOwner = obfOwnerAndName.substring(0, obfOwnerAndName.lastIndexOf('/'));
@@ -182,17 +178,17 @@ public class MappingLoader_MCP
             String srgDesc = forwardSRG.mapMethodDescriptor(obfDesc);
             String srgOwner = srg.classes.get(obfOwner);
             
-            srgMethodDescriptors.put(srgName, srgDesc);
+            srgMethodDescriptors.put(srgData, srgDesc);
             
-            Set<String> srgMethodOwnersThis = srgMethodOwners.get(srgName);
+            Set<String> srgMethodOwnersThis = srgMethodOwners.get(srgData);
             if (srgMethodOwnersThis == null)
-                srgMethodOwners.put(srgName, srgMethodOwnersThis = new HashSet<>());
+                srgMethodOwners.put(srgData, srgMethodOwnersThis = new HashSet<>());
             srgMethodOwnersThis.add(srgOwner);
             
-            forwardSRG.setMethod(obfOwner, obfName, obfDesc, srgName);
-            reverseSRG.setMethod(srgOwner, srgName, srgDesc, obfName);
+            forwardSRG.setMethod(obfOwner, obfName, obfDesc, srgData);
+            reverseSRG.setMethod(srgOwner, srgData, srgDesc, obfName);
             
-            String[] srgExceptions = excFileData.getExceptionClasses(srgOwner, srgName, srgDesc);
+            String[] srgExceptions = excFileData.getExceptionClasses(srgOwner, srgData, srgDesc);
             if (srgExceptions.length > 0)
             {
                 List<String> obfExceptions = new ArrayList<>();

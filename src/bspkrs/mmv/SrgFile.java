@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Alex "immibis" Campbell
+ * Copyright (C) 2013 Alex "immibis" Campbell, bspkrs
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation 
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, 
@@ -12,6 +12,8 @@
  * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * 
+ * Modified version of SrgFile.java from BON
  */
 package bspkrs.mmv;
 
@@ -26,17 +28,17 @@ import java.util.Scanner;
 public class SrgFile
 {
     
-    public Map<String, String> classes = new HashMap<String, String>(); // name -> name
-    public Map<String, String> fields  = new HashMap<String, String>(); // owner/name -> name
-    public Map<String, String> methods = new HashMap<String, String>(); // owner/namedesc -> name
-                                                                        
+    public final Map<String, ClassSrgData>  classes = new HashMap<String, ClassSrgData>();
+    public final Map<String, FieldSrgData>  fields  = new HashMap<String, FieldSrgData>();
+    public final Map<String, MethodSrgData> methods = new HashMap<String, MethodSrgData>();
+    
     public static String getLastComponent(String s)
     {
         String[] parts = s.split("/");
         return parts[parts.length - 1];
     }
     
-    public SrgFile(File f, boolean reverse) throws IOException
+    public SrgFile(File f) throws IOException
     {
         Scanner in = new Scanner(new BufferedReader(new FileReader(f)));
         try
@@ -45,40 +47,42 @@ public class SrgFile
             {
                 if (in.hasNext("CL:"))
                 {
-                    in.next();
+                    // CL: a net/minecraft/util/EnumChatFormatting
+                    in.next(); // skip CL:
                     String obf = in.next();
                     String deobf = in.next();
-                    if (reverse)
-                        classes.put(deobf, obf);
-                    else
-                        classes.put(obf, deobf);
+                    String srgName = getLastComponent(deobf);
+                    String pkgName = deobf.substring(0, deobf.indexOf(srgName) - 1);
+                    classes.put(srgName, new ClassSrgData(obf, srgName, pkgName, in.hasNext("#C")));
                 }
                 else if (in.hasNext("FD:"))
                 {
-                    in.next();
-                    String obf = in.next();
+                    // FD: aql/c net/minecraft/block/BlockStoneBrick/field_94408_c #C
+                    in.next(); // skip FD:
+                    String[] obf = in.next().split("/");
+                    String obfOwner = obf[0];
+                    String obfName = obf[1];
                     String deobf = in.next();
-                    if (reverse)
-                        fields.put(deobf, getLastComponent(obf));
-                    else
-                        fields.put(obf, getLastComponent(deobf));
+                    String srgName = getLastComponent(deobf);
+                    String srgOwner = getLastComponent(deobf.substring(0, deobf.indexOf(srgName) - 1));
+                    fields.put(srgName, new FieldSrgData(obfOwner, obfName, srgOwner, srgOwner, in.hasNext("#C")));
                 }
                 else if (in.hasNext("MD:"))
                 {
-                    in.next();
-                    String obf = in.next();
-                    String obfdesc = in.next();
+                    // MD: aor/a (Lmt;)V net/minecraft/block/BlockHay/func_94332_a (Lnet/minecraft/client/renderer/texture/IconRegister;)V #C
+                    in.next(); // skip MD:
+                    String[] obf = in.next().split("/");
+                    String obfOwner = obf[0];
+                    String obfName = obf[1];
+                    String obfDescriptor = in.next();
                     String deobf = in.next();
-                    String deobfdesc = in.next();
-                    if (reverse)
-                        methods.put(deobf + deobfdesc, getLastComponent(obf));
-                    else
-                        methods.put(obf + obfdesc, getLastComponent(deobf));
+                    String srgName = getLastComponent(deobf);
+                    String srgOwner = getLastComponent(deobf.substring(0, deobf.indexOf(srgName) - 1));
+                    String srgDescriptor = in.next();
+                    methods.put(srgName, new MethodSrgData(obfOwner, obfName, obfDescriptor, srgOwner, srgName, srgDescriptor, in.hasNext("#C")));
                 }
                 else
-                {
                     in.nextLine();
-                }
             }
         }
         finally

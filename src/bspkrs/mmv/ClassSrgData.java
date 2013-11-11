@@ -2,15 +2,17 @@ package bspkrs.mmv;
 
 public class ClassSrgData
 {
-    private final String obfName;
-    private final String srgName;
-    private String       srgPkgName;
+    private final String  obfName;
+    private final String  srgName;
+    private String        srgPkgName;
+    private final boolean isClientOnly;
     
-    public ClassSrgData(String obfName, String srgName, String srgPkgName)
+    public ClassSrgData(String obfName, String srgName, String srgPkgName, boolean isClientOnly)
     {
         this.obfName = obfName;
         this.srgName = srgName;
         this.srgPkgName = srgPkgName;
+        this.isClientOnly = isClientOnly;
     }
     
     public String getObfName()
@@ -32,5 +34,10 @@ public class ClassSrgData
     {
         this.srgPkgName = pkg;
         return this;
+    }
+
+    public boolean isClientOnly()
+    {
+        return isClientOnly;
     }
 }
