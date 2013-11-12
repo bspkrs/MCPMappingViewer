@@ -21,20 +21,20 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.TreeMap;
 
 public class SrgFile
 {
     
-    public final Map<String, ClassSrgData>             classes      = new HashMap<String, ClassSrgData>();
-    public final Map<String, FieldSrgData>             fields       = new HashMap<String, FieldSrgData>();
-    public final Map<String, MethodSrgData>            methods      = new HashMap<String, MethodSrgData>();
-    public final Map<ClassSrgData, Set<MethodSrgData>> classMethods = new HashMap<ClassSrgData, Set<MethodSrgData>>();
-    public final Map<ClassSrgData, Set<FieldSrgData>>  classFields  = new HashMap<ClassSrgData, Set<FieldSrgData>>();
+    public final Map<String, ClassSrgData>             classes      = new TreeMap<String, ClassSrgData>();            // full/pkg/ClassSrgName -> ClassSrgData
+    public final Map<String, FieldSrgData>             fields       = new TreeMap<String, FieldSrgData>();            // field_12345_a -> FieldSrgData
+    public final Map<String, MethodSrgData>            methods      = new TreeMap<String, MethodSrgData>();           // func_12345_1 -> MethodSrgData
+    public final Map<ClassSrgData, Set<MethodSrgData>> classMethods = new TreeMap<ClassSrgData, Set<MethodSrgData>>();
+    public final Map<ClassSrgData, Set<FieldSrgData>>  classFields  = new TreeMap<ClassSrgData, Set<FieldSrgData>>();
     
     public static String getLastComponent(String s)
     {
@@ -56,9 +56,9 @@ public class SrgFile
                     String obf = in.next();
                     String deobf = in.next();
                     String srgName = getLastComponent(deobf);
-                    String pkgName = deobf.substring(0, deobf.indexOf(srgName) - 1);
+                    String pkgName = deobf.substring(0, deobf.lastIndexOf('/'));
                     ClassSrgData classData = new ClassSrgData(obf, srgName, pkgName, in.hasNext("#C"));
-                    classes.put(srgName, classData);
+                    classes.put(pkgName + "/" + srgName, classData);
                     if (!classMethods.containsKey(classData))
                         classMethods.put(classData, new HashSet<MethodSrgData>());
                     if (!classFields.containsKey(classData))
@@ -73,10 +73,12 @@ public class SrgFile
                     String obfName = obf[1];
                     String deobf = in.next();
                     String srgName = getLastComponent(deobf);
-                    String srgOwner = getLastComponent(deobf.substring(0, deobf.indexOf(srgName) - 1));
-                    FieldSrgData fieldData = new FieldSrgData(obfOwner, obfName, srgOwner, srgName, in.hasNext("#C"));
+                    String srgPkg = deobf.substring(0, deobf.lastIndexOf('/'));
+                    String srgOwner = getLastComponent(srgPkg);
+                    srgPkg = srgPkg.substring(0, srgPkg.lastIndexOf('/'));
+                    FieldSrgData fieldData = new FieldSrgData(obfOwner, obfName, srgOwner, srgPkg, srgName, in.hasNext("#C"));
                     fields.put(srgName, fieldData);
-                    classFields.get(classes.get(srgOwner)).add(fieldData);
+                    classFields.get(classes.get(srgPkg + "/" + srgOwner)).add(fieldData);
                 }
                 else if (in.hasNext("MD:"))
                 {
@@ -88,11 +90,13 @@ public class SrgFile
                     String obfDescriptor = in.next();
                     String deobf = in.next();
                     String srgName = getLastComponent(deobf);
-                    String srgOwner = getLastComponent(deobf.substring(0, deobf.indexOf(srgName) - 1));
+                    String srgPkg = deobf.substring(0, deobf.lastIndexOf('/'));
+                    String srgOwner = getLastComponent(srgPkg);
+                    srgPkg = srgPkg.substring(0, srgPkg.lastIndexOf('/'));
                     String srgDescriptor = in.next();
-                    MethodSrgData methodData = new MethodSrgData(obfOwner, obfName, obfDescriptor, srgOwner, srgName, srgDescriptor, in.hasNext("#C"));
+                    MethodSrgData methodData = new MethodSrgData(obfOwner, obfName, obfDescriptor, srgOwner, srgPkg, srgName, srgDescriptor, in.hasNext("#C"));
                     methods.put(srgName, methodData);
-                    classMethods.get(classes.get(srgOwner)).add(methodData);
+                    classMethods.get(classes.get(srgPkg + "/" + srgOwner)).add(methodData);
                 }
                 else
                     in.nextLine();

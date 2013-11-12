@@ -1,6 +1,6 @@
 package bspkrs.mmv;
 
-public class ClassSrgData
+public class ClassSrgData implements Comparable<ClassSrgData>
 {
     private final String  obfName;
     private final String  srgName;
@@ -35,9 +35,23 @@ public class ClassSrgData
         this.srgPkgName = pkg;
         return this;
     }
-
+    
     public boolean isClientOnly()
     {
         return isClientOnly;
+    }
+    
+    public String getFullyQualifiedSrgName()
+    {
+        return srgPkgName + "/" + srgName;
+    }
+    
+    @Override
+    public int compareTo(ClassSrgData o)
+    {
+        if (o != null)
+            return getFullyQualifiedSrgName().compareToIgnoreCase(o.getFullyQualifiedSrgName());
+        else
+            return 1;
     }
 }

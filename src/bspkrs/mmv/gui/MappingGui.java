@@ -469,7 +469,7 @@ public class MappingGui extends JFrame
                         
                         String mcVer = McpMappingLoader.getMCVer(mcpDir);
                         
-                        if (!mcpInstances.containsKey(mcVer + " " + side) || (currentLoader != null && !mcpDir.equals(currentLoader.getMcpDir())))
+                        if (!mcpInstances.containsKey(mcpDir.getAbsolutePath() + " " + side))
                         {
                             progress.start(0, "Reading MCP configuration");
                             currentLoader = new McpMappingLoader(mcVer, side, mcpDir, progress);

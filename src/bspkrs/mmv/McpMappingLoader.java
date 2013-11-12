@@ -20,10 +20,14 @@ import immibis.bon.gui.Side;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
+import java.util.TreeMap;
+
+import javax.swing.event.TableModelListener;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableModel;
 
 public class McpMappingLoader
 {
@@ -42,15 +46,16 @@ public class McpMappingLoader
     @SuppressWarnings("unused")
     private final String                mcVer;
     private final File                  mcpDir;
-    private final File                  srgFile, excFile;
+    private final File                  srgFile;
+    //    private final File                  excFile;
     private SrgFile                     srgFileData;
     private CsvFile                     csvFieldData, csvMethodData;
     
-    private Map<MethodSrgData, CsvData> srg2csvMethods = new HashMap<MethodSrgData, CsvData>();
-    private Map<FieldSrgData, CsvData>  srg2csvFields  = new HashMap<FieldSrgData, CsvData>();
+    private Map<MethodSrgData, CsvData> srg2csvMethods = new TreeMap<MethodSrgData, CsvData>();
+    private Map<FieldSrgData, CsvData>  srg2csvFields  = new TreeMap<FieldSrgData, CsvData>();
     
-    @SuppressWarnings("unused")
-    private ExcFile                     excFileData;
+    //    @SuppressWarnings("unused")
+    //    private ExcFile                     excFileData;
     
     public McpMappingLoader(String mcVer, Side side, File mcpDir, IProgressListener progress) throws IOException, CantLoadMCPMappingException
     {
@@ -64,23 +69,23 @@ public class McpMappingLoader
                 if (new File(mcpDir, "conf/packaged.srg").exists())
                 {
                     srgFile = new File(mcpDir, "conf/packaged.srg");
-                    excFile = new File(mcpDir, "conf/packaged.exc");
+                    //excFile = new File(mcpDir, "conf/packaged.exc");
                 }
                 else
                 {
                     srgFile = new File(mcpDir, "conf/joined.srg");
-                    excFile = new File(mcpDir, "conf/joined.exc");
+                    //excFile = new File(mcpDir, "conf/joined.exc");
                 }
                 break;
             
             case Client:
                 srgFile = new File(mcpDir, "conf/client.srg");
-                excFile = new File(mcpDir, "conf/client.exc");
+                //excFile = new File(mcpDir, "conf/client.exc");
                 break;
             
             case Server:
                 srgFile = new File(mcpDir, "conf/server.srg");
-                excFile = new File(mcpDir, "conf/server.exc");
+                //excFile = new File(mcpDir, "conf/server.exc");
                 break;
             
             default:
@@ -105,7 +110,7 @@ public class McpMappingLoader
     
     private void loadEXCFile() throws IOException
     {
-        excFileData = new ExcFile(excFile);
+        //        excFileData = new ExcFile(excFile);
     }
     
     private void loadSRGMapping() throws IOException
@@ -142,6 +147,21 @@ public class McpMappingLoader
         }
     }
     
+    public TableModel getClassModel()
+    {
+        return null;
+    }
+    
+    public TableModel getMethodModel(String srgPkgAndOwner)
+    {
+        return null;
+    }
+    
+    public TableModel getFieldModel(String srgPkgAndOwner)
+    {
+        return null;
+    }
+    
     public static String getMCVer(File mcpDir) throws IOException
     {
         try (Scanner in = new Scanner(new File(mcpDir, "conf/version.cfg")))
@@ -159,5 +179,179 @@ public class McpMappingLoader
     public File getMcpDir()
     {
         return this.mcpDir;
+    }
+    
+    public class ClassModel extends AbstractTableModel
+    {
+        private static final long serialVersionUID = 1L;
+        private String[]          columnNames      = { "Pkg name", "SRG name", "Obf name" };
+        
+        public ClassModel(Map<String, ClassSrgData> map)
+        {   
+            
+        }
+        
+        @Override
+        public int getRowCount()
+        {
+            return srgFileData.classes.size();
+        }
+        
+        @Override
+        public int getColumnCount()
+        {
+            return columnNames.length;
+        }
+        
+        @Override
+        public String getColumnName(int columnIndex)
+        {
+            if (columnIndex < columnNames.length && columnIndex <= 0)
+                return columnNames[columnIndex];
+            else
+                return "";
+        }
+        
+        @Override
+        public Class<?> getColumnClass(int columnIndex)
+        {
+            return String.class;
+        }
+        
+        @Override
+        public boolean isCellEditable(int rowIndex, int columnIndex)
+        {
+            return false;
+        }
+        
+        @Override
+        public Object getValueAt(int rowIndex, int columnIndex)
+        {
+            return null;
+        }
+        
+        @Override
+        public void setValueAt(Object aValue, int rowIndex, int columnIndex)
+        {   
+            
+        }
+    }
+    
+    public class FieldModel extends AbstractTableModel
+    {
+        private static final long serialVersionUID = 1L;
+        
+        @Override
+        public int getRowCount()
+        {
+            return 0;
+        }
+        
+        @Override
+        public int getColumnCount()
+        {
+            return 0;
+        }
+        
+        @Override
+        public String getColumnName(int columnIndex)
+        {
+            return null;
+        }
+        
+        @Override
+        public Class<?> getColumnClass(int columnIndex)
+        {
+            return null;
+        }
+        
+        @Override
+        public boolean isCellEditable(int rowIndex, int columnIndex)
+        {
+            return false;
+        }
+        
+        @Override
+        public Object getValueAt(int rowIndex, int columnIndex)
+        {
+            return null;
+        }
+        
+        @Override
+        public void setValueAt(Object aValue, int rowIndex, int columnIndex)
+        {   
+            
+        }
+        
+        @Override
+        public void addTableModelListener(TableModelListener l)
+        {   
+            
+        }
+        
+        @Override
+        public void removeTableModelListener(TableModelListener l)
+        {   
+            
+        }
+    }
+    
+    public class MethodModel extends AbstractTableModel
+    {
+        private static final long serialVersionUID = 1L;
+        
+        @Override
+        public int getRowCount()
+        {
+            return 0;
+        }
+        
+        @Override
+        public int getColumnCount()
+        {
+            return 0;
+        }
+        
+        @Override
+        public String getColumnName(int columnIndex)
+        {
+            return null;
+        }
+        
+        @Override
+        public Class<?> getColumnClass(int columnIndex)
+        {
+            return null;
+        }
+        
+        @Override
+        public boolean isCellEditable(int rowIndex, int columnIndex)
+        {
+            return false;
+        }
+        
+        @Override
+        public Object getValueAt(int rowIndex, int columnIndex)
+        {
+            return null;
+        }
+        
+        @Override
+        public void setValueAt(Object aValue, int rowIndex, int columnIndex)
+        {   
+            
+        }
+        
+        @Override
+        public void addTableModelListener(TableModelListener l)
+        {   
+            
+        }
+        
+        @Override
+        public void removeTableModelListener(TableModelListener l)
+        {   
+            
+        }
     }
 }
