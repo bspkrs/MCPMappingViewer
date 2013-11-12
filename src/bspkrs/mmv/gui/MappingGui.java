@@ -165,7 +165,8 @@ public class MappingGui extends JFrame
             }
         }
         
-        cmbMCPDirPath.setSelectedIndex(0);
+        if (cmbMCPDirPath.getItemCount() > 0)
+            cmbMCPDirPath.setSelectedIndex(0);
         
         Side side = Side.valueOf(prefs.get(PREFS_KEY_SIDE, Side.Universal.toString()));
         cmbSide.setSelectedItem(side);
