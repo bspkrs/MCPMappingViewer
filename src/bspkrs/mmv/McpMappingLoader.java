@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013 Alex "immibis" Campbell
+ * Copyright (C) 2013 bspkrs
+ * Portions Copyright (C) 2013 Alex "immibis" Campbell
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation 
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, 
@@ -23,9 +24,9 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.TreeMap;
 
-import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 
@@ -147,21 +148,6 @@ public class McpMappingLoader
         }
     }
     
-    public TableModel getClassModel()
-    {
-        return null;
-    }
-    
-    public TableModel getMethodModel(String srgPkgAndOwner)
-    {
-        return null;
-    }
-    
-    public TableModel getFieldModel(String srgPkgAndOwner)
-    {
-        return null;
-    }
-    
     public static String getMCVer(File mcpDir) throws IOException
     {
         try (Scanner in = new Scanner(new File(mcpDir, "conf/version.cfg")))
@@ -181,20 +167,52 @@ public class McpMappingLoader
         return this.mcpDir;
     }
     
+    public TableModel getClassModel()
+    {
+        return new ClassModel(this.srgFileData.classes);
+    }
+    
+    public TableModel getMethodModel(String srgPkgAndOwner)
+    {
+        ClassSrgData classData = srgFileData.classes.get(srgPkgAndOwner);
+        Set<MethodSrgData> methods = srgFileData.classMethods.get(classData);
+        return new MethodModel(methods);
+    }
+    
+    public TableModel getFieldModel(String srgPkgAndOwner)
+    {
+        ClassSrgData classData = srgFileData.classes.get(srgPkgAndOwner);
+        Set<FieldSrgData> fields = srgFileData.classFields.get(classData);
+        return new FieldModel(fields);
+    }
+    
     public class ClassModel extends AbstractTableModel
     {
-        private static final long serialVersionUID = 1L;
-        private String[]          columnNames      = { "Pkg name", "SRG name", "Obf name" };
+        private static final long               serialVersionUID = 1L;
+        private final String[]                  columnNames      = { "Pkg name", "SRG name", "Obf name" };
+        private final Class[]                   columnTypes      = { String.class, String.class, String.class };
+        private final Object[][]                data;
+        private final Map<String, ClassSrgData> mapRef;
         
         public ClassModel(Map<String, ClassSrgData> map)
-        {   
+        {
+            mapRef = map;
+            data = new Object[mapRef.size()][columnNames.length];
+            int i = 0;
             
+            for (ClassSrgData classData : mapRef.values())
+            {
+                data[i][0] = classData.getSrgPkgName();
+                data[i][1] = classData.getSrgName();
+                data[i][2] = classData.getObfName();
+                i++;
+            }
         }
         
         @Override
         public int getRowCount()
         {
-            return srgFileData.classes.size();
+            return data.length;
         }
         
         @Override
@@ -206,7 +224,7 @@ public class McpMappingLoader
         @Override
         public String getColumnName(int columnIndex)
         {
-            if (columnIndex < columnNames.length && columnIndex <= 0)
+            if (columnIndex < columnNames.length && columnIndex >= 0)
                 return columnNames[columnIndex];
             else
                 return "";
@@ -227,101 +245,75 @@ public class McpMappingLoader
         @Override
         public Object getValueAt(int rowIndex, int columnIndex)
         {
-            return null;
+            return data[rowIndex][columnIndex];
         }
         
         @Override
         public void setValueAt(Object aValue, int rowIndex, int columnIndex)
-        {   
-            
-        }
-    }
-    
-    public class FieldModel extends AbstractTableModel
-    {
-        private static final long serialVersionUID = 1L;
-        
-        @Override
-        public int getRowCount()
         {
-            return 0;
-        }
-        
-        @Override
-        public int getColumnCount()
-        {
-            return 0;
-        }
-        
-        @Override
-        public String getColumnName(int columnIndex)
-        {
-            return null;
-        }
-        
-        @Override
-        public Class<?> getColumnClass(int columnIndex)
-        {
-            return null;
-        }
-        
-        @Override
-        public boolean isCellEditable(int rowIndex, int columnIndex)
-        {
-            return false;
-        }
-        
-        @Override
-        public Object getValueAt(int rowIndex, int columnIndex)
-        {
-            return null;
-        }
-        
-        @Override
-        public void setValueAt(Object aValue, int rowIndex, int columnIndex)
-        {   
-            
-        }
-        
-        @Override
-        public void addTableModelListener(TableModelListener l)
-        {   
-            
-        }
-        
-        @Override
-        public void removeTableModelListener(TableModelListener l)
-        {   
-            
+            // TODO
         }
     }
     
     public class MethodModel extends AbstractTableModel
     {
-        private static final long serialVersionUID = 1L;
+        private static final long        serialVersionUID = 1L;
+        private final String[]           columnNames      = { "MCP Name", "SRG Name", "Obf Name", "Descriptor", "Comment" };
+        private final Class[]            columnTypes      = { String.class, String.class, String.class, String.class, String.class };
+        private final Object[][]         data;
+        private final Set<MethodSrgData> setRef;
+        
+        public MethodModel(Set<MethodSrgData> srgMethodSet)
+        {
+            setRef = srgMethodSet;
+            data = new Object[setRef.size()][columnNames.length];
+            int i = 0;
+            
+            for (MethodSrgData methodData : setRef)
+            {
+                CsvData csvData = srg2csvMethods.get(methodData);
+                if (csvData != null)
+                {
+                    data[i][0] = csvData.getMcpName();
+                    data[i][4] = csvData.getComment();
+                }
+                else
+                {
+                    data[i][0] = "";
+                    data[i][4] = "";
+                }
+                data[i][1] = methodData.getSrgName();
+                data[i][2] = methodData.getObfName();
+                data[i][3] = methodData.getSrgDescriptor();
+                i++;
+            }
+        }
         
         @Override
         public int getRowCount()
         {
-            return 0;
+            return data.length;
         }
         
         @Override
         public int getColumnCount()
         {
-            return 0;
+            return columnNames.length;
         }
         
         @Override
         public String getColumnName(int columnIndex)
         {
-            return null;
+            if (columnIndex < columnNames.length && columnIndex >= 0)
+                return columnNames[columnIndex];
+            else
+                return "";
         }
         
         @Override
         public Class<?> getColumnClass(int columnIndex)
         {
-            return null;
+            return String.class;
         }
         
         @Override
@@ -333,25 +325,92 @@ public class McpMappingLoader
         @Override
         public Object getValueAt(int rowIndex, int columnIndex)
         {
-            return null;
+            return data[rowIndex][columnIndex];
         }
         
         @Override
         public void setValueAt(Object aValue, int rowIndex, int columnIndex)
-        {   
+        {
+            // TODO
+        }
+    }
+    
+    public class FieldModel extends AbstractTableModel
+    {
+        private static final long       serialVersionUID = 1L;
+        private final String[]          columnNames      = { "MCP Name", "SRG Name", "Obf Name", "Comment" };
+        private final Class[]           columnTypes      = { String.class, String.class, String.class, String.class };
+        private final Object[][]        data;
+        private final Set<FieldSrgData> setRef;
+        
+        public FieldModel(Set<FieldSrgData> srgFieldSet)
+        {
+            setRef = srgFieldSet;
+            data = new Object[setRef.size()][columnNames.length];
+            int i = 0;
             
+            for (FieldSrgData fieldData : setRef)
+            {
+                CsvData csvData = srg2csvFields.get(fieldData);
+                if (csvData != null)
+                {
+                    data[i][0] = csvData.getMcpName();
+                    data[i][3] = csvData.getComment();
+                }
+                else
+                {
+                    data[i][0] = "";
+                    data[i][3] = "";
+                }
+                data[i][1] = fieldData.getSrgName();
+                data[i][2] = fieldData.getObfName();
+                i++;
+            }
         }
         
         @Override
-        public void addTableModelListener(TableModelListener l)
-        {   
-            
+        public int getRowCount()
+        {
+            return data.length;
         }
         
         @Override
-        public void removeTableModelListener(TableModelListener l)
-        {   
-            
+        public int getColumnCount()
+        {
+            return columnNames.length;
+        }
+        
+        @Override
+        public String getColumnName(int columnIndex)
+        {
+            if (columnIndex < columnNames.length && columnIndex >= 0)
+                return columnNames[columnIndex];
+            else
+                return "";
+        }
+        
+        @Override
+        public Class<?> getColumnClass(int columnIndex)
+        {
+            return String.class;
+        }
+        
+        @Override
+        public boolean isCellEditable(int rowIndex, int columnIndex)
+        {
+            return false;
+        }
+        
+        @Override
+        public Object getValueAt(int rowIndex, int columnIndex)
+        {
+            return data[rowIndex][columnIndex];
+        }
+        
+        @Override
+        public void setValueAt(Object aValue, int rowIndex, int columnIndex)
+        {
+            // TODO
         }
     }
 }

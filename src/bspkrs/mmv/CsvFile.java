@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013 Alex "immibis" Campbell, bspkrs
+ * Copyright (C) 2013 bspkrs
+ * Portions Copyright (C) 2013 Alex "immibis" Campbell
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation 
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, 
@@ -12,8 +13,6 @@
  * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- * 
- * Modified version of CsvFile.java from BON
  */
 package bspkrs.mmv;
 
@@ -56,6 +55,7 @@ public class CsvFile
                 String mcpName = in.next();
                 String side = in.next();
                 String comment = in.nextLine();
+                comment = comment.substring(1); // removes the ','
                 if (side.equals(strSide))
                 {
                     data.put(srgName, new CsvData(srgName, mcpName, this.side.intSide, comment));

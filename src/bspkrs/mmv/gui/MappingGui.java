@@ -1,8 +1,20 @@
-package bspkrs.mmv.gui;
-
 /*
- * This is mainly just a mock-up of the actual mapping GUI, so it is subject to change
+ * Copyright (C) 2013 bspkrs
+ * Portions Copyright (C) 2013 Alex "immibis" Campbell
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation 
+ * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, 
+ * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO 
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+package bspkrs.mmv.gui;
 
 import immibis.bon.IProgressListener;
 import immibis.bon.gui.Reference;
@@ -18,6 +30,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -44,27 +58,91 @@ import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 
 import bspkrs.mmv.McpMappingLoader;
 
 public class MappingGui extends JFrame
 {
-    private static final long             serialVersionUID = 1L;
-    private final Preferences             prefs            = Preferences.userNodeForPackage(MappingGui.class);
+    private static final long             serialVersionUID    = 1L;
+    private final Preferences             prefs               = Preferences.userNodeForPackage(MappingGui.class);
     private JFrame                        frmMcpMappingViewer;
     private JComboBox<Side>               cmbSide;
     private JComboBox<String>             cmbMCPDirPath;
     private JProgressBar                  progressBar;
-    private final static String           PREFS_KEY_MCPDIR = "mcpDir";
-    private final static String           PREFS_KEY_SIDE   = "side";
-    private final Reference<File>         mcpBrowseDir     = new Reference<File>();
+    private final static String           PREFS_KEY_MCPDIR    = "mcpDir";
+    private final static String           PREFS_KEY_SIDE      = "side";
+    private final Reference<File>         mcpBrowseDir        = new Reference<File>();
     private JTable                        tblClasses;
     private JTable                        tblMethods;
     private JTable                        tblFields;
-    private Thread                        curTask          = null;
-    private Map<String, McpMappingLoader> mcpInstances     = new HashMap<>();
+    private Thread                        curTask             = null;
+    private Map<String, McpMappingLoader> mcpInstances        = new HashMap<>();
     private McpMappingLoader              currentLoader;
+    private DefaultTableModel             classesDefaultModel = new DefaultTableModel(
+                                                                      new Object[][] {
+                                                                      { null, null, null },
+                                                                      },
+                                                                      new String[] {
+                                                                      "Pkg name", "SRG name", "Obf name"
+                                                                      }
+                                                                      )
+                                                                      {
+                                                                          private static final long serialVersionUID = 1L;
+                                                                          @SuppressWarnings("rawtypes")
+                                                                          Class[]                   columnTypes      = new Class[] {
+                                                                                                                     String.class, String.class, String.class
+                                                                                                                     };
+                                                                          
+                                                                          @SuppressWarnings({ "unchecked", "rawtypes" })
+                                                                          @Override
+                                                                          public Class getColumnClass(int columnIndex)
+                                                                          {
+                                                                              return columnTypes[columnIndex];
+                                                                          }
+                                                                      };
+    private DefaultTableModel             methodsDefaultModel = new DefaultTableModel(
+                                                                      new Object[][] {
+                                                                      { null, null, null, null, null },
+                                                                      },
+                                                                      new String[] {
+                                                                      "MCP Name", "SRG Name", "Obf Name", "Descriptor", "Comment"
+                                                                      }
+                                                                      )
+                                                                      {
+                                                                          private static final long serialVersionUID = 1L;
+                                                                          boolean[]                 columnEditables  = new boolean[] {
+                                                                                                                     false, false, false, false, false
+                                                                                                                     };
+                                                                          
+                                                                          @Override
+                                                                          public boolean isCellEditable(int row, int column)
+                                                                          {
+                                                                              return columnEditables[column];
+                                                                          }
+                                                                      };
+    private DefaultTableModel             fieldsDefaultModel  = new DefaultTableModel(
+                                                                      new Object[][] {
+                                                                      { null, null, null, null, null },
+                                                                      },
+                                                                      new String[] {
+                                                                      "MCP Name", "SRG Name", "Obf Name", "Comment"
+                                                                      }
+                                                                      )
+                                                                      {
+                                                                          private static final long serialVersionUID = 1L;
+                                                                          boolean[]                 columnEditables  = new boolean[] {
+                                                                                                                     false, false, false, false, false
+                                                                                                                     };
+                                                                          
+                                                                          @Override
+                                                                          public boolean isCellEditable(int row, int column)
+                                                                          {
+                                                                              return columnEditables[column];
+                                                                          }
+                                                                      };
     
     private void savePrefs()
     {
@@ -188,13 +266,13 @@ public class MappingGui extends JFrame
                 savePrefs();
             }
         });
-        frmMcpMappingViewer.setTitle("MCP Mapping Viewer");
+        frmMcpMappingViewer.setTitle("MCP Mapping Viewer v0.1.0a");
         frmMcpMappingViewer.setBounds(100, 100, 866, 624);
         frmMcpMappingViewer.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frmMcpMappingViewer.getContentPane().setLayout(new BorderLayout(0, 0));
         
         JSplitPane splitMain = new JSplitPane();
-        splitMain.setResizeWeight(0.3);
+        splitMain.setResizeWeight(0.5);
         splitMain.setContinuousLayout(true);
         splitMain.setMinimumSize(new Dimension(179, 80));
         splitMain.setPreferredSize(new Dimension(179, 80));
@@ -205,34 +283,21 @@ public class MappingGui extends JFrame
         splitMain.setLeftComponent(scrlpnClasses);
         
         tblClasses = new JTable();
+        tblClasses.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        tblClasses.addMouseListener(new MouseAdapter()
+        {
+            @Override
+            public void mouseClicked(MouseEvent e)
+            {   
+                
+            }
+        });
         scrlpnClasses.setViewportView(tblClasses);
         tblClasses.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tblClasses.getSelectionModel().addListSelectionListener(new ClassTableSelectionListener(tblClasses));
+        tblClasses.setAutoCreateRowSorter(true);
         tblClasses.setEnabled(false);
-        tblClasses.setModel(new DefaultTableModel(
-                new Object[][] {
-                        { null, null, null },
-                },
-                new String[] {
-                        "MCP name", "Obf name", "Pkg name"
-                }
-                )
-                {
-                    /**
-                     * 
-                     */
-                    private static final long serialVersionUID = 1L;
-                    @SuppressWarnings("rawtypes")
-                    Class[]                   columnTypes      = new Class[] {
-                                                                       String.class, String.class, String.class
-                                                               };
-                    
-                    @SuppressWarnings({ "unchecked", "rawtypes" })
-                    @Override
-                    public Class getColumnClass(int columnIndex)
-                    {
-                        return columnTypes[columnIndex];
-                    }
-                });
+        tblClasses.setModel(classesDefaultModel);
         tblClasses.setFillsViewportHeight(true);
         tblClasses.setCellSelectionEnabled(true);
         frmMcpMappingViewer.getContentPane().add(splitMain, BorderLayout.CENTER);
@@ -247,32 +312,12 @@ public class MappingGui extends JFrame
         splitMembers.setLeftComponent(scrlpnMethods);
         
         tblMethods = new JTable();
+        tblMethods.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         tblMethods.setCellSelectionEnabled(true);
         tblMethods.setFillsViewportHeight(true);
+        tblMethods.setAutoCreateRowSorter(true);
         tblMethods.setEnabled(false);
-        tblMethods.setModel(new DefaultTableModel(
-                new Object[][] {
-                        { null, null, null, null, null, null },
-                },
-                new String[] {
-                        "MCP Name", "SRG Name", "Obf. Name", "Return Type", "Descriptor", "Comment"
-                }
-                )
-                {
-                    /**
-                     * 
-                     */
-                    private static final long serialVersionUID = 1L;
-                    boolean[]                 columnEditables  = new boolean[] {
-                                                                       false, false, false, false, false, false
-                                                               };
-                    
-                    @Override
-                    public boolean isCellEditable(int row, int column)
-                    {
-                        return columnEditables[column];
-                    }
-                });
+        tblMethods.setModel(methodsDefaultModel);
         scrlpnMethods.setViewportView(tblMethods);
         
         JScrollPane scrlpnFields = new JScrollPane();
@@ -280,30 +325,10 @@ public class MappingGui extends JFrame
         splitMembers.setRightComponent(scrlpnFields);
         
         tblFields = new JTable();
+        tblFields.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        tblFields.setAutoCreateRowSorter(true);
         tblFields.setEnabled(false);
-        tblFields.setModel(new DefaultTableModel(
-                new Object[][] {
-                        { null, null, null, null, null },
-                },
-                new String[] {
-                        "MCP Name", "SRG Name", "Obf. Name", "Type", "Comment"
-                }
-                )
-                {
-                    /**
-                     * 
-                     */
-                    private static final long serialVersionUID = 1L;
-                    boolean[]                 columnEditables  = new boolean[] {
-                                                                       false, false, false, false, false
-                                                               };
-                    
-                    @Override
-                    public boolean isCellEditable(int row, int column)
-                    {
-                        return columnEditables[column];
-                    }
-                });
+        tblFields.setModel(fieldsDefaultModel);
         tblFields.setFillsViewportHeight(true);
         scrlpnFields.setViewportView(tblFields);
         
@@ -380,6 +405,45 @@ public class MappingGui extends JFrame
         }
     }
     
+    class ClassTableSelectionListener implements ListSelectionListener
+    {
+        private final JTable table;
+        
+        public ClassTableSelectionListener(JTable table)
+        {
+            this.table = table;
+        }
+        
+        @Override
+        public void valueChanged(ListSelectionEvent e)
+        {
+            if (!e.getValueIsAdjusting() || !table.getModel().equals(classesDefaultModel))
+            {
+                int i = table.getSelectedRow();
+                if (i > -1)
+                {
+                    String pkg = (String) table.getModel().getValueAt(table.convertRowIndexToModel(i), 0);
+                    String name = (String) table.getModel().getValueAt(table.convertRowIndexToModel(i), 1);
+                    tblMethods.setModel(currentLoader.getMethodModel(pkg + "/" + name));
+                    tblMethods.setEnabled(true);
+                    tblFields.setModel(currentLoader.getFieldModel(pkg + "/" + name));
+                    tblFields.setEnabled(true);
+                    TableColumnAdjuster tca = new TableColumnAdjuster(tblMethods);
+                    tca.adjustColumns();
+                    tca = new TableColumnAdjuster(tblFields);
+                    tca.adjustColumns();
+                }
+                else
+                {
+                    tblMethods.setModel(methodsDefaultModel);
+                    tblMethods.setEnabled(false);
+                    tblFields.setModel(fieldsDefaultModel);
+                    tblFields.setEnabled(false);
+                }
+            }
+        }
+    }
+    
     class RefreshActionListener implements ActionListener
     {
         @Override
@@ -388,13 +452,10 @@ public class MappingGui extends JFrame
             if (curTask != null && curTask.isAlive())
                 return;
             
-            savePrefs();
-            
             final Side side = (Side) cmbSide.getSelectedItem();
             
             final File mcpDir = mcpBrowseDir.val;
             final File confDir = new File(mcpDir, "conf");
-            final String[] refPathList = side.referencePath.split(File.pathSeparator);
             
             String error = null;
             
@@ -408,6 +469,27 @@ public class MappingGui extends JFrame
                 JOptionPane.showMessageDialog(MappingGui.this, error, "MMV - Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
+            
+            if (cmbMCPDirPath.getSelectedIndex() != 0)
+            {
+                String selItem = (String) cmbMCPDirPath.getSelectedItem();
+                DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) cmbMCPDirPath.getModel();
+                
+                if (model.getIndexOf(selItem) != -1)
+                    model.removeElement(selItem);
+                
+                cmbMCPDirPath.insertItemAt(selItem, 0);
+                cmbMCPDirPath.setSelectedItem(selItem);
+            }
+            
+            savePrefs();
+            
+            tblClasses.setModel(classesDefaultModel);
+            tblClasses.setEnabled(false);
+            tblMethods.setModel(methodsDefaultModel);
+            tblMethods.setEnabled(false);
+            tblFields.setModel(fieldsDefaultModel);
+            tblFields.setEnabled(false);
             
             curTask = new Thread()
             {
@@ -478,7 +560,10 @@ public class MappingGui extends JFrame
                         else
                             currentLoader = mcpInstances.get(mcVer + " " + side);
                         
-                        // TODO: actually populate the JTables with the data!
+                        tblClasses.setModel(currentLoader.getClassModel());
+                        tblClasses.setEnabled(true);
+                        TableColumnAdjuster tca = new TableColumnAdjuster(tblClasses);
+                        tca.adjustColumns();
                         
                     }
                     catch (Exception e)
@@ -532,7 +617,7 @@ public class MappingGui extends JFrame
                                     progressBar.setString(" ");
                                     progressBar.setValue(0);
                                     
-                                    JOptionPane.showMessageDialog(MappingGui.this, "Done!", "MMV", JOptionPane.INFORMATION_MESSAGE);
+                                    // JOptionPane.showMessageDialog(MappingGui.this, "Done!", "MMV", JOptionPane.INFORMATION_MESSAGE);
                                 }
                             });
                         }
