@@ -30,8 +30,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -63,12 +61,15 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 
 import bspkrs.mmv.McpMappingLoader;
+import bspkrs.mmv.version.AppVersionChecker;
 
 public class MappingGui extends JFrame
 {
+    public static final String            VERSION_NUMBER      = "0.2.0";
     private static final long             serialVersionUID    = 1L;
     private final Preferences             prefs               = Preferences.userNodeForPackage(MappingGui.class);
     private JFrame                        frmMcpMappingViewer;
+    private JButton                       btnRefreshTables;
     private JComboBox<Side>               cmbSide;
     private JComboBox<String>             cmbMCPDirPath;
     private JProgressBar                  progressBar;
@@ -81,6 +82,9 @@ public class MappingGui extends JFrame
     private Thread                        curTask             = null;
     private Map<String, McpMappingLoader> mcpInstances        = new HashMap<>();
     private McpMappingLoader              currentLoader;
+    private AppVersionChecker             versionChecker;
+    private final String                  versionURL          = "http://dl.dropboxusercontent.com/u/20748481/Minecraft/MMV/MMV.version";
+    private final String                  mcfTopic            = "http://www.minecraftforum.net/topic/2115030-";
     private DefaultTableModel             classesDefaultModel = new DefaultTableModel(
                                                                       new Object[][] {
                                                                       { null, null, null },
@@ -166,10 +170,24 @@ public class MappingGui extends JFrame
         }
         
         if (cmbMCPDirPath.getItemCount() > 0)
+        {
+            btnRefreshTables.setEnabled(true);
             cmbMCPDirPath.setSelectedIndex(0);
+        }
+        else
+            btnRefreshTables.setEnabled(false);
         
         Side side = Side.valueOf(prefs.get(PREFS_KEY_SIDE, Side.Universal.toString()));
         cmbSide.setSelectedItem(side);
+    }
+    
+    private void checkForUpdates()
+    {
+        versionChecker = new AppVersionChecker("MCP Mapping Viewer", VERSION_NUMBER, versionURL, mcfTopic);
+        if (!versionChecker.isCurrentVersion())
+        {
+            JOptionPane.showMessageDialog(MappingGui.this, versionChecker.getDialogMessage()[0], "MMV - Update Check", JOptionPane.INFORMATION_MESSAGE);
+        }
     }
     
     /**
@@ -242,6 +260,7 @@ public class MappingGui extends JFrame
     public MappingGui()
     {
         initialize();
+        checkForUpdates();
     }
     
     /**
@@ -267,7 +286,7 @@ public class MappingGui extends JFrame
                 savePrefs();
             }
         });
-        frmMcpMappingViewer.setTitle("MCP Mapping Viewer v0.1.0a");
+        frmMcpMappingViewer.setTitle("MCP Mapping Viewer v" + VERSION_NUMBER);
         frmMcpMappingViewer.setBounds(100, 100, 866, 624);
         frmMcpMappingViewer.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frmMcpMappingViewer.getContentPane().setLayout(new BorderLayout(0, 0));
@@ -285,14 +304,6 @@ public class MappingGui extends JFrame
         
         tblClasses = new JTable();
         tblClasses.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-        tblClasses.addMouseListener(new MouseAdapter()
-        {
-            @Override
-            public void mouseClicked(MouseEvent e)
-            {   
-                
-            }
-        });
         scrlpnClasses.setViewportView(tblClasses);
         tblClasses.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tblClasses.getSelectionModel().addListSelectionListener(new ClassTableSelectionListener(tblClasses));
@@ -363,7 +374,8 @@ public class MappingGui extends JFrame
         btnBrowseFile.addActionListener(new BrowseActionListener(cmbMCPDirPath, true, btnBrowseFile, true, mcpBrowseDir));
         pnlControls.add(btnBrowseFile);
         
-        JButton btnRefreshTables = new JButton("Load from conf");
+        btnRefreshTables = new JButton("Load from conf");
+        btnRefreshTables.setEnabled(false);
         btnRefreshTables.addActionListener(new RefreshActionListener());
         pnlControls.add(btnRefreshTables);
         
@@ -402,6 +414,8 @@ public class MappingGui extends JFrame
                     mcpBrowseDir.val = new File(path);
                 else
                     mcpBrowseDir.val = new File(".");
+                
+                btnRefreshTables.setEnabled(cmb.getItemCount() > 0);
             }
         }
     }
@@ -418,7 +432,7 @@ public class MappingGui extends JFrame
         @Override
         public void valueChanged(ListSelectionEvent e)
         {
-            if (!e.getValueIsAdjusting() || !table.getModel().equals(classesDefaultModel))
+            if (!e.getValueIsAdjusting() && !table.getModel().equals(classesDefaultModel))
             {
                 int i = table.getSelectedRow();
                 if (i > -1)
@@ -429,10 +443,8 @@ public class MappingGui extends JFrame
                     tblMethods.setEnabled(true);
                     tblFields.setModel(currentLoader.getFieldModel(pkg + "/" + name));
                     tblFields.setEnabled(true);
-                    TableColumnAdjuster tca = new TableColumnAdjuster(tblMethods);
-                    tca.adjustColumns();
-                    tca = new TableColumnAdjuster(tblFields);
-                    tca.adjustColumns();
+                    new TableColumnAdjuster(tblMethods).adjustColumns();
+                    new TableColumnAdjuster(tblFields).adjustColumns();
                 }
                 else
                 {
