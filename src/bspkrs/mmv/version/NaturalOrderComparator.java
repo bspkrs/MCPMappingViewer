@@ -1,7 +1,3 @@
-package bspkrs.mmv.version;
-
-import java.util.Comparator;
-
 /*
 NaturalOrderComparator.java -- Perform 'natural order' comparisons of strings in Java.
 Copyright (C) 2003 by Pierre-Luc Paour <natorder@paour.com>
@@ -27,6 +23,9 @@ misrepresented as being the original software.
 
 changes by bspkrs: cleaned up Java compiler warnings
 */
+package bspkrs.mmv.version;
+
+import java.util.Comparator;
 
 public class NaturalOrderComparator implements Comparator<Object>
 {
