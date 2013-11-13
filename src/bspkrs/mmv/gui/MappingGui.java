@@ -21,6 +21,7 @@ import immibis.bon.gui.Reference;
 import immibis.bon.gui.Side;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Desktop;
 import java.awt.Dimension;
@@ -197,10 +198,12 @@ public class MappingGui extends JFrame
     
     private void checkForUpdates()
     {
-        versionChecker = new AppVersionChecker("MCP Mapping Viewer", VERSION_NUMBER, versionURL, mcfTopic);
+        versionChecker = new AppVersionChecker("MCP Mapping Viewer", VERSION_NUMBER, versionURL, mcfTopic,
+                new String[] { "{appName} {oldVer} is out of date! Visit {updateURL} to download the latest release ({newVer})." },
+                new String[] { "{appName} {oldVer} is out of date! <br/><br/>Download the latest release ({newVer}) from <a href=\"{updateURL}\">{updateURL}</a>." }, 5000);
         if (!versionChecker.isCurrentVersion())
         {
-            JOptionPane.showMessageDialog(MappingGui.this, versionChecker.getDialogMessage()[0], "MMV - Update Check", JOptionPane.INFORMATION_MESSAGE);
+            showHTMLDialog(MappingGui.this, versionChecker.getDialogMessage()[0], "An update is available", JOptionPane.INFORMATION_MESSAGE);
         }
     }
     
@@ -400,15 +403,7 @@ public class MappingGui extends JFrame
             @Override
             public void mouseClicked(MouseEvent e)
             {
-                JLabel label = new JLabel();
-                Font font = label.getFont();
-                
-                StringBuffer style = new StringBuffer("font-family:" + font.getFamily() + ";");
-                style.append("font-weight:" + (font.isBold() ? "bold" : "normal") + ";");
-                style.append("font-size:" + font.getSize() + "pt;");
-                
-                JEditorPane ep = new JEditorPane("text/html", "<html><body style=\"" + style + "\"><center>" +
-                        "MCP Mapping Viewer v" + VERSION_NUMBER + "<br/>" +
+                String message = "<center>MCP Mapping Viewer v" + VERSION_NUMBER + "<br/>" +
                         "Copyright (C) 2013 bspkrs<br/>" +
                         "Portions Copyright (C) 2013 Alex \"immibis\" Campbell<br/><br/>" +
                         "Author: bspkrs<br/>" +
@@ -419,26 +414,8 @@ public class MappingGui extends JFrame
                         "<a href=\"https://github.com/bspkrs/MCPMappingViewer/blob/master/change.log\">Change Log</a><br/>" +
                         "<a href=\"http://bspk.rs/MC/MCPMappingViewer/index.html\">Binary Downloads</a><br/>" +
                         "<a href=\"https://raw.github.com/bspkrs/MCPMappingViewer/master/LICENSE\">License</a><br/>" +
-                        "<a href=\"https://twitter.com/bspkrs\">bspkrs on Twitter</a>" +
-                        "</center></body></html>");
-                
-                ep.addHyperlinkListener(new HyperlinkListener()
-                {
-                    @Override
-                    public void hyperlinkUpdate(HyperlinkEvent e)
-                    {
-                        if (e.getEventType().equals(HyperlinkEvent.EventType.ACTIVATED))
-                            try
-                            {
-                                Desktop.getDesktop().browse(e.getURL().toURI());
-                            }
-                            catch (Throwable ignore)
-                            {}
-                    }
-                });
-                ep.setEditable(false);
-                ep.setBackground(label.getBackground());
-                JOptionPane.showMessageDialog(MappingGui.this, ep, "About MCP Mapping Viewer", JOptionPane.PLAIN_MESSAGE);
+                        "<a href=\"https://twitter.com/bspkrs\">bspkrs on Twitter</a></center>";
+                showHTMLDialog(MappingGui.this, message, "About MCP Mapping Viewer", JOptionPane.PLAIN_MESSAGE);
             }
         });
         pnlControls.add(lblAbout);
@@ -738,5 +715,36 @@ public class MappingGui extends JFrame
             
             curTask.start();
         }
+    }
+    
+    public static void showHTMLDialog(Component parentComponent,
+            Object message, String title, int messageType)
+    {
+        JLabel label = new JLabel();
+        Font font = label.getFont();
+        
+        StringBuffer style = new StringBuffer("font-family:" + font.getFamily() + ";");
+        style.append("font-weight:" + (font.isBold() ? "bold" : "normal") + ";");
+        style.append("font-size:" + font.getSize() + "pt;");
+        
+        JEditorPane ep = new JEditorPane("text/html", "<html><body style=\"" + style + "\">" + message.toString() + "</body></html>");
+        
+        ep.addHyperlinkListener(new HyperlinkListener()
+        {
+            @Override
+            public void hyperlinkUpdate(HyperlinkEvent e)
+            {
+                if (e.getEventType().equals(HyperlinkEvent.EventType.ACTIVATED))
+                    try
+                    {
+                        Desktop.getDesktop().browse(e.getURL().toURI());
+                    }
+                    catch (Throwable ignore)
+                    {}
+            }
+        });
+        ep.setEditable(false);
+        ep.setBackground(label.getBackground());
+        JOptionPane.showMessageDialog(parentComponent, ep, title, messageType);
     }
 }
