@@ -190,6 +190,7 @@ public class McpMappingLoader
     {
         private static final long               serialVersionUID = 1L;
         private final String[]                  columnNames      = { "Pkg name", "SRG name", "Obf name" };
+        @SuppressWarnings("rawtypes")
         private final Class[]                   columnTypes      = { String.class, String.class, String.class };
         private final Object[][]                data;
         private final Map<String, ClassSrgData> mapRef;
@@ -233,7 +234,7 @@ public class McpMappingLoader
         @Override
         public Class<?> getColumnClass(int columnIndex)
         {
-            return String.class;
+            return columnTypes[columnIndex];
         }
         
         @Override
@@ -259,6 +260,7 @@ public class McpMappingLoader
     {
         private static final long        serialVersionUID = 1L;
         private final String[]           columnNames      = { "MCP Name", "SRG Name", "Obf Name", "Descriptor", "Comment" };
+        @SuppressWarnings("rawtypes")
         private final Class[]            columnTypes      = { String.class, String.class, String.class, String.class, String.class };
         private final Object[][]         data;
         private final Set<MethodSrgData> setRef;
@@ -313,7 +315,7 @@ public class McpMappingLoader
         @Override
         public Class<?> getColumnClass(int columnIndex)
         {
-            return String.class;
+            return columnTypes[columnIndex];
         }
         
         @Override
@@ -339,6 +341,7 @@ public class McpMappingLoader
     {
         private static final long       serialVersionUID = 1L;
         private final String[]          columnNames      = { "MCP Name", "SRG Name", "Obf Name", "Comment" };
+        @SuppressWarnings("rawtypes")
         private final Class[]           columnTypes      = { String.class, String.class, String.class, String.class };
         private final Object[][]        data;
         private final Set<FieldSrgData> setRef;
@@ -392,7 +395,7 @@ public class McpMappingLoader
         @Override
         public Class<?> getColumnClass(int columnIndex)
         {
-            return String.class;
+            return columnTypes[columnIndex];
         }
         
         @Override
