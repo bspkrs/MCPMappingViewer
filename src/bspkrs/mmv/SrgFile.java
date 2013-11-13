@@ -29,12 +29,20 @@ import java.util.TreeMap;
 
 public class SrgFile
 {
+    public enum ClassSearchType
+    {
+        PACKAGE,
+        OBF,
+        SRG;
+    }
     
-    public final Map<String, ClassSrgData>             classes      = new TreeMap<String, ClassSrgData>();            // full/pkg/ClassSrgName -> ClassSrgData
-    public final Map<String, FieldSrgData>             fields       = new TreeMap<String, FieldSrgData>();            // field_12345_a -> FieldSrgData
-    public final Map<String, MethodSrgData>            methods      = new TreeMap<String, MethodSrgData>();           // func_12345_1 -> MethodSrgData
-    public final Map<ClassSrgData, Set<MethodSrgData>> classMethods = new TreeMap<ClassSrgData, Set<MethodSrgData>>();
-    public final Map<ClassSrgData, Set<FieldSrgData>>  classFields  = new TreeMap<ClassSrgData, Set<FieldSrgData>>();
+    public final Map<String, ClassSrgData>             srgName2ClassData   = new TreeMap<String, ClassSrgData>();            // full/pkg/ClassSrgName -> ClassSrgData
+    public final Map<String, FieldSrgData>             srgName2FieldData   = new TreeMap<String, FieldSrgData>();            // field_12345_a -> FieldSrgData
+    public final Map<String, MethodSrgData>            srgName2MethodData  = new TreeMap<String, MethodSrgData>();           // func_12345_a -> MethodSrgData
+    public final Map<ClassSrgData, Set<MethodSrgData>> class2MethodSet     = new TreeMap<ClassSrgData, Set<MethodSrgData>>();
+    public final Map<ClassSrgData, Set<FieldSrgData>>  class2FieldSet      = new TreeMap<ClassSrgData, Set<FieldSrgData>>();
+    public final Map<String, ClassSrgData>             srgMethod2ClassData = new TreeMap<String, ClassSrgData>();
+    public final Map<String, ClassSrgData>             srgField2ClassData  = new TreeMap<String, ClassSrgData>();
     
     public static String getLastComponent(String s)
     {
@@ -58,11 +66,11 @@ public class SrgFile
                     String srgName = getLastComponent(deobf);
                     String pkgName = deobf.substring(0, deobf.lastIndexOf('/'));
                     ClassSrgData classData = new ClassSrgData(obf, srgName, pkgName, in.hasNext("#C"));
-                    classes.put(pkgName + "/" + srgName, classData);
-                    if (!classMethods.containsKey(classData))
-                        classMethods.put(classData, new HashSet<MethodSrgData>());
-                    if (!classFields.containsKey(classData))
-                        classFields.put(classData, new HashSet<FieldSrgData>());
+                    srgName2ClassData.put(pkgName + "/" + srgName, classData);
+                    if (!class2MethodSet.containsKey(classData))
+                        class2MethodSet.put(classData, new HashSet<MethodSrgData>());
+                    if (!class2FieldSet.containsKey(classData))
+                        class2FieldSet.put(classData, new HashSet<FieldSrgData>());
                 }
                 else if (in.hasNext("FD:"))
                 {
@@ -77,8 +85,9 @@ public class SrgFile
                     String srgOwner = getLastComponent(srgPkg);
                     srgPkg = srgPkg.substring(0, srgPkg.lastIndexOf('/'));
                     FieldSrgData fieldData = new FieldSrgData(obfOwner, obfName, srgOwner, srgPkg, srgName, in.hasNext("#C"));
-                    fields.put(srgName, fieldData);
-                    classFields.get(classes.get(srgPkg + "/" + srgOwner)).add(fieldData);
+                    srgName2FieldData.put(srgName, fieldData);
+                    class2FieldSet.get(srgName2ClassData.get(srgPkg + "/" + srgOwner)).add(fieldData);
+                    srgField2ClassData.put(srgName, srgName2ClassData.get(srgPkg + "/" + srgOwner));
                 }
                 else if (in.hasNext("MD:"))
                 {
@@ -95,8 +104,9 @@ public class SrgFile
                     srgPkg = srgPkg.substring(0, srgPkg.lastIndexOf('/'));
                     String srgDescriptor = in.next();
                     MethodSrgData methodData = new MethodSrgData(obfOwner, obfName, obfDescriptor, srgOwner, srgPkg, srgName, srgDescriptor, in.hasNext("#C"));
-                    methods.put(srgName, methodData);
-                    classMethods.get(classes.get(srgPkg + "/" + srgOwner)).add(methodData);
+                    srgName2MethodData.put(srgName, methodData);
+                    class2MethodSet.get(srgName2ClassData.get(srgPkg + "/" + srgOwner)).add(methodData);
+                    srgMethod2ClassData.put(srgName, srgName2ClassData.get(srgPkg + "/" + srgOwner));
                 }
                 else
                     in.nextLine();

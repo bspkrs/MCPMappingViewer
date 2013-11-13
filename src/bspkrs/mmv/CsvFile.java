@@ -31,14 +31,14 @@ import java.util.TreeMap;
 public class CsvFile
 {
     private final File                file;
-    public final Map<String, CsvData> data;
+    public final Map<String, CsvData> srgName2CsvData;
     private final Side                side;
     
     public CsvFile(File file, Side side) throws IOException
     {
         this.file = file;
         this.side = side;
-        this.data = new TreeMap<String, CsvData>();
+        this.srgName2CsvData = new TreeMap<String, CsvData>();
         readFromFile();
     }
     
@@ -58,7 +58,7 @@ public class CsvFile
                 comment = comment.substring(1); // removes the ','
                 if (side.equals(strSide))
                 {
-                    data.put(srgName, new CsvData(srgName, mcpName, this.side.intSide, comment));
+                    srgName2CsvData.put(srgName, new CsvData(srgName, mcpName, this.side.intSide, comment));
                 }
             }
         }
@@ -72,7 +72,7 @@ public class CsvFile
     {
         PrintWriter out = new PrintWriter(new FileWriter(file));
         
-        for (CsvData data : this.data.values())
+        for (CsvData data : this.srgName2CsvData.values())
             out.println(data.toCsv());
         
         out.close();
