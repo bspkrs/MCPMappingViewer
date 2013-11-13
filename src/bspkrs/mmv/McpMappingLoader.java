@@ -52,8 +52,8 @@ public class McpMappingLoader
     private SrgFile                     srgFileData;
     private CsvFile                     csvFieldData, csvMethodData;
     
-    private Map<MethodSrgData, CsvData> srg2csvMethods = new TreeMap<MethodSrgData, CsvData>();
-    private Map<FieldSrgData, CsvData>  srg2csvFields  = new TreeMap<FieldSrgData, CsvData>();
+    private Map<MethodSrgData, CsvData> srg2csvMethod = new TreeMap<MethodSrgData, CsvData>();
+    private Map<FieldSrgData, CsvData>  srg2csvField  = new TreeMap<FieldSrgData, CsvData>();
     
     //    @SuppressWarnings("unused")
     //    private ExcFile                     excFileData;
@@ -64,6 +64,7 @@ public class McpMappingLoader
         this.mcpDir = mcpDir;
         this.side = side;
         
+        String loadFailureReason = "";
         switch (side)
         {
             case Universal:
@@ -77,21 +78,27 @@ public class McpMappingLoader
                     srgFile = new File(mcpDir, "conf/joined.srg");
                     //excFile = new File(mcpDir, "conf/joined.exc");
                 }
+                loadFailureReason = "Unable to find packaged.srg or joined.srg. Try using side Client or Server.";
                 break;
             
             case Client:
                 srgFile = new File(mcpDir, "conf/client.srg");
                 //excFile = new File(mcpDir, "conf/client.exc");
+                loadFailureReason = "Unable to find client.srg. If using Forge, use side Universal.";
                 break;
             
             case Server:
                 srgFile = new File(mcpDir, "conf/server.srg");
                 //excFile = new File(mcpDir, "conf/server.exc");
+                loadFailureReason = "Unable to find server.srg. If using Forge, use side Universal.";
                 break;
             
             default:
                 throw new AssertionError("side is " + side);
         }
+        
+        if (!srgFile.exists())
+            throw new CantLoadMCPMappingException(loadFailureReason);
         
         if (progress != null)
             progress.setMax(4);
@@ -127,23 +134,23 @@ public class McpMappingLoader
     
     private void linkSrgDataToCsvData()
     {
-        for (Entry<String, MethodSrgData> methodData : srgFileData.methods.entrySet())
+        for (Entry<String, MethodSrgData> methodData : srgFileData.srgName2MethodData.entrySet())
         {
-            if (!srg2csvMethods.containsKey(methodData.getValue()) && csvMethodData.data.containsKey(methodData.getKey()))
+            if (!srg2csvMethod.containsKey(methodData.getValue()) && csvMethodData.srgName2CsvData.containsKey(methodData.getKey()))
             {
-                srg2csvMethods.put(methodData.getValue(), csvMethodData.data.get(methodData.getKey()));
+                srg2csvMethod.put(methodData.getValue(), csvMethodData.srgName2CsvData.get(methodData.getKey()));
             }
-            else if (srg2csvMethods.containsKey(methodData.getValue()))
+            else if (srg2csvMethod.containsKey(methodData.getValue()))
                 System.out.println("SRG method " + methodData.getKey() + " has multiple entries in CSV file!");
         }
         
-        for (Entry<String, FieldSrgData> fieldData : srgFileData.fields.entrySet())
+        for (Entry<String, FieldSrgData> fieldData : srgFileData.srgName2FieldData.entrySet())
         {
-            if (!srg2csvFields.containsKey(fieldData.getValue()) && csvFieldData.data.containsKey(fieldData.getKey()))
+            if (!srg2csvField.containsKey(fieldData.getValue()) && csvFieldData.srgName2CsvData.containsKey(fieldData.getKey()))
             {
-                srg2csvFields.put(fieldData.getValue(), csvFieldData.data.get(fieldData.getKey()));
+                srg2csvField.put(fieldData.getValue(), csvFieldData.srgName2CsvData.get(fieldData.getKey()));
             }
-            else if (srg2csvFields.containsKey(fieldData.getValue()))
+            else if (srg2csvField.containsKey(fieldData.getValue()))
                 System.out.println("SRG field " + fieldData.getKey() + " has multiple entries in CSV file!");
         }
     }
@@ -169,20 +176,20 @@ public class McpMappingLoader
     
     public TableModel getClassModel()
     {
-        return new ClassModel(this.srgFileData.classes);
+        return new ClassModel(this.srgFileData.srgName2ClassData);
     }
     
     public TableModel getMethodModel(String srgPkgAndOwner)
     {
-        ClassSrgData classData = srgFileData.classes.get(srgPkgAndOwner);
-        Set<MethodSrgData> methods = srgFileData.classMethods.get(classData);
+        ClassSrgData classData = srgFileData.srgName2ClassData.get(srgPkgAndOwner);
+        Set<MethodSrgData> methods = srgFileData.class2MethodSet.get(classData);
         return new MethodModel(methods);
     }
     
     public TableModel getFieldModel(String srgPkgAndOwner)
     {
-        ClassSrgData classData = srgFileData.classes.get(srgPkgAndOwner);
-        Set<FieldSrgData> fields = srgFileData.classFields.get(classData);
+        ClassSrgData classData = srgFileData.srgName2ClassData.get(srgPkgAndOwner);
+        Set<FieldSrgData> fields = srgFileData.class2FieldSet.get(classData);
         return new FieldModel(fields);
     }
     
@@ -273,7 +280,7 @@ public class McpMappingLoader
             
             for (MethodSrgData methodData : setRef)
             {
-                CsvData csvData = srg2csvMethods.get(methodData);
+                CsvData csvData = srg2csvMethod.get(methodData);
                 if (csvData != null)
                 {
                     data[i][0] = csvData.getMcpName();
@@ -354,7 +361,7 @@ public class McpMappingLoader
             
             for (FieldSrgData fieldData : setRef)
             {
-                CsvData csvData = srg2csvFields.get(fieldData);
+                CsvData csvData = srg2csvField.get(fieldData);
                 if (csvData != null)
                 {
                     data[i][0] = csvData.getMcpName();

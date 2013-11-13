@@ -34,6 +34,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -73,6 +75,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 
 import bspkrs.mmv.McpMappingLoader;
+import bspkrs.mmv.McpMappingLoader.CantLoadMCPMappingException;
 import bspkrs.mmv.version.AppVersionChecker;
 
 public class MappingGui extends JFrame
@@ -87,6 +90,12 @@ public class MappingGui extends JFrame
     private JPanel                        pnlProgress;
     private JProgressBar                  progressBar;
     private JPanel                        pnlFilter;
+    private JRadioButton                  radPackages;
+    private JRadioButton                  radClasses;
+    private JRadioButton                  radMethods;
+    private JRadioButton                  radFields;
+    private ButtonGroup                   grpFilterBy;
+    private JButton                       btnSearch;
     private final static String           PREFS_KEY_MCPDIR    = "mcpDir";
     private final static String           PREFS_KEY_SIDE      = "side";
     private final Reference<File>         mcpBrowseDir        = new Reference<File>();
@@ -257,9 +266,9 @@ public class MappingGui extends JFrame
         return s;
     }
     
-    private static String getStackTraceMessage(Throwable e)
+    private static String getStackTraceMessage(String prefix, Throwable e)
     {
-        String s = "An error has occurred - give bspkrs this stack trace (which has been copied to the clipboard)\n";
+        String s = prefix;
         
         s += "\n" + getPrintableStackTrace(e, Collections.<StackTraceElement> emptySet());
         while (e.getCause() != null)
@@ -438,29 +447,44 @@ public class MappingGui extends JFrame
         pnlFilter.setVisible(true);
         pnlHeader.add(pnlFilter, BorderLayout.CENTER);
         
-        JLabel lblFilter = new JLabel("Filter");
+        JLabel lblFilter = new JLabel("Search");
         pnlFilter.add(lblFilter);
         
+        radPackages = new JRadioButton("Packages");
+        pnlFilter.add(radPackages);
+        
+        radClasses = new JRadioButton("Classes");
+        radClasses.setSelected(true);
+        pnlFilter.add(radClasses);
+        
+        radMethods = new JRadioButton("Methods");
+        pnlFilter.add(radMethods);
+        
+        radFields = new JRadioButton("Fields");
+        pnlFilter.add(radFields);
+        
+        grpFilterBy = new ButtonGroup();
+        grpFilterBy.add(radPackages);
+        grpFilterBy.add(radClasses);
+        grpFilterBy.add(radMethods);
+        grpFilterBy.add(radFields);
+        
         edtFilter = new JTextField();
-        lblFilter.setLabelFor(edtFilter);
+        edtFilter.addKeyListener(new KeyAdapter()
+        {
+            @Override
+            public void keyReleased(KeyEvent e)
+            {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER)
+                    btnSearch.doClick();
+            }
+        });
         pnlFilter.add(edtFilter);
         edtFilter.setColumns(20);
         edtFilter.setEnabled(false);
         
-        JRadioButton radClasses = new JRadioButton("Classes");
-        radClasses.setSelected(true);
-        pnlFilter.add(radClasses);
-        
-        JRadioButton radMethods = new JRadioButton("Methods");
-        pnlFilter.add(radMethods);
-        
-        JRadioButton radFields = new JRadioButton("Fields");
-        pnlFilter.add(radFields);
-        
-        ButtonGroup group = new ButtonGroup();
-        group.add(radClasses);
-        group.add(radMethods);
-        group.add(radFields);
+        btnSearch = new JButton("Go");
+        pnlFilter.add(btnSearch);
         
         addWindowListener(new WindowAdapter()
         {
@@ -651,26 +675,31 @@ public class MappingGui extends JFrame
                         tblClasses.setEnabled(true);
                         new TableColumnAdjuster(tblClasses).adjustColumns();
                     }
+                    catch (CantLoadMCPMappingException e)
+                    {
+                        String s = getStackTraceMessage("", e);
+                        
+                        System.err.println(s);
+                        
+                        crashed = true;
+                        
+                        final String errMsg = s;
+                        SwingUtilities.invokeLater(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                progressBar.setString(" ");
+                                progressBar.setValue(0);
+                                
+                                Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(errMsg), null);
+                                JOptionPane.showMessageDialog(MappingGui.this, errMsg, "MMV - Error", JOptionPane.ERROR_MESSAGE);
+                            }
+                        });
+                    }
                     catch (Exception e)
                     {
-                        String s = getStackTraceMessage(e);
-                        
-                        /*if(!new File(confDir, side.nsside.srg_name).exists()) {
-                            s = side.mcpside.srg_name+" not found in conf directory. \n";
-                            switch(side) {
-                            case Client:
-                            case Server:
-                                s += "If you're using Forge, set the side to Universal (1.4.6+) or Universal_old (1.4.5 and earlier)";
-                                break;
-                            case Universal:
-                                s += "If you're not using Forge, set the side to Client or Server.\n";
-                                s += "If you're using Forge on 1.4.5 or earlier, set the side to Universal_old.";
-                                break;
-                            case Universal_old:
-                                s += "If you're not using Forge, set the side to Client or Server.\n";
-                                break;
-                            }
-                        }*/
+                        String s = getStackTraceMessage("An error has occurred - give bspkrs this stack trace (which has been copied to the clipboard)\n", e);
                         
                         System.err.println(s);
                         
