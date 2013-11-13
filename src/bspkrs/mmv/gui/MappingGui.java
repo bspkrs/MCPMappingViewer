@@ -21,15 +21,20 @@ import immibis.bon.gui.Reference;
 import immibis.bon.gui.Side;
 
 import java.awt.BorderLayout;
+import java.awt.Cursor;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -41,21 +46,27 @@ import java.util.Map;
 import java.util.Set;
 import java.util.prefs.Preferences;
 
+import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
@@ -72,7 +83,9 @@ public class MappingGui extends JFrame
     private JButton                       btnRefreshTables;
     private JComboBox<Side>               cmbSide;
     private JComboBox<String>             cmbMCPDirPath;
+    private JPanel                        pnlProgress;
     private JProgressBar                  progressBar;
+    private JPanel                        pnlFilter;
     private final static String           PREFS_KEY_MCPDIR    = "mcpDir";
     private final static String           PREFS_KEY_SIDE      = "side";
     private final Reference<File>         mcpBrowseDir        = new Reference<File>();
@@ -147,6 +160,7 @@ public class MappingGui extends JFrame
                                                                               return columnEditables[column];
                                                                           }
                                                                       };
+    private JTextField                    edtFilter;
     
     private void savePrefs()
     {
@@ -286,7 +300,7 @@ public class MappingGui extends JFrame
                 savePrefs();
             }
         });
-        frmMcpMappingViewer.setTitle("MCP Mapping Viewer v" + VERSION_NUMBER);
+        frmMcpMappingViewer.setTitle("MCP Mapping Viewer");
         frmMcpMappingViewer.setBounds(100, 100, 866, 624);
         frmMcpMappingViewer.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frmMcpMappingViewer.getContentPane().setLayout(new BorderLayout(0, 0));
@@ -351,7 +365,7 @@ public class MappingGui extends JFrame
         JPanel pnlControls = new JPanel();
         pnlHeader.add(pnlControls, BorderLayout.NORTH);
         pnlControls.setSize(new Dimension(0, 40));
-        pnlControls.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
+        pnlControls.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 2));
         
         JLabel lblSide = new JLabel("Side");
         pnlControls.add(lblSide);
@@ -379,7 +393,58 @@ public class MappingGui extends JFrame
         btnRefreshTables.addActionListener(new RefreshActionListener());
         pnlControls.add(btnRefreshTables);
         
-        JPanel pnlProgress = new JPanel();
+        JLabel lblAbout = new JLabel("About");
+        lblAbout.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        lblAbout.addMouseListener(new MouseAdapter()
+        {
+            @Override
+            public void mouseClicked(MouseEvent e)
+            {
+                JLabel label = new JLabel();
+                Font font = label.getFont();
+                
+                StringBuffer style = new StringBuffer("font-family:" + font.getFamily() + ";");
+                style.append("font-weight:" + (font.isBold() ? "bold" : "normal") + ";");
+                style.append("font-size:" + font.getSize() + "pt;");
+                
+                JEditorPane ep = new JEditorPane("text/html", "<html><body style=\"" + style + "\"><center>" +
+                        "MCP Mapping Viewer v" + VERSION_NUMBER + "<br/>" +
+                        "Copyright (C) 2013 bspkrs<br/>" +
+                        "Portions Copyright (C) 2013 Alex \"immibis\" Campbell<br/><br/>" +
+                        "Author: bspkrs<br/>" +
+                        "Credits: immibis (for <a href=\"https://github.com/immibis/bearded-octo-nemesis\">BON</a> code), " +
+                        "Searge et al (for <a href=\"http://mcp.ocean-labs.de\">MCP</a>)<br/><br/>" +
+                        "<a href=\"" + mcfTopic + "\">MCF Thread</a><br/>" +
+                        "<a href=\"https://github.com/bspkrs/MCPMappingViewer\">Github Repo</a><br/>" +
+                        "<a href=\"https://github.com/bspkrs/MCPMappingViewer/blob/master/change.log\">Change Log</a><br/>" +
+                        "<a href=\"http://bspk.rs/MC/MCPMappingViewer/index.html\">Binary Downloads</a><br/>" +
+                        "<a href=\"https://raw.github.com/bspkrs/MCPMappingViewer/master/LICENSE\">License</a><br/>" +
+                        "<a href=\"https://twitter.com/bspkrs\">bspkrs on Twitter</a>" +
+                        "</center></body></html>");
+                
+                ep.addHyperlinkListener(new HyperlinkListener()
+                {
+                    @Override
+                    public void hyperlinkUpdate(HyperlinkEvent e)
+                    {
+                        if (e.getEventType().equals(HyperlinkEvent.EventType.ACTIVATED))
+                            try
+                            {
+                                Desktop.getDesktop().browse(e.getURL().toURI());
+                            }
+                            catch (Throwable ignore)
+                            {}
+                    }
+                });
+                ep.setEditable(false);
+                ep.setBackground(label.getBackground());
+                JOptionPane.showMessageDialog(MappingGui.this, ep, "About MCP Mapping Viewer", JOptionPane.PLAIN_MESSAGE);
+            }
+        });
+        pnlControls.add(lblAbout);
+        
+        pnlProgress = new JPanel();
+        pnlProgress.setVisible(false);
         pnlHeader.add(pnlProgress, BorderLayout.SOUTH);
         pnlProgress.setLayout(new BorderLayout(0, 0));
         
@@ -388,6 +453,37 @@ public class MappingGui extends JFrame
         progressBar.setString("");
         progressBar.setForeground(UIManager.getColor("ProgressBar.foreground"));
         pnlProgress.add(progressBar);
+        
+        pnlFilter = new JPanel();
+        FlowLayout flowLayout = (FlowLayout) pnlFilter.getLayout();
+        flowLayout.setVgap(2);
+        flowLayout.setAlignment(FlowLayout.LEFT);
+        pnlFilter.setVisible(true);
+        pnlHeader.add(pnlFilter, BorderLayout.CENTER);
+        
+        JLabel lblFilter = new JLabel("Filter");
+        pnlFilter.add(lblFilter);
+        
+        edtFilter = new JTextField();
+        lblFilter.setLabelFor(edtFilter);
+        pnlFilter.add(edtFilter);
+        edtFilter.setColumns(20);
+        edtFilter.setEnabled(false);
+        
+        JRadioButton radClasses = new JRadioButton("Classes");
+        radClasses.setSelected(true);
+        pnlFilter.add(radClasses);
+        
+        JRadioButton radMethods = new JRadioButton("Methods");
+        pnlFilter.add(radMethods);
+        
+        JRadioButton radFields = new JRadioButton("Fields");
+        pnlFilter.add(radFields);
+        
+        ButtonGroup group = new ButtonGroup();
+        group.add(radClasses);
+        group.add(radMethods);
+        group.add(radFields);
         
         addWindowListener(new WindowAdapter()
         {
@@ -497,6 +593,8 @@ public class MappingGui extends JFrame
             
             savePrefs();
             
+            pnlFilter.setVisible(false);
+            pnlProgress.setVisible(true);
             tblClasses.setModel(classesDefaultModel);
             tblClasses.setEnabled(false);
             tblMethods.setModel(methodsDefaultModel);
@@ -513,7 +611,6 @@ public class MappingGui extends JFrame
                     
                     try
                     {
-                        
                         IProgressListener progress = new IProgressListener()
                         {
                             private String currentText;
@@ -568,16 +665,14 @@ public class MappingGui extends JFrame
                         {
                             progress.start(0, "Reading MCP configuration");
                             currentLoader = new McpMappingLoader(mcVer, side, mcpDir, progress);
-                            mcpInstances.put(mcVer + " " + side, currentLoader);
+                            mcpInstances.put(mcpDir.getAbsolutePath() + " " + side, currentLoader);
                         }
                         else
-                            currentLoader = mcpInstances.get(mcVer + " " + side);
+                            currentLoader = mcpInstances.get(mcpDir.getAbsolutePath() + " " + side);
                         
                         tblClasses.setModel(currentLoader.getClassModel());
                         tblClasses.setEnabled(true);
-                        TableColumnAdjuster tca = new TableColumnAdjuster(tblClasses);
-                        tca.adjustColumns();
-                        
+                        new TableColumnAdjuster(tblClasses).adjustColumns();
                     }
                     catch (Exception e)
                     {
@@ -629,11 +724,14 @@ public class MappingGui extends JFrame
                                 {
                                     progressBar.setString(" ");
                                     progressBar.setValue(0);
+                                    edtFilter.setEnabled(true);
                                     
                                     // JOptionPane.showMessageDialog(MappingGui.this, "Done!", "MMV", JOptionPane.INFORMATION_MESSAGE);
                                 }
                             });
                         }
+                        pnlProgress.setVisible(false);
+                        pnlFilter.setVisible(true);
                     }
                 }
             };
