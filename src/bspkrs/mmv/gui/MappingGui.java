@@ -449,6 +449,7 @@ public class MappingGui extends JFrame
         splitMembers.setRightComponent(scrlpnFields);
         
         tblFields = new JTable();
+        tblFields.setCellSelectionEnabled(true);
         tblFields.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         tblFields.setAutoCreateRowSorter(true);
         tblFields.setEnabled(false);
