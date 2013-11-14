@@ -25,9 +25,14 @@ public class CsvData implements Comparable<CsvData>
     public CsvData(String srgName, String mcpName, int side, String comment)
     {
         this.srgName = srgName;
-        this.setMcpName(mcpName);
+        this.mcpName = mcpName;
         this.side = side;
-        this.setComment(comment);
+        this.comment = comment;
+    }
+    
+    public static String getCsvHeader()
+    {
+        return "searge,name,side,desc";
     }
     
     public String toCsv()
@@ -70,6 +75,14 @@ public class CsvData implements Comparable<CsvData>
     @Override
     public int compareTo(CsvData o)
     {
-        return 0;
+        if (o != null)
+            return this.srgName.compareTo(o.srgName);
+        
+        return 1;
+    }
+    
+    public boolean contains(String s)
+    {
+        return this.mcpName.contains(s) || this.comment.contains(s);
     }
 }

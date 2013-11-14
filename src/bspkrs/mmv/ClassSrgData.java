@@ -65,8 +65,13 @@ public class ClassSrgData implements Comparable<ClassSrgData>
     public int compareTo(ClassSrgData o)
     {
         if (o != null)
-            return getFullyQualifiedSrgName().compareToIgnoreCase(o.getFullyQualifiedSrgName());
+            return getFullyQualifiedSrgName().compareTo(o.getFullyQualifiedSrgName());
         else
             return 1;
+    }
+    
+    public boolean contains(String s)
+    {
+        return srgName.contains(s) || obfName.contains(s) || this.srgPkgName.contains(s);
     }
 }

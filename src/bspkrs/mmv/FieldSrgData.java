@@ -68,8 +68,13 @@ public class FieldSrgData implements Comparable<FieldSrgData>
     public int compareTo(FieldSrgData o)
     {
         if (o != null)
-            return srgName.compareToIgnoreCase(o.srgName);
+            return srgName.compareTo(o.srgName);
         else
             return 1;
+    }
+    
+    public boolean contains(String s)
+    {
+        return srgName.contains(s) || obfName.contains(s);
     }
 }
