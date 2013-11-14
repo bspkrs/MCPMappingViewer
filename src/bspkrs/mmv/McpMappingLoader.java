@@ -43,24 +43,17 @@ public class McpMappingLoader
         }
     }
     
-    private final Side                  side;
-    @SuppressWarnings("unused")
-    private final String                mcVer;
-    private final File                  mcpDir;
-    private final File                  srgFile;
-    //    private final File                  excFile;
-    private SrgFile                     srgFileData;
-    private CsvFile                     csvFieldData, csvMethodData;
+    private final Side                       side;
+    private final File                       mcpDir;
+    private final File                       srgFile;
+    private SrgFile                          srgFileData;
+    private CsvFile                          csvFieldData, csvMethodData;
     
-    private Map<MethodSrgData, CsvData> srg2csvMethod = new TreeMap<MethodSrgData, CsvData>();
-    private Map<FieldSrgData, CsvData>  srg2csvField  = new TreeMap<FieldSrgData, CsvData>();
+    public final Map<MethodSrgData, CsvData> srgMethodData2CsvData = new TreeMap<MethodSrgData, CsvData>();
+    public final Map<FieldSrgData, CsvData>  srgFieldData2cCvData  = new TreeMap<FieldSrgData, CsvData>();
     
-    //    @SuppressWarnings("unused")
-    //    private ExcFile                     excFileData;
-    
-    public McpMappingLoader(String mcVer, Side side, File mcpDir, IProgressListener progress) throws IOException, CantLoadMCPMappingException
+    public McpMappingLoader(Side side, File mcpDir, IProgressListener progress) throws IOException, CantLoadMCPMappingException
     {
-        this.mcVer = mcVer;
         this.mcpDir = mcpDir;
         this.side = side;
         
@@ -69,27 +62,19 @@ public class McpMappingLoader
         {
             case Universal:
                 if (new File(mcpDir, "conf/packaged.srg").exists())
-                {
                     srgFile = new File(mcpDir, "conf/packaged.srg");
-                    //excFile = new File(mcpDir, "conf/packaged.exc");
-                }
                 else
-                {
                     srgFile = new File(mcpDir, "conf/joined.srg");
-                    //excFile = new File(mcpDir, "conf/joined.exc");
-                }
                 loadFailureReason = "Unable to find packaged.srg or joined.srg. Try using side Client or Server.";
                 break;
             
             case Client:
                 srgFile = new File(mcpDir, "conf/client.srg");
-                //excFile = new File(mcpDir, "conf/client.exc");
                 loadFailureReason = "Unable to find client.srg. If using Forge, use side Universal.";
                 break;
             
             case Server:
                 srgFile = new File(mcpDir, "conf/server.srg");
-                //excFile = new File(mcpDir, "conf/server.exc");
                 loadFailureReason = "Unable to find server.srg. If using Forge, use side Universal.";
                 break;
             
@@ -101,24 +86,16 @@ public class McpMappingLoader
             throw new CantLoadMCPMappingException(loadFailureReason);
         
         if (progress != null)
-            progress.setMax(4);
+            progress.setMax(3);
         if (progress != null)
             progress.set(0);
-        loadEXCFile();
-        if (progress != null)
-            progress.set(1);
         loadCSVMapping();
         if (progress != null)
-            progress.set(2);
+            progress.set(1);
         loadSRGMapping();
         if (progress != null)
-            progress.set(3);
+            progress.set(2);
         linkSrgDataToCsvData();
-    }
-    
-    private void loadEXCFile() throws IOException
-    {
-        //        excFileData = new ExcFile(excFile);
     }
     
     private void loadSRGMapping() throws IOException
@@ -136,21 +113,21 @@ public class McpMappingLoader
     {
         for (Entry<String, MethodSrgData> methodData : srgFileData.srgName2MethodData.entrySet())
         {
-            if (!srg2csvMethod.containsKey(methodData.getValue()) && csvMethodData.srgName2CsvData.containsKey(methodData.getKey()))
+            if (!srgMethodData2CsvData.containsKey(methodData.getValue()) && csvMethodData.srgName2CsvData.containsKey(methodData.getKey()))
             {
-                srg2csvMethod.put(methodData.getValue(), csvMethodData.srgName2CsvData.get(methodData.getKey()));
+                srgMethodData2CsvData.put(methodData.getValue(), csvMethodData.srgName2CsvData.get(methodData.getKey()));
             }
-            else if (srg2csvMethod.containsKey(methodData.getValue()))
+            else if (srgMethodData2CsvData.containsKey(methodData.getValue()))
                 System.out.println("SRG method " + methodData.getKey() + " has multiple entries in CSV file!");
         }
         
         for (Entry<String, FieldSrgData> fieldData : srgFileData.srgName2FieldData.entrySet())
         {
-            if (!srg2csvField.containsKey(fieldData.getValue()) && csvFieldData.srgName2CsvData.containsKey(fieldData.getKey()))
+            if (!srgFieldData2cCvData.containsKey(fieldData.getValue()) && csvFieldData.srgName2CsvData.containsKey(fieldData.getKey()))
             {
-                srg2csvField.put(fieldData.getValue(), csvFieldData.srgName2CsvData.get(fieldData.getKey()));
+                srgFieldData2cCvData.put(fieldData.getValue(), csvFieldData.srgName2CsvData.get(fieldData.getKey()));
             }
-            else if (srg2csvField.containsKey(fieldData.getValue()))
+            else if (srgFieldData2cCvData.containsKey(fieldData.getValue()))
                 System.out.println("SRG field " + fieldData.getKey() + " has multiple entries in CSV file!");
         }
     }
@@ -182,14 +159,14 @@ public class McpMappingLoader
     public TableModel getMethodModel(String srgPkgAndOwner)
     {
         ClassSrgData classData = srgFileData.srgName2ClassData.get(srgPkgAndOwner);
-        Set<MethodSrgData> methods = srgFileData.class2MethodSet.get(classData);
+        Set<MethodSrgData> methods = srgFileData.class2MethodDataSet.get(classData);
         return new MethodModel(methods);
     }
     
     public TableModel getFieldModel(String srgPkgAndOwner)
     {
         ClassSrgData classData = srgFileData.srgName2ClassData.get(srgPkgAndOwner);
-        Set<FieldSrgData> fields = srgFileData.class2FieldSet.get(classData);
+        Set<FieldSrgData> fields = srgFileData.class2FieldDataSet.get(classData);
         return new FieldModel(fields);
     }
     
@@ -280,7 +257,7 @@ public class McpMappingLoader
             
             for (MethodSrgData methodData : setRef)
             {
-                CsvData csvData = srg2csvMethod.get(methodData);
+                CsvData csvData = srgMethodData2CsvData.get(methodData);
                 if (csvData != null)
                 {
                     data[i][0] = csvData.getMcpName();
@@ -361,7 +338,7 @@ public class McpMappingLoader
             
             for (FieldSrgData fieldData : setRef)
             {
-                CsvData csvData = srg2csvField.get(fieldData);
+                CsvData csvData = srgFieldData2cCvData.get(fieldData);
                 if (csvData != null)
                 {
                     data[i][0] = csvData.getMcpName();
