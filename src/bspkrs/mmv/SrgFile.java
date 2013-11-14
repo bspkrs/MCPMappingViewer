@@ -21,29 +21,30 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 public class SrgFile
 {
     public enum ClassSearchType
     {
-        PACKAGE,
+        PKG,
         OBF,
         SRG;
     }
     
     public final Map<String, ClassSrgData>             srgName2ClassData   = new TreeMap<String, ClassSrgData>();            // full/pkg/ClassSrgName -> ClassSrgData
+    public final Map<String, Set<ClassSrgData>>        srgPkg2ClassDataSet = new TreeMap<String, Set<ClassSrgData>>();       // full/pkg -> Set<ClassSrgData>
     public final Map<String, FieldSrgData>             srgName2FieldData   = new TreeMap<String, FieldSrgData>();            // field_12345_a -> FieldSrgData
     public final Map<String, MethodSrgData>            srgName2MethodData  = new TreeMap<String, MethodSrgData>();           // func_12345_a -> MethodSrgData
-    public final Map<ClassSrgData, Set<MethodSrgData>> class2MethodSet     = new TreeMap<ClassSrgData, Set<MethodSrgData>>();
-    public final Map<ClassSrgData, Set<FieldSrgData>>  class2FieldSet      = new TreeMap<ClassSrgData, Set<FieldSrgData>>();
-    public final Map<String, ClassSrgData>             srgMethod2ClassData = new TreeMap<String, ClassSrgData>();
-    public final Map<String, ClassSrgData>             srgField2ClassData  = new TreeMap<String, ClassSrgData>();
-    
+    public final Map<ClassSrgData, Set<MethodSrgData>> class2MethodDataSet = new TreeMap<ClassSrgData, Set<MethodSrgData>>();
+    public final Map<ClassSrgData, Set<FieldSrgData>>  class2FieldDataSet  = new TreeMap<ClassSrgData, Set<FieldSrgData>>();
+    public final Map<String, ClassSrgData>             srgMethod2ClassData = new TreeMap<String, ClassSrgData>();            // func_12345_a -> ClassSrgData
+    public final Map<String, ClassSrgData>             srgField2ClassData  = new TreeMap<String, ClassSrgData>();            // field_12345_a -> ClassSrgData
+                                                                                                                              
     public static String getLastComponent(String s)
     {
         String[] parts = s.split("/");
@@ -65,12 +66,20 @@ public class SrgFile
                     String deobf = in.next();
                     String srgName = getLastComponent(deobf);
                     String pkgName = deobf.substring(0, deobf.lastIndexOf('/'));
+                    
                     ClassSrgData classData = new ClassSrgData(obf, srgName, pkgName, in.hasNext("#C"));
+                    
+                    if (!srgPkg2ClassDataSet.containsKey(pkgName))
+                        srgPkg2ClassDataSet.put(pkgName, new TreeSet<ClassSrgData>());
+                    srgPkg2ClassDataSet.get(pkgName).add(classData);
+                    
                     srgName2ClassData.put(pkgName + "/" + srgName, classData);
-                    if (!class2MethodSet.containsKey(classData))
-                        class2MethodSet.put(classData, new HashSet<MethodSrgData>());
-                    if (!class2FieldSet.containsKey(classData))
-                        class2FieldSet.put(classData, new HashSet<FieldSrgData>());
+                    
+                    if (!class2MethodDataSet.containsKey(classData))
+                        class2MethodDataSet.put(classData, new TreeSet<MethodSrgData>());
+                    
+                    if (!class2FieldDataSet.containsKey(classData))
+                        class2FieldDataSet.put(classData, new TreeSet<FieldSrgData>());
                 }
                 else if (in.hasNext("FD:"))
                 {
@@ -84,9 +93,11 @@ public class SrgFile
                     String srgPkg = deobf.substring(0, deobf.lastIndexOf('/'));
                     String srgOwner = getLastComponent(srgPkg);
                     srgPkg = srgPkg.substring(0, srgPkg.lastIndexOf('/'));
+                    
                     FieldSrgData fieldData = new FieldSrgData(obfOwner, obfName, srgOwner, srgPkg, srgName, in.hasNext("#C"));
+                    
                     srgName2FieldData.put(srgName, fieldData);
-                    class2FieldSet.get(srgName2ClassData.get(srgPkg + "/" + srgOwner)).add(fieldData);
+                    class2FieldDataSet.get(srgName2ClassData.get(srgPkg + "/" + srgOwner)).add(fieldData);
                     srgField2ClassData.put(srgName, srgName2ClassData.get(srgPkg + "/" + srgOwner));
                 }
                 else if (in.hasNext("MD:"))
@@ -103,9 +114,11 @@ public class SrgFile
                     String srgOwner = getLastComponent(srgPkg);
                     srgPkg = srgPkg.substring(0, srgPkg.lastIndexOf('/'));
                     String srgDescriptor = in.next();
+                    
                     MethodSrgData methodData = new MethodSrgData(obfOwner, obfName, obfDescriptor, srgOwner, srgPkg, srgName, srgDescriptor, in.hasNext("#C"));
+                    
                     srgName2MethodData.put(srgName, methodData);
-                    class2MethodSet.get(srgName2ClassData.get(srgPkg + "/" + srgOwner)).add(methodData);
+                    class2MethodDataSet.get(srgName2ClassData.get(srgPkg + "/" + srgOwner)).add(methodData);
                     srgMethod2ClassData.put(srgName, srgName2ClassData.get(srgPkg + "/" + srgOwner));
                 }
                 else
