@@ -21,6 +21,7 @@ import immibis.bon.gui.Reference;
 import immibis.bon.gui.Side;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Desktop;
@@ -32,6 +33,8 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
@@ -53,6 +56,7 @@ import java.util.prefs.Preferences;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
@@ -61,6 +65,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -68,6 +73,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.RowSorter;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SortOrder;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.event.HyperlinkEvent;
@@ -89,6 +95,7 @@ public class MappingGui extends JFrame
     private JButton                       btnRefreshTables;
     private JComboBox<Side>               cmbSide;
     private JComboBox<String>             cmbMCPDirPath;
+    private JCheckBox                     chkForceRefresh;
     private JPanel                        pnlProgress;
     private JProgressBar                  progressBar;
     private JPanel                        pnlFilter;
@@ -114,17 +121,20 @@ public class MappingGui extends JFrame
     private final String                  mcfTopic              = "http://www.minecraftforum.net/topic/2115030-";
     private DefaultTableModel             classesDefaultModel   = new DefaultTableModel(
                                                                         new Object[][] {
-                                                                        { null, null, null },
+                                                                        {},
                                                                         },
                                                                         new String[] {
-                                                                        "Pkg name", "SRG name", "Obf name"
+                                                                        "Pkg name", "SRG name", "Obf name", "Client Only"
                                                                         }
                                                                         )
                                                                         {
                                                                             private static final long serialVersionUID = 1L;
+                                                                            boolean[]                 columnEditables  = new boolean[] {
+                                                                                                                       false, false, false, false
+                                                                                                                       };
                                                                             @SuppressWarnings("rawtypes")
                                                                             Class[]                   columnTypes      = new Class[] {
-                                                                                                                       String.class, String.class, String.class
+                                                                                                                       String.class, String.class, String.class, Boolean.class
                                                                                                                        };
                                                                             
                                                                             @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -133,20 +143,37 @@ public class MappingGui extends JFrame
                                                                             {
                                                                                 return columnTypes[columnIndex];
                                                                             }
+                                                                            
+                                                                            @Override
+                                                                            public boolean isCellEditable(int row, int column)
+                                                                            {
+                                                                                return columnEditables[column];
+                                                                            }
                                                                         };
     private DefaultTableModel             methodsDefaultModel   = new DefaultTableModel(
                                                                         new Object[][] {
-                                                                        { null, null, null, null, null },
+                                                                        {},
                                                                         },
                                                                         new String[] {
-                                                                        "MCP Name", "SRG Name", "Obf Name", "Descriptor", "Comment"
+                                                                        "MCP Name", "SRG Name", "Obf Name", "SRG Descriptor", "Comment", "Client Only"
                                                                         }
                                                                         )
                                                                         {
                                                                             private static final long serialVersionUID = 1L;
                                                                             boolean[]                 columnEditables  = new boolean[] {
-                                                                                                                       false, false, false, false, false
+                                                                                                                       false, false, false, false, false, false
                                                                                                                        };
+                                                                            @SuppressWarnings("rawtypes")
+                                                                            Class[]                   columnTypes      = new Class[] {
+                                                                                                                       String.class, String.class, String.class, String.class, String.class, Boolean.class
+                                                                                                                       };
+                                                                            
+                                                                            @SuppressWarnings({ "unchecked", "rawtypes" })
+                                                                            @Override
+                                                                            public Class getColumnClass(int columnIndex)
+                                                                            {
+                                                                                return columnTypes[columnIndex];
+                                                                            }
                                                                             
                                                                             @Override
                                                                             public boolean isCellEditable(int row, int column)
@@ -156,10 +183,10 @@ public class MappingGui extends JFrame
                                                                         };
     private DefaultTableModel             fieldsDefaultModel    = new DefaultTableModel(
                                                                         new Object[][] {
-                                                                        { null, null, null, null, null },
+                                                                        {},
                                                                         },
                                                                         new String[] {
-                                                                        "MCP Name", "SRG Name", "Obf Name", "Comment"
+                                                                        "MCP Name", "SRG Name", "Obf Name", "Comment", "Client Only"
                                                                         }
                                                                         )
                                                                         {
@@ -167,6 +194,17 @@ public class MappingGui extends JFrame
                                                                             boolean[]                 columnEditables  = new boolean[] {
                                                                                                                        false, false, false, false, false
                                                                                                                        };
+                                                                            @SuppressWarnings("rawtypes")
+                                                                            Class[]                   columnTypes      = new Class[] {
+                                                                                                                       String.class, String.class, String.class, String.class, Boolean.class
+                                                                                                                       };
+                                                                            
+                                                                            @SuppressWarnings({ "unchecked", "rawtypes" })
+                                                                            @Override
+                                                                            public Class getColumnClass(int columnIndex)
+                                                                            {
+                                                                                return columnTypes[columnIndex];
+                                                                            }
                                                                             
                                                                             @Override
                                                                             public boolean isCellEditable(int row, int column)
@@ -359,11 +397,12 @@ public class MappingGui extends JFrame
             }
         });
         frmMcpMappingViewer.setTitle("MCP Mapping Viewer");
-        frmMcpMappingViewer.setBounds(100, 100, 866, 624);
+        frmMcpMappingViewer.setBounds(100, 100, 925, 621);
         frmMcpMappingViewer.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frmMcpMappingViewer.getContentPane().setLayout(new BorderLayout(0, 0));
         
         JSplitPane splitMain = new JSplitPane();
+        splitMain.setDividerSize(3);
         splitMain.setResizeWeight(0.5);
         splitMain.setContinuousLayout(true);
         splitMain.setMinimumSize(new Dimension(179, 80));
@@ -387,6 +426,7 @@ public class MappingGui extends JFrame
         frmMcpMappingViewer.getContentPane().add(splitMain, BorderLayout.CENTER);
         
         JSplitPane splitMembers = new JSplitPane();
+        splitMembers.setDividerSize(3);
         splitMembers.setResizeWeight(0.5);
         splitMembers.setOrientation(JSplitPane.VERTICAL_SPLIT);
         splitMain.setRightComponent(splitMembers);
@@ -429,12 +469,14 @@ public class MappingGui extends JFrame
         pnlControls.add(lblSide);
         
         cmbSide = new JComboBox<Side>();
+        cmbSide.setModel(new DefaultComboBoxModel(Side.values()));
         cmbSide.addItem(Side.Client);
         cmbSide.addItem(Side.Server);
         cmbSide.addItem(Side.Universal);
         pnlControls.add(cmbSide);
         
         cmbMCPDirPath = new JComboBox<String>(new DefaultComboBoxModel<String>());
+        cmbMCPDirPath.setPreferredSize(new Dimension(320, 20));
         cmbMCPDirPath.addItemListener(new ComboItemChanged());
         
         JLabel lblMCPFolder = new JLabel("MCP folder");
@@ -451,7 +493,84 @@ public class MappingGui extends JFrame
         btnRefreshTables.addActionListener(new RefreshActionListener());
         pnlControls.add(btnRefreshTables);
         
+        chkForceRefresh = new JCheckBox("Force reload");
+        chkForceRefresh.setToolTipText("Force a reload from the MCP conf folder files instead of the session cache.");
+        pnlControls.add(chkForceRefresh);
+        
+        pnlProgress = new JPanel();
+        pnlProgress.setVisible(false);
+        pnlHeader.add(pnlProgress, BorderLayout.SOUTH);
+        pnlProgress.setLayout(new BorderLayout(0, 0));
+        
+        progressBar = new JProgressBar();
+        progressBar.setStringPainted(true);
+        progressBar.setString("");
+        progressBar.setForeground(UIManager.getColor("ProgressBar.foreground"));
+        pnlProgress.add(progressBar);
+        
+        pnlFilter = new JPanel();
+        FlowLayout flowLayout = (FlowLayout) pnlFilter.getLayout();
+        flowLayout.setVgap(2);
+        flowLayout.setAlignment(FlowLayout.LEFT);
+        pnlFilter.setVisible(true);
+        pnlHeader.add(pnlFilter, BorderLayout.CENTER);
+        
+        JLabel lblFilter = new JLabel("Search");
+        pnlFilter.add(lblFilter);
+        
+        edtFilter = new JTextField();
+        edtFilter.addFocusListener(new FocusAdapter()
+        {
+            @Override
+            public void focusGained(FocusEvent e)
+            {
+                edtFilter.select(0, edtFilter.getText().length());
+            }
+        });
+        edtFilter.addKeyListener(new KeyAdapter()
+        {
+            @Override
+            public void keyReleased(KeyEvent e)
+            {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER)
+                    btnSearch.doClick();
+            }
+        });
+        pnlFilter.add(edtFilter);
+        edtFilter.setColumns(40);
+        
+        btnSearch = new JButton("Go");
+        btnSearch.setToolTipText("");
+        btnSearch.addActionListener(new SearchActionListener());
+        pnlFilter.add(btnSearch);
+        edtFilter.setEnabled(false);
+        btnSearch.setEnabled(false);
+        
+        JLabel lblSearchInfo = new JLabel("A note on search");
+        lblSearchInfo.addMouseListener(new MouseAdapter()
+        {
+            @Override
+            public void mouseClicked(MouseEvent e)
+            {
+                String message = "Search is global and returns a set of classes that contain a match for the input. \n" +
+                        "Search is case sensitive!\n\nData elements searched on:\n" +
+                        "Classes:\n    ~ Pkg Name\n    ~ SRG Name\n    ~ Obf Name\n" +
+                        "Methods/Fields:\n    ~ SRG Name\n    ~ Obf Name\n    ~ MCP Name\n    ~ Comment";
+                JOptionPane.showMessageDialog(MappingGui.this, message, "Search Info", JOptionPane.INFORMATION_MESSAGE);
+            }
+        });
+        lblSearchInfo.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        lblSearchInfo.setForeground(Color.BLUE);
+        pnlFilter.add(lblSearchInfo);
+        
+        JSeparator separator = new JSeparator();
+        separator.setPreferredSize(new Dimension(1, 12));
+        separator.setOrientation(SwingConstants.VERTICAL);
+        pnlFilter.add(separator);
+        
         JLabel lblAbout = new JLabel("About");
+        pnlFilter.add(lblAbout);
+        lblAbout.setForeground(Color.BLUE);
         lblAbout.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         lblAbout.addMouseListener(new MouseAdapter()
         {
@@ -473,46 +592,6 @@ public class MappingGui extends JFrame
                 showHTMLDialog(MappingGui.this, message, "About MCP Mapping Viewer", JOptionPane.PLAIN_MESSAGE);
             }
         });
-        pnlControls.add(lblAbout);
-        
-        pnlProgress = new JPanel();
-        pnlProgress.setVisible(false);
-        pnlHeader.add(pnlProgress, BorderLayout.SOUTH);
-        pnlProgress.setLayout(new BorderLayout(0, 0));
-        
-        progressBar = new JProgressBar();
-        progressBar.setStringPainted(true);
-        progressBar.setString("");
-        progressBar.setForeground(UIManager.getColor("ProgressBar.foreground"));
-        pnlProgress.add(progressBar);
-        
-        pnlFilter = new JPanel();
-        FlowLayout flowLayout = (FlowLayout) pnlFilter.getLayout();
-        flowLayout.setVgap(2);
-        flowLayout.setAlignment(FlowLayout.LEFT);
-        pnlFilter.setVisible(true);
-        pnlFilter.setEnabled(false);
-        pnlHeader.add(pnlFilter, BorderLayout.CENTER);
-        
-        JLabel lblFilter = new JLabel("Search");
-        pnlFilter.add(lblFilter);
-        
-        edtFilter = new JTextField();
-        edtFilter.addKeyListener(new KeyAdapter()
-        {
-            @Override
-            public void keyReleased(KeyEvent e)
-            {
-                if (e.getKeyCode() == KeyEvent.VK_ENTER)
-                    btnSearch.doClick();
-            }
-        });
-        pnlFilter.add(edtFilter);
-        edtFilter.setColumns(20);
-        
-        btnSearch = new JButton("Go");
-        btnSearch.addActionListener(new SearchActionListener());
-        pnlFilter.add(btnSearch);
         
         addWindowListener(new WindowAdapter()
         {
@@ -589,7 +668,129 @@ public class MappingGui extends JFrame
         @Override
         public void actionPerformed(ActionEvent e)
         {
-            // TODO: search shit
+            if (curTask != null && curTask.isAlive())
+                return;
+            
+            savePrefs();
+            
+            edtFilter.setEnabled(false);
+            btnSearch.setEnabled(false);
+            pnlProgress.setVisible(true);
+            tblClasses.setModel(classesDefaultModel);
+            tblClasses.setEnabled(false);
+            tblMethods.setModel(methodsDefaultModel);
+            tblMethods.setEnabled(false);
+            tblFields.setModel(fieldsDefaultModel);
+            tblFields.setEnabled(false);
+            
+            curTask = new Thread()
+            {
+                @Override
+                public void run()
+                {
+                    boolean crashed = false;
+                    
+                    try
+                    {
+                        IProgressListener progress = new IProgressListener()
+                        {
+                            private String currentText;
+                            
+                            @Override
+                            public void start(final int max, final String text)
+                            {
+                                currentText = text.equals("") ? " " : text;
+                                SwingUtilities.invokeLater(new Runnable()
+                                {
+                                    @Override
+                                    public void run()
+                                    {
+                                        progressBar.setString(currentText);
+                                        if (max >= 0)
+                                            progressBar.setMaximum(max);
+                                        progressBar.setValue(0);
+                                    }
+                                });
+                            }
+                            
+                            @Override
+                            public void set(final int value)
+                            {
+                                SwingUtilities.invokeLater(new Runnable()
+                                {
+                                    @Override
+                                    public void run()
+                                    {
+                                        progressBar.setValue(value);
+                                    }
+                                });
+                            }
+                            
+                            @Override
+                            public void setMax(final int max)
+                            {
+                                SwingUtilities.invokeLater(new Runnable()
+                                {
+                                    @Override
+                                    public void run()
+                                    {
+                                        progressBar.setMaximum(max);
+                                    }
+                                });
+                            }
+                        };
+                        
+                        progress.start(0, "Searching MCP objects for input");
+                        tblClasses.setModel(currentLoader.getSearchResults(edtFilter.getText(), progress));
+                        tblClasses.setEnabled(true);
+                        new TableColumnAdjuster(tblClasses).adjustColumns();
+                        loadPrefs();
+                    }
+                    catch (Exception e)
+                    {
+                        String s = getStackTraceMessage("An error has occurred - give bspkrs this stack trace (which has been copied to the clipboard)\n", e);
+                        
+                        System.err.println(s);
+                        
+                        crashed = true;
+                        
+                        final String errMsg = s;
+                        SwingUtilities.invokeLater(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                progressBar.setString(" ");
+                                progressBar.setValue(0);
+                                
+                                Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(errMsg), null);
+                                JOptionPane.showMessageDialog(MappingGui.this, errMsg, "MMV - Error", JOptionPane.ERROR_MESSAGE);
+                            }
+                        });
+                    }
+                    finally
+                    {
+                        if (!crashed)
+                        {
+                            SwingUtilities.invokeLater(new Runnable()
+                            {
+                                @Override
+                                public void run()
+                                {
+                                    progressBar.setString(" ");
+                                    progressBar.setValue(0);
+                                    edtFilter.setEnabled(true);
+                                }
+                            });
+                        }
+                        pnlProgress.setVisible(false);
+                        edtFilter.setEnabled(true);
+                        btnSearch.setEnabled(true);
+                    }
+                }
+            };
+            
+            curTask.start();
         }
     }
     
@@ -699,13 +900,12 @@ public class MappingGui extends JFrame
                             }
                         };
                         
-                        String mcVer = McpMappingLoader.getMCVer(mcpDir);
-                        
-                        if (!mcpInstances.containsKey(mcpDir.getAbsolutePath() + " " + side))
+                        if (!mcpInstances.containsKey(mcpDir.getAbsolutePath() + " " + side) || chkForceRefresh.isSelected())
                         {
                             progress.start(0, "Reading MCP configuration");
                             currentLoader = new McpMappingLoader(side, mcpDir, progress);
                             mcpInstances.put(mcpDir.getAbsolutePath() + " " + side, currentLoader);
+                            chkForceRefresh.setSelected(false);
                         }
                         else
                             currentLoader = mcpInstances.get(mcpDir.getAbsolutePath() + " " + side);
@@ -771,13 +971,13 @@ public class MappingGui extends JFrame
                                     progressBar.setString(" ");
                                     progressBar.setValue(0);
                                     edtFilter.setEnabled(true);
-                                    
-                                    // JOptionPane.showMessageDialog(MappingGui.this, "Done!", "MMV", JOptionPane.INFORMATION_MESSAGE);
                                 }
                             });
                         }
                         pnlProgress.setVisible(false);
                         pnlFilter.setVisible(true);
+                        edtFilter.setEnabled(true);
+                        btnSearch.setEnabled(true);
                     }
                 }
             };
