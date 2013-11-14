@@ -511,6 +511,7 @@ public class MappingGui extends JFrame
         edtFilter.setColumns(20);
         
         btnSearch = new JButton("Go");
+        btnSearch.addActionListener(new SearchActionListener());
         pnlFilter.add(btnSearch);
         
         addWindowListener(new WindowAdapter()
@@ -580,6 +581,15 @@ public class MappingGui extends JFrame
                     tblFields.setEnabled(false);
                 }
             }
+        }
+    }
+    
+    class SearchActionListener implements ActionListener
+    {
+        @Override
+        public void actionPerformed(ActionEvent e)
+        {
+            // TODO: search shit
         }
     }
     
