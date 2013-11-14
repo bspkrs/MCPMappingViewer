@@ -22,6 +22,7 @@ import immibis.bon.gui.Side;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
@@ -45,7 +46,6 @@ public class McpMappingLoader
         }
     }
     
-    private final Side                       side;
     private final File                       mcpDir;
     private final File                       srgFile;
     private SrgFile                          srgFileData;
@@ -57,7 +57,6 @@ public class McpMappingLoader
     public McpMappingLoader(Side side, File mcpDir, IProgressListener progress) throws IOException, CantLoadMCPMappingException
     {
         this.mcpDir = mcpDir;
-        this.side = side;
         
         String loadFailureReason = "";
         switch (side)
@@ -107,8 +106,8 @@ public class McpMappingLoader
     
     private void loadCSVMapping() throws IOException
     {
-        csvFieldData = new CsvFile(new File(mcpDir, "conf/fields.csv"), side);
-        csvMethodData = new CsvFile(new File(mcpDir, "conf/methods.csv"), side);
+        csvFieldData = new CsvFile(new File(mcpDir, "conf/fields.csv"));
+        csvMethodData = new CsvFile(new File(mcpDir, "conf/methods.csv"));
     }
     
     private void linkSrgDataToCsvData()
@@ -233,6 +232,18 @@ public class McpMappingLoader
         return new FieldModel(fields);
     }
     
+    public static final Comparator<String> OBF_COMPARATOR = new Comparator<String>()
+                                                          {
+                                                              @Override
+                                                              public int compare(String o1, String o2)
+                                                              {
+                                                                  if (o1.length() != o2.length())
+                                                                      return o1.length() - o2.length();
+                                                                  else
+                                                                      return o1.compareTo(o2);
+                                                              }
+                                                          };
+    
     public class ClassModel extends AbstractTableModel
     {
         private static final long              serialVersionUID = 1L;
@@ -247,6 +258,7 @@ public class McpMappingLoader
         {
             collectionRef = map;
             data = new Object[collectionRef.size()][columnNames.length];
+            
             int i = 0;
             
             for (ClassSrgData classData : collectionRef)

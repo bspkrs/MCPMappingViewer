@@ -88,7 +88,7 @@ import bspkrs.mmv.version.AppVersionChecker;
 
 public class MappingGui extends JFrame
 {
-    public static final String            VERSION_NUMBER        = "0.2.0";
+    public static final String            VERSION_NUMBER        = "0.2.1";
     private static final long             serialVersionUID      = 1L;
     private final Preferences             prefs                 = Preferences.userNodeForPackage(MappingGui.class);
     private JFrame                        frmMcpMappingViewer;
@@ -469,7 +469,7 @@ public class MappingGui extends JFrame
         pnlControls.add(lblSide);
         
         cmbSide = new JComboBox<Side>();
-        cmbSide.setModel(new DefaultComboBoxModel(Side.values()));
+        cmbSide.setModel(new DefaultComboBoxModel<Side>(Side.values()));
         cmbSide.addItem(Side.Client);
         cmbSide.addItem(Side.Server);
         cmbSide.addItem(Side.Universal);
@@ -913,6 +913,8 @@ public class MappingGui extends JFrame
                         tblClasses.setModel(currentLoader.getClassModel());
                         tblClasses.setEnabled(true);
                         new TableColumnAdjuster(tblClasses).adjustColumns();
+                        //                        TableRowSorter trs = (TableRowSorter) tblClasses.getRowSorter();
+                        //                        trs.setComparator(2, McpMappingLoader.OBF_COMPARATOR);
                         loadPrefs();
                     }
                     catch (CantLoadMCPMappingException e)
