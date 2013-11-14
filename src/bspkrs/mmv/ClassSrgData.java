@@ -17,10 +17,18 @@ package bspkrs.mmv;
 
 public class ClassSrgData implements Comparable<ClassSrgData>
 {
-    private final String  obfName;
-    private final String  srgName;
-    private String        srgPkgName;
-    private final boolean isClientOnly;
+    public static enum SortType
+    {
+        PKG,
+        OBF
+    }
+    
+    private final String   obfName;
+    private final String   srgName;
+    private String         srgPkgName;
+    private final boolean  isClientOnly;
+    
+    public static SortType sortType = SortType.PKG;
     
     public ClassSrgData(String obfName, String srgName, String srgPkgName, boolean isClientOnly)
     {
@@ -64,10 +72,19 @@ public class ClassSrgData implements Comparable<ClassSrgData>
     @Override
     public int compareTo(ClassSrgData o)
     {
-        if (o != null)
-            return getFullyQualifiedSrgName().compareTo(o.getFullyQualifiedSrgName());
+        if (sortType == SortType.PKG)
+            if (o != null)
+                return getFullyQualifiedSrgName().compareTo(o.getFullyQualifiedSrgName());
+            else
+                return 1;
+        else if (o != null)
+            if (obfName.length() != o.obfName.length())
+                return obfName.length() - o.obfName.length();
+            else
+                return obfName.compareTo(o.obfName);
         else
             return 1;
+        
     }
     
     public boolean contains(String s)
