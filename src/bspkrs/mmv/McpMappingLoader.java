@@ -21,11 +21,13 @@ import immibis.bon.gui.Side;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
@@ -50,7 +52,7 @@ public class McpMappingLoader
     private CsvFile                          csvFieldData, csvMethodData;
     
     public final Map<MethodSrgData, CsvData> srgMethodData2CsvData = new TreeMap<MethodSrgData, CsvData>();
-    public final Map<FieldSrgData, CsvData>  srgFieldData2cCvData  = new TreeMap<FieldSrgData, CsvData>();
+    public final Map<FieldSrgData, CsvData>  srgFieldData2CsvData  = new TreeMap<FieldSrgData, CsvData>();
     
     public McpMappingLoader(Side side, File mcpDir, IProgressListener progress) throws IOException, CantLoadMCPMappingException
     {
@@ -123,11 +125,11 @@ public class McpMappingLoader
         
         for (Entry<String, FieldSrgData> fieldData : srgFileData.srgName2FieldData.entrySet())
         {
-            if (!srgFieldData2cCvData.containsKey(fieldData.getValue()) && csvFieldData.srgName2CsvData.containsKey(fieldData.getKey()))
+            if (!srgFieldData2CsvData.containsKey(fieldData.getValue()) && csvFieldData.srgName2CsvData.containsKey(fieldData.getKey()))
             {
-                srgFieldData2cCvData.put(fieldData.getValue(), csvFieldData.srgName2CsvData.get(fieldData.getKey()));
+                srgFieldData2CsvData.put(fieldData.getValue(), csvFieldData.srgName2CsvData.get(fieldData.getKey()));
             }
-            else if (srgFieldData2cCvData.containsKey(fieldData.getValue()))
+            else if (srgFieldData2CsvData.containsKey(fieldData.getValue()))
                 System.out.println("SRG field " + fieldData.getKey() + " has multiple entries in CSV file!");
         }
     }
@@ -151,9 +153,70 @@ public class McpMappingLoader
         return this.mcpDir;
     }
     
+    public TableModel getSearchResults(String input, IProgressListener progress)
+    {
+        if (input == null || input.trim().isEmpty())
+            return getClassModel();
+        
+        if (progress != null)
+        {
+            progress.setMax(3);
+            progress.set(0);
+        }
+        
+        Set<ClassSrgData> results = new TreeSet<ClassSrgData>();
+        
+        // Search Class objects
+        for (ClassSrgData classData : srgFileData.srgName2ClassData.values())
+            if (classData.contains(input))
+                results.add(classData);
+        
+        if (progress != null)
+            progress.set(1);
+        
+        // Search Methods
+        for (Entry<ClassSrgData, Set<MethodSrgData>> entry : srgFileData.class2MethodDataSet.entrySet())
+        {
+            if (!results.contains(entry.getKey()))
+            {
+                for (MethodSrgData methodData : entry.getValue())
+                {
+                    CsvData csv = this.srgMethodData2CsvData.get(methodData);
+                    if (methodData.contains(input) || (csv != null && csv.contains(input)))
+                    {
+                        results.add(entry.getKey());
+                        break;
+                    }
+                }
+            }
+        }
+        
+        if (progress != null)
+            progress.set(2);
+        
+        // Search Fields
+        for (Entry<ClassSrgData, Set<FieldSrgData>> entry : srgFileData.class2FieldDataSet.entrySet())
+        {
+            if (!results.contains(entry.getKey()))
+            {
+                for (FieldSrgData fieldData : entry.getValue())
+                {
+                    CsvData csv = this.srgFieldData2CsvData.get(fieldData);
+                    if (fieldData.contains(input) || (csv != null && csv.contains(input)))
+                    {
+                        results.add(entry.getKey());
+                        break;
+                    }
+                }
+            }
+        }
+        
+        return new ClassModel(results);
+    }
+    
     public TableModel getClassModel()
     {
-        return new ClassModel(this.srgFileData.srgName2ClassData);
+        return new ClassModel(this.srgFileData.srgName2ClassData.values());
     }
     
     public TableModel getMethodModel(String srgPkgAndOwner)
@@ -172,24 +235,26 @@ public class McpMappingLoader
     
     public class ClassModel extends AbstractTableModel
     {
-        private static final long               serialVersionUID = 1L;
-        private final String[]                  columnNames      = { "Pkg name", "SRG name", "Obf name" };
+        private static final long              serialVersionUID = 1L;
+        public final String[]                  columnNames      = { "Pkg name", "SRG name", "Obf name", "Client Only" };
         @SuppressWarnings("rawtypes")
-        private final Class[]                   columnTypes      = { String.class, String.class, String.class };
-        private final Object[][]                data;
-        private final Map<String, ClassSrgData> mapRef;
+        private final Class[]                  columnTypes      = { String.class, String.class, String.class, Boolean.class };
+        private final boolean[]                isColumnEditable = { false, false, false, false };
+        private final Object[][]               data;
+        private final Collection<ClassSrgData> collectionRef;
         
-        public ClassModel(Map<String, ClassSrgData> map)
+        public ClassModel(Collection<ClassSrgData> map)
         {
-            mapRef = map;
-            data = new Object[mapRef.size()][columnNames.length];
+            collectionRef = map;
+            data = new Object[collectionRef.size()][columnNames.length];
             int i = 0;
             
-            for (ClassSrgData classData : mapRef.values())
+            for (ClassSrgData classData : collectionRef)
             {
                 data[i][0] = classData.getSrgPkgName();
                 data[i][1] = classData.getSrgName();
                 data[i][2] = classData.getObfName();
+                data[i][3] = classData.isClientOnly();
                 i++;
             }
         }
@@ -224,7 +289,7 @@ public class McpMappingLoader
         @Override
         public boolean isCellEditable(int rowIndex, int columnIndex)
         {
-            return false;
+            return isColumnEditable[columnIndex];
         }
         
         @Override
@@ -243,9 +308,10 @@ public class McpMappingLoader
     public class MethodModel extends AbstractTableModel
     {
         private static final long        serialVersionUID = 1L;
-        private final String[]           columnNames      = { "MCP Name", "SRG Name", "Obf Name", "Descriptor", "Comment" };
+        private final String[]           columnNames      = { "MCP Name", "SRG Name", "Obf Name", "SRG Descriptor", "Comment", "Client Only" };
         @SuppressWarnings("rawtypes")
-        private final Class[]            columnTypes      = { String.class, String.class, String.class, String.class, String.class };
+        private final Class[]            columnTypes      = { String.class, String.class, String.class, String.class, String.class, Boolean.class };
+        private final boolean[]          isColumnEditable = { false, false, false, false, false, false };
         private final Object[][]         data;
         private final Set<MethodSrgData> setRef;
         
@@ -271,6 +337,7 @@ public class McpMappingLoader
                 data[i][1] = methodData.getSrgName();
                 data[i][2] = methodData.getObfName();
                 data[i][3] = methodData.getSrgDescriptor();
+                data[i][5] = methodData.isClientOnly();
                 i++;
             }
         }
@@ -305,7 +372,7 @@ public class McpMappingLoader
         @Override
         public boolean isCellEditable(int rowIndex, int columnIndex)
         {
-            return false;
+            return isColumnEditable[columnIndex];
         }
         
         @Override
@@ -324,9 +391,10 @@ public class McpMappingLoader
     public class FieldModel extends AbstractTableModel
     {
         private static final long       serialVersionUID = 1L;
-        private final String[]          columnNames      = { "MCP Name", "SRG Name", "Obf Name", "Comment" };
+        private final String[]          columnNames      = { "MCP Name", "SRG Name", "Obf Name", "Comment", "Client Only" };
         @SuppressWarnings("rawtypes")
-        private final Class[]           columnTypes      = { String.class, String.class, String.class, String.class };
+        private final Class[]           columnTypes      = { String.class, String.class, String.class, String.class, Boolean.class };
+        private final boolean[]         isColumnEditable = { false, false, false, false, false };
         private final Object[][]        data;
         private final Set<FieldSrgData> setRef;
         
@@ -338,7 +406,7 @@ public class McpMappingLoader
             
             for (FieldSrgData fieldData : setRef)
             {
-                CsvData csvData = srgFieldData2cCvData.get(fieldData);
+                CsvData csvData = srgFieldData2CsvData.get(fieldData);
                 if (csvData != null)
                 {
                     data[i][0] = csvData.getMcpName();
@@ -351,6 +419,7 @@ public class McpMappingLoader
                 }
                 data[i][1] = fieldData.getSrgName();
                 data[i][2] = fieldData.getObfName();
+                data[i][4] = fieldData.isClientOnly();
                 i++;
             }
         }
@@ -385,7 +454,7 @@ public class McpMappingLoader
         @Override
         public boolean isCellEditable(int rowIndex, int columnIndex)
         {
-            return false;
+            return isColumnEditable[columnIndex];
         }
         
         @Override
