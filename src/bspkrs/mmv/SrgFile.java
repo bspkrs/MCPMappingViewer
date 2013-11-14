@@ -29,13 +29,6 @@ import java.util.TreeSet;
 
 public class SrgFile
 {
-    public enum ClassSearchType
-    {
-        PKG,
-        OBF,
-        SRG;
-    }
-    
     public final Map<String, ClassSrgData>             srgName2ClassData   = new TreeMap<String, ClassSrgData>();            // full/pkg/ClassSrgName -> ClassSrgData
     public final Map<String, Set<ClassSrgData>>        srgPkg2ClassDataSet = new TreeMap<String, Set<ClassSrgData>>();       // full/pkg -> Set<ClassSrgData>
     public final Map<String, FieldSrgData>             srgName2FieldData   = new TreeMap<String, FieldSrgData>();            // field_12345_a -> FieldSrgData
