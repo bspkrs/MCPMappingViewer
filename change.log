@@ -1,3 +1,10 @@
+0.2.0 - 14-Nov-2013
+- many UI improvements and tweaks
+- column sort is now remembered
+- added global search functionality
+- added option to force reload from mcp/conf files vs cached data
+- added version notifications (non-naggy, you'll only be notified once per new version)
+- improved exception handling
 0.1.0a - 12-Nov-2013
 - initial release!
 - acts as an obfuscation map viewer
