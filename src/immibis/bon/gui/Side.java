@@ -19,11 +19,11 @@ import immibis.bon.NameSet;
 
 public enum Side
 {
-    Universal(NameSet.Side.UNIVERSAL, "bin/minecraft", 2),
-    Client(NameSet.Side.CLIENT, "bin/minecraft", 0),
-    Server(NameSet.Side.SERVER, "bin/minecraft_server", 1);
+    Universal(NameSet.Side.UNIVERSAL, "bin/minecraft", new int[] { 2, 0 }),
+    Client(NameSet.Side.CLIENT, "bin/minecraft", new int[] { 0 }),
+    Server(NameSet.Side.SERVER, "bin/minecraft_server", new int[] { 1 });
     
-    private Side(NameSet.Side nsside, String referencePath, int side)
+    private Side(NameSet.Side nsside, String referencePath, int[] side)
     {
         this.nsside = nsside;
         this.referencePath = referencePath;
@@ -32,5 +32,5 @@ public enum Side
     
     public final NameSet.Side nsside;
     public final String       referencePath;
-    public final int          intSide;
+    public final int[]        intSide;
 }

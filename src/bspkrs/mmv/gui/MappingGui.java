@@ -88,7 +88,7 @@ import bspkrs.mmv.version.AppVersionChecker;
 
 public class MappingGui extends JFrame
 {
-    public static final String            VERSION_NUMBER        = "0.2.1";
+    public static final String            VERSION_NUMBER        = "0.2.2";
     private static final long             serialVersionUID      = 1L;
     private final Preferences             prefs                 = Preferences.userNodeForPackage(MappingGui.class);
     private JFrame                        frmMcpMappingViewer;
@@ -471,9 +471,6 @@ public class MappingGui extends JFrame
         
         cmbSide = new JComboBox<Side>();
         cmbSide.setModel(new DefaultComboBoxModel<Side>(Side.values()));
-        cmbSide.addItem(Side.Client);
-        cmbSide.addItem(Side.Server);
-        cmbSide.addItem(Side.Universal);
         pnlControls.add(cmbSide);
         
         cmbMCPDirPath = new JComboBox<String>(new DefaultComboBoxModel<String>());

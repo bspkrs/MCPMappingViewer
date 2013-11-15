@@ -1,3 +1,5 @@
+0.2.2 - 14-Nov-2013
+- proper fixed CsvFile parser defect
 0.2.1 - 14-Nov-2013
 - fixed major logic flaw in CsvFile parser
 0.2.0 - 14-Nov-2013

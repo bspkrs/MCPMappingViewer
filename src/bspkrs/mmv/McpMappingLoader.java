@@ -48,6 +48,7 @@ public class McpMappingLoader
     
     private final File                       mcpDir;
     private final File                       srgFile;
+    private final Side                       side;
     private SrgFile                          srgFileData;
     private CsvFile                          csvFieldData, csvMethodData;
     
@@ -57,6 +58,7 @@ public class McpMappingLoader
     public McpMappingLoader(Side side, File mcpDir, IProgressListener progress) throws IOException, CantLoadMCPMappingException
     {
         this.mcpDir = mcpDir;
+        this.side = side;
         
         String loadFailureReason = "";
         switch (side)
@@ -106,8 +108,8 @@ public class McpMappingLoader
     
     private void loadCSVMapping() throws IOException
     {
-        csvFieldData = new CsvFile(new File(mcpDir, "conf/fields.csv"));
-        csvMethodData = new CsvFile(new File(mcpDir, "conf/methods.csv"));
+        csvFieldData = new CsvFile(new File(mcpDir, "conf/fields.csv"), side);
+        csvMethodData = new CsvFile(new File(mcpDir, "conf/methods.csv"), side);
     }
     
     private void linkSrgDataToCsvData()

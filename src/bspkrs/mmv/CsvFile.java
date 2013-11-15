@@ -16,6 +16,8 @@
  */
 package bspkrs.mmv;
 
+import immibis.bon.gui.Side;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -29,11 +31,13 @@ import java.util.TreeMap;
 public class CsvFile
 {
     private final File                file;
+    private final Side                side;
     public final Map<String, CsvData> srgName2CsvData;
     
-    public CsvFile(File file) throws IOException
+    public CsvFile(File file, Side side) throws IOException
     {
         this.file = file;
+        this.side = side;
         this.srgName2CsvData = new TreeMap<String, CsvData>();
         readFromFile();
     }
@@ -52,13 +56,22 @@ public class CsvFile
                 String side = in.next();
                 String comment = in.nextLine();
                 comment = comment.substring(1); // removes the ','
-                srgName2CsvData.put(srgName, new CsvData(srgName, mcpName, Integer.valueOf(side), comment));
+                if (sideIn(Integer.valueOf(side), this.side.intSide))
+                    srgName2CsvData.put(srgName, new CsvData(srgName, mcpName, Integer.valueOf(side), comment));
             }
         }
         finally
         {
             in.close();
         }
+    }
+    
+    private boolean sideIn(int i, int[] ar)
+    {
+        for (int n : ar)
+            if (n == i)
+                return true;
+        return false;
     }
     
     public void writeToFile() throws IOException
