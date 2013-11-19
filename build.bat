@@ -12,6 +12,7 @@ echo *** Packing MCPMappingViewer.jar...
 cd ../bin
 jar cvfm MCPMappingViewer.jar ../META-INF/MANIFEST.MF .
 cd ..
+jar uf bin/MCPMappingViewer.jar LICENSE
 
 echo *** Build complete!
 pause
