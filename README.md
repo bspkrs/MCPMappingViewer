@@ -11,14 +11,15 @@ A small GUI for viewing the mappings from Minecraft obfuscated code names to MCP
 
 #### How to build from the source code ####
 
-Option 1:
-1. Clone this repository.
-2. Run build.bat or build.sh.
+Option 1 (native scripts):<br/>
+1. Clone this repository.<br/>
+2. Run build.bat or build.sh.<br/>
 3. The jar file is created in the /dist folder.
 
-Option 2:
-1. Download and install [Apache Ant](http://ant.apache.org) on your system. Make sure it is available on the path environment variable.
-2. From a console window run "ant" from the MCP Mapping Viewer repo folder. The build will create its output in the dist folder.
+Option 2 (ant):<br/>
+1. Clone this repository.<br/>
+2. Download and install [Apache Ant](http://ant.apache.org) on your system. Make sure it is available on the path environment variable.<br/>
+3. From a console window run "ant" from the MCP Mapping Viewer repo folder. The build will create its output in the dist folder.
 
 * * *
 
