@@ -1,12 +1,14 @@
 <?xml version="1.0"?>
 <project name="MCPMappingViewer" default="main" basedir=".">
-	<property name="src.dir" location="src" />
-	<property name="build.dir" location="bin" />
-	<property name="dist.dir" location="dist" />
-	<property name="dist.jarname" value="MCPMappingViewer.jar" />
-	<property name="manifest.mainclass" value="bspkrs.mmv.gui.MappingGui" />
+    <target name="init">
+        <property name="src.dir" location="src" />
+        <property name="build.dir" location="bin" />
+        <property name="dist.dir" location="dist" />
+        <property name="dist.jarname" value="MCPMappingViewer.jar" />
+        <property name="manifest.mainclass" value="bspkrs.mmv.gui.MappingGui" />
+    </target>
 
-	<target name="clean">
+	<target name="clean" depends="init">
 		<delete dir="${build.dir}" failonerror="false" />
 		<delete dir="${dist.dir}" failonerror="false" />
 	</target>
