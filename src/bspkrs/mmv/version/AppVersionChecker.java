@@ -55,8 +55,11 @@ public class AppVersionChecker
         
         newVer = versionLines[0].trim();
         
-        // Keep track of the versions we've seen to keep from nagging users with new version notifications beyond the first time        
-        lastNewVersionFound = versionCheckTracker.get(LAST_VERSION_FOUND, oldVer);
+        // Keep track of the versions we've seen to keep from nagging users with new version notifications beyond the first time   
+        if (isCurrentVersion(oldVer, newVer))
+            lastNewVersionFound = newVer;
+        else
+            lastNewVersionFound = versionCheckTracker.get(LAST_VERSION_FOUND, oldVer);
         
         if (!isCurrentVersion(lastNewVersionFound, newVer))
             versionCheckTracker.put(LAST_VERSION_FOUND, newVer);
