@@ -15,37 +15,16 @@
  */
 package bspkrs.mmv;
 
-public class MethodSrgData implements Comparable<MethodSrgData>
+public class MethodSrgData extends MemberSrgData implements Comparable<MethodSrgData>
 {
-    private final String  obfOwner;
-    private final String  obfName;
-    private final String  obfDescriptor;
-    private final String  srgOwner;
-    private final String  srgPkg;
-    private final String  srgName;
-    private final String  srgDescriptor;
-    private final boolean isClientOnly;
+    private final String obfDescriptor;
+    private final String srgDescriptor;
     
     public MethodSrgData(String obfOwner, String obfName, String obfDescriptor, String srgOwner, String srgPkg, String srgName, String srgDescriptor, boolean isClientOnly)
     {
-        this.obfOwner = obfOwner;
-        this.obfName = obfName;
+        super(obfOwner, obfName, srgOwner, srgPkg, srgName, isClientOnly);
         this.obfDescriptor = obfDescriptor;
-        this.srgOwner = srgOwner;
-        this.srgPkg = srgPkg;
-        this.srgName = srgName;
         this.srgDescriptor = srgDescriptor;
-        this.isClientOnly = isClientOnly;
-    }
-    
-    public String getObfOwner()
-    {
-        return obfOwner;
-    }
-    
-    public String getObfName()
-    {
-        return obfName;
     }
     
     public String getObfDescriptor()
@@ -53,42 +32,17 @@ public class MethodSrgData implements Comparable<MethodSrgData>
         return obfDescriptor;
     }
     
-    public String getSrgOwner()
-    {
-        return srgOwner;
-    }
-    
-    public String getSrgName()
-    {
-        return srgName;
-    }
-    
     public String getSrgDescriptor()
     {
         return srgDescriptor;
-    }
-    
-    public boolean isClientOnly()
-    {
-        return isClientOnly;
-    }
-    
-    public String getSrgPkg()
-    {
-        return srgPkg;
     }
     
     @Override
     public int compareTo(MethodSrgData o)
     {
         if (o != null)
-            return srgName.compareTo(o.srgName);
+            return getSrgName().compareTo(o.getSrgName());
         else
             return 1;
-    }
-    
-    public boolean contains(String s)
-    {
-        return srgName.contains(s) || obfName.contains(s);
     }
 }

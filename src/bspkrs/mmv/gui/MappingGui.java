@@ -88,7 +88,7 @@ import bspkrs.mmv.version.AppVersionChecker;
 
 public class MappingGui extends JFrame
 {
-    public static final String            VERSION_NUMBER        = "0.2.2";
+    public static final String            VERSION_NUMBER        = "0.5.0";
     private static final long             serialVersionUID      = 1L;
     private final Preferences             prefs                 = Preferences.userNodeForPackage(MappingGui.class);
     private JFrame                        frmMcpMappingViewer;
@@ -101,6 +101,8 @@ public class MappingGui extends JFrame
     private JPanel                        pnlFilter;
     private JTextField                    edtFilter;
     private JButton                       btnSearch;
+    private JButton                       btnGetBotCommands;
+    private JCheckBox                     chkClearOnCopy;
     private final static String           PREFS_KEY_MCPDIR      = "mcpDir";
     private final static String           PREFS_KEY_SIDE        = "side";
     private final static String           PREFS_KEY_CLASS_SORT  = "classSort";
@@ -570,6 +572,35 @@ public class MappingGui extends JFrame
         pnlFilter.add(lblAbout);
         lblAbout.setForeground(Color.BLUE);
         lblAbout.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        
+        JSeparator separator_1 = new JSeparator();
+        separator_1.setPreferredSize(new Dimension(1, 12));
+        separator_1.setOrientation(SwingConstants.VERTICAL);
+        pnlFilter.add(separator_1);
+        
+        btnGetBotCommands = new JButton("Get Command List");
+        btnGetBotCommands.setEnabled(false);
+        btnGetBotCommands.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                String commands = currentLoader.getBotCommands(chkClearOnCopy.isSelected());
+                if (commands != null && !commands.isEmpty())
+                {
+                    Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(commands), null);
+                    JOptionPane.showMessageDialog(MappingGui.this, "Commands copied to clipboard: \n" + commands, "MMV - MCPBot Commands", JOptionPane.INFORMATION_MESSAGE);
+                }
+                else
+                    JOptionPane.showMessageDialog(MappingGui.this, "No commands to copy.", "MMV - MCPBot Commands", JOptionPane.INFORMATION_MESSAGE);
+                
+                chkClearOnCopy.setSelected(false);
+            }
+        });
+        pnlFilter.add(btnGetBotCommands);
+        
+        chkClearOnCopy = new JCheckBox("Clear");
+        pnlFilter.add(chkClearOnCopy);
         lblAbout.addMouseListener(new MouseAdapter()
         {
             @Override
@@ -910,6 +941,7 @@ public class MappingGui extends JFrame
                         
                         tblClasses.setModel(currentLoader.getClassModel());
                         tblClasses.setEnabled(true);
+                        btnGetBotCommands.setEnabled(true);
                         new TableColumnAdjuster(tblClasses).adjustColumns();
                         //                        TableRowSorter trs = (TableRowSorter) tblClasses.getRowSorter();
                         //                        trs.setComparator(2, McpMappingLoader.OBF_COMPARATOR);
@@ -932,7 +964,6 @@ public class MappingGui extends JFrame
                                 progressBar.setString(" ");
                                 progressBar.setValue(0);
                                 
-                                Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(errMsg), null);
                                 JOptionPane.showMessageDialog(MappingGui.this, errMsg, "MMV - Error", JOptionPane.ERROR_MESSAGE);
                             }
                         });

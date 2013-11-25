@@ -15,19 +15,57 @@
  */
 package bspkrs.mmv;
 
-public class FieldSrgData extends MemberSrgData implements Comparable<FieldSrgData>
+public class MemberSrgData
 {
-    public FieldSrgData(String obfOwner, String obfName, String srgOwner, String srgPkg, String srgName, boolean isClientOnly)
+    private final String  obfOwner;
+    private final String  obfName;
+    private final String  srgOwner;
+    private final String  srgPkg;
+    private final String  srgName;
+    private final boolean isClientOnly;
+    
+    public MemberSrgData(String obfOwner, String obfName, String srgOwner, String srgPkg, String srgName, boolean isClientOnly)
     {
-        super(obfOwner, obfName, srgOwner, srgPkg, srgName, isClientOnly);
+        this.obfOwner = obfOwner;
+        this.obfName = obfName;
+        this.srgOwner = srgOwner;
+        this.srgPkg = srgPkg;
+        this.srgName = srgName;
+        this.isClientOnly = isClientOnly;
     }
     
-    @Override
-    public int compareTo(FieldSrgData o)
+    public String getObfOwner()
     {
-        if (o != null)
-            return this.getSrgName().compareTo(o.getSrgName());
-        else
-            return 1;
+        return obfOwner;
+    }
+    
+    public String getObfName()
+    {
+        return obfName;
+    }
+    
+    public String getSrgOwner()
+    {
+        return srgOwner;
+    }
+    
+    public String getSrgName()
+    {
+        return srgName;
+    }
+    
+    public boolean isClientOnly()
+    {
+        return isClientOnly;
+    }
+    
+    public String getSrgPkg()
+    {
+        return srgPkg;
+    }
+    
+    public boolean contains(String s)
+    {
+        return srgName.contains(s) || obfName.contains(s);
     }
 }

@@ -22,7 +22,6 @@ import immibis.bon.gui.Side;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
@@ -32,6 +31,8 @@ import java.util.TreeSet;
 
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
+
+import bspkrs.mmv.McpBotCommand.MemberType;
 
 public class McpMappingLoader
 {
@@ -51,7 +52,8 @@ public class McpMappingLoader
     private final Side                       side;
     private SrgFile                          srgFileData;
     private CsvFile                          csvFieldData, csvMethodData;
-    
+    private final Map<String, McpBotCommand> commandMap            = new TreeMap<String, McpBotCommand>(); // srgName -> McpBotCommand
+                                                                                                            
     public final Map<MethodSrgData, CsvData> srgMethodData2CsvData = new TreeMap<MethodSrgData, CsvData>();
     public final Map<FieldSrgData, CsvData>  srgFieldData2CsvData  = new TreeMap<FieldSrgData, CsvData>();
     
@@ -149,6 +151,73 @@ public class McpMappingLoader
         }
     }
     
+    private void processDataEdit(MemberType type, Map<String, ? extends MemberSrgData> srg2MemberData, Map<? extends MemberSrgData, CsvData> memberData2CsvData,
+            String srgName, String mcpName, String comment)
+    {
+        if (!commandMap.containsKey(srgName))
+        {
+            // no commands have been created for this srgName yet
+            MemberSrgData memberData = srg2MemberData.get(srgName);
+            if (memberData != null)
+            {
+                boolean isForced = memberData2CsvData.containsKey(memberData);
+                CsvData csvData;
+                if (isForced)
+                {
+                    csvData = memberData2CsvData.get(memberData);
+                    csvData.setMcpName(mcpName);
+                    csvData.setComment(comment);
+                }
+                else
+                {
+                    csvData = new CsvData(srgName, mcpName, side.intSide[0], comment);
+                }
+                
+                McpBotCommand command = new McpBotCommand(McpBotCommand.getCommand(type, side, isForced),
+                        csvData.getSrgName(), csvData.getMcpName(), csvData.getComment());
+                commandMap.put(srgName, command);
+            }
+        }
+        else
+        {
+            // this srgName is already in the queue, so we need to update the map
+            MemberSrgData memberData = srg2MemberData.get(srgName);
+            if (memberData != null)
+            {
+                McpBotCommand oldCommand = commandMap.get(srgName);
+                boolean isForced = memberData2CsvData.containsKey(memberData);
+                CsvData csvData;
+                if (isForced)
+                {
+                    csvData = memberData2CsvData.get(memberData);
+                    csvData.setMcpName(mcpName);
+                    csvData.setComment(comment);
+                }
+                else
+                {
+                    csvData = new CsvData(srgName, mcpName, side.intSide[0], comment);
+                }
+                
+                McpBotCommand command = new McpBotCommand(oldCommand.getCommand(),
+                        csvData.getSrgName(), csvData.getMcpName(), csvData.getComment());
+                commandMap.put(srgName, command);
+            }
+        }
+    }
+    
+    public String getBotCommands(boolean clear)
+    {
+        String r = "";
+        
+        for (McpBotCommand command : commandMap.values())
+            r += command.toString() + "\n";
+        
+        if (clear)
+            commandMap.clear();
+        
+        return r;
+    }
+    
     public File getMcpDir()
     {
         return this.mcpDir;
@@ -234,18 +303,6 @@ public class McpMappingLoader
         return new FieldModel(fields);
     }
     
-    public static final Comparator<String> OBF_COMPARATOR = new Comparator<String>()
-                                                          {
-                                                              @Override
-                                                              public int compare(String o1, String o2)
-                                                              {
-                                                                  if (o1.length() != o2.length())
-                                                                      return o1.length() - o2.length();
-                                                                  else
-                                                                      return o1.compareTo(o2);
-                                                              }
-                                                          };
-    
     public class ClassModel extends AbstractTableModel
     {
         private static final long              serialVersionUID = 1L;
@@ -311,12 +368,6 @@ public class McpMappingLoader
         {
             return data[rowIndex][columnIndex];
         }
-        
-        @Override
-        public void setValueAt(Object aValue, int rowIndex, int columnIndex)
-        {
-            // TODO
-        }
     }
     
     public class MethodModel extends AbstractTableModel
@@ -325,7 +376,7 @@ public class McpMappingLoader
         private final String[]           columnNames      = { "MCP Name", "SRG Name", "Obf Name", "SRG Descriptor", "Comment", "Client Only" };
         @SuppressWarnings("rawtypes")
         private final Class[]            columnTypes      = { String.class, String.class, String.class, String.class, String.class, Boolean.class };
-        private final boolean[]          isColumnEditable = { false, false, false, false, false, false };
+        private final boolean[]          isColumnEditable = { true, false, false, false, true, false };
         private final Object[][]         data;
         private final Set<MethodSrgData> setRef;
         
@@ -398,7 +449,18 @@ public class McpMappingLoader
         @Override
         public void setValueAt(Object aValue, int rowIndex, int columnIndex)
         {
-            // TODO
+            data[rowIndex][columnIndex] = aValue;
+            
+            if (columnIndex == 4 && aValue != null && (data[rowIndex][0] == null || data[rowIndex][0].toString().trim().isEmpty()))
+            {
+                // TODO: possibly display error message about srgName must be set first
+                return;
+            }
+            
+            String srgName = (String) data[rowIndex][1];
+            String mcpName = (String) data[rowIndex][0];
+            String comment = (String) data[rowIndex][4];
+            processDataEdit(MemberType.METHOD, srgFileData.srgName2MethodData, srgMethodData2CsvData, srgName, mcpName, comment);
         }
     }
     
@@ -408,7 +470,7 @@ public class McpMappingLoader
         private final String[]          columnNames      = { "MCP Name", "SRG Name", "Obf Name", "Comment", "Client Only" };
         @SuppressWarnings("rawtypes")
         private final Class[]           columnTypes      = { String.class, String.class, String.class, String.class, Boolean.class };
-        private final boolean[]         isColumnEditable = { false, false, false, false, false };
+        private final boolean[]         isColumnEditable = { true, false, false, true, false };
         private final Object[][]        data;
         private final Set<FieldSrgData> setRef;
         
@@ -480,7 +542,18 @@ public class McpMappingLoader
         @Override
         public void setValueAt(Object aValue, int rowIndex, int columnIndex)
         {
-            // TODO
+            data[rowIndex][columnIndex] = aValue;
+            
+            if (columnIndex == 3 && aValue != null && (data[rowIndex][0] == null || data[rowIndex][0].toString().trim().isEmpty()))
+            {
+                // TODO: possibly display error message about srgName must be set first
+                return;
+            }
+            
+            String srgName = (String) data[rowIndex][1];
+            String mcpName = (String) data[rowIndex][0];
+            String comment = (String) data[rowIndex][3];
+            processDataEdit(MemberType.FIELD, srgFileData.srgName2FieldData, srgFieldData2CsvData, srgName, mcpName, comment);
         }
     }
 }
