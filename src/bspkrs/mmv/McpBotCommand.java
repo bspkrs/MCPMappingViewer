@@ -38,9 +38,9 @@ public class McpBotCommand
                 switch (type)
                 {
                     case METHOD:
-                        return isForced ? BotCommand.FSCF : BotCommand.SCF;
-                    default:
                         return isForced ? BotCommand.FSCM : BotCommand.SCM;
+                    default:
+                        return isForced ? BotCommand.FSCF : BotCommand.SCF;
                 }
         }
     }
