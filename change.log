@@ -1,3 +1,5 @@
+0.5.1 - 26-Nov-2013
+- fixed derp in method to get the bot command
 0.5.0 - 25-Nov-2013
 - added basic support for generating MCPBot commands to execute in a DCC session with the bot
 0.2.2 - 14-Nov-2013
