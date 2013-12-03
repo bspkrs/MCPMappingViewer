@@ -68,7 +68,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
-import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowSorter;
 import javax.swing.ScrollPaneConstants;
@@ -88,7 +87,7 @@ import bspkrs.mmv.version.AppVersionChecker;
 
 public class MappingGui extends JFrame
 {
-    public static final String            VERSION_NUMBER        = "0.5.1";
+    public static final String            VERSION_NUMBER        = "0.5.2";
     private static final long             serialVersionUID      = 1L;
     private final Preferences             prefs                 = Preferences.userNodeForPackage(MappingGui.class);
     private JFrame                        frmMcpMappingViewer;
@@ -99,11 +98,12 @@ public class MappingGui extends JFrame
     private JPanel                        pnlProgress;
     private JProgressBar                  progressBar;
     private JPanel                        pnlFilter;
-    private JTextField                    edtFilter;
+    private JComboBox<String>             cmbFilter;
     private JButton                       btnSearch;
     private JButton                       btnGetBotCommands;
     private JCheckBox                     chkClearOnCopy;
     private final static String           PREFS_KEY_MCPDIR      = "mcpDir";
+    private final static String           PREFS_KEY_FILTER      = "filter";
     private final static String           PREFS_KEY_SIDE        = "side";
     private final static String           PREFS_KEY_CLASS_SORT  = "classSort";
     private final static String           PREFS_KEY_METHOD_SORT = "methodSort";
@@ -126,17 +126,17 @@ public class MappingGui extends JFrame
                                                                         {},
                                                                         },
                                                                         new String[] {
-                                                                        "Pkg name", "SRG name", "Obf name", "Client Only"
+                                                                        "Pkg name", "SRG name", "Obf name"
                                                                         }
                                                                         )
                                                                         {
                                                                             private static final long serialVersionUID = 1L;
                                                                             boolean[]                 columnEditables  = new boolean[] {
-                                                                                                                       false, false, false, false
+                                                                                                                       false, false, false
                                                                                                                        };
                                                                             @SuppressWarnings("rawtypes")
                                                                             Class[]                   columnTypes      = new Class[] {
-                                                                                                                       String.class, String.class, String.class, Boolean.class
+                                                                                                                       String.class, String.class, String.class
                                                                                                                        };
                                                                             
                                                                             @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -157,17 +157,17 @@ public class MappingGui extends JFrame
                                                                         {},
                                                                         },
                                                                         new String[] {
-                                                                        "MCP Name", "SRG Name", "Obf Name", "SRG Descriptor", "Comment", "Client Only"
+                                                                        "MCP Name", "SRG Name", "Obf Name", "SRG Descriptor", "Comment"
                                                                         }
                                                                         )
                                                                         {
                                                                             private static final long serialVersionUID = 1L;
                                                                             boolean[]                 columnEditables  = new boolean[] {
-                                                                                                                       false, false, false, false, false, false
+                                                                                                                       false, false, false, false, false
                                                                                                                        };
                                                                             @SuppressWarnings("rawtypes")
                                                                             Class[]                   columnTypes      = new Class[] {
-                                                                                                                       String.class, String.class, String.class, String.class, String.class, Boolean.class
+                                                                                                                       String.class, String.class, String.class, String.class, String.class
                                                                                                                        };
                                                                             
                                                                             @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -188,17 +188,17 @@ public class MappingGui extends JFrame
                                                                         {},
                                                                         },
                                                                         new String[] {
-                                                                        "MCP Name", "SRG Name", "Obf Name", "Comment", "Client Only"
+                                                                        "MCP Name", "SRG Name", "Obf Name", "Comment"
                                                                         }
                                                                         )
                                                                         {
                                                                             private static final long serialVersionUID = 1L;
                                                                             boolean[]                 columnEditables  = new boolean[] {
-                                                                                                                       false, false, false, false, false
+                                                                                                                       false, false, false, false
                                                                                                                        };
                                                                             @SuppressWarnings("rawtypes")
                                                                             Class[]                   columnTypes      = new Class[] {
-                                                                                                                       String.class, String.class, String.class, String.class, Boolean.class
+                                                                                                                       String.class, String.class, String.class, String.class
                                                                                                                        };
                                                                             
                                                                             @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -217,8 +217,11 @@ public class MappingGui extends JFrame
     
     private void savePrefs()
     {
-        for (int i = 0; i < cmbMCPDirPath.getItemCount(); i++)
+        for (int i = 0; i < Math.min(cmbMCPDirPath.getItemCount(), 8); i++)
             prefs.put(PREFS_KEY_MCPDIR + i, cmbMCPDirPath.getItemAt(i));
+        
+        for (int i = 0; i < Math.min(cmbFilter.getItemCount(), 20); i++)
+            prefs.put(PREFS_KEY_FILTER + i, cmbFilter.getItemAt(i));
         
         prefs.put(PREFS_KEY_SIDE, cmbSide.getSelectedItem().toString());
         
@@ -260,6 +263,17 @@ public class MappingGui extends JFrame
                 DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) cmbMCPDirPath.getModel();
                 if (model.getIndexOf(item) == -1)
                     cmbMCPDirPath.addItem(item);
+            }
+        }
+        
+        for (int i = 0; i < 20; i++)
+        {
+            String item = prefs.get(PREFS_KEY_FILTER + i, "");
+            if (!item.equals(""))
+            {
+                DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) cmbFilter.getModel();
+                if (model.getIndexOf(item) == -1)
+                    cmbFilter.addItem(item);
             }
         }
         
@@ -477,7 +491,7 @@ public class MappingGui extends JFrame
         
         cmbMCPDirPath = new JComboBox<String>(new DefaultComboBoxModel<String>());
         cmbMCPDirPath.setPreferredSize(new Dimension(320, 20));
-        cmbMCPDirPath.addItemListener(new ComboItemChanged());
+        cmbMCPDirPath.addItemListener(new McpBrowseDirComboItemChanged());
         
         JLabel lblMCPFolder = new JLabel("MCP folder");
         pnlControls.add(lblMCPFolder);
@@ -518,16 +532,27 @@ public class MappingGui extends JFrame
         JLabel lblFilter = new JLabel("Search");
         pnlFilter.add(lblFilter);
         
-        edtFilter = new JTextField();
-        edtFilter.addFocusListener(new FocusAdapter()
+        cmbFilter = new JComboBox<String>();
+        cmbFilter.setEditable(true);
+        cmbFilter.setPreferredSize(new Dimension(300, 20));
+        cmbFilter.setMaximumRowCount(10);
+        pnlFilter.add(cmbFilter);
+        
+        btnSearch = new JButton("Go");
+        btnSearch.setToolTipText("");
+        btnSearch.addActionListener(new SearchActionListener());
+        pnlFilter.add(btnSearch);
+        cmbFilter.setEnabled(false);
+        cmbFilter.addActionListener(new FilterComboTextEdited());
+        cmbFilter.getEditor().getEditorComponent().addFocusListener(new FocusAdapter()
         {
             @Override
             public void focusGained(FocusEvent e)
             {
-                edtFilter.select(0, edtFilter.getText().length());
+                cmbFilter.getEditor().selectAll();
             }
         });
-        edtFilter.addKeyListener(new KeyAdapter()
+        cmbFilter.getEditor().getEditorComponent().addKeyListener(new KeyAdapter()
         {
             @Override
             public void keyReleased(KeyEvent e)
@@ -536,14 +561,6 @@ public class MappingGui extends JFrame
                     btnSearch.doClick();
             }
         });
-        pnlFilter.add(edtFilter);
-        edtFilter.setColumns(40);
-        
-        btnSearch = new JButton("Go");
-        btnSearch.setToolTipText("");
-        btnSearch.addActionListener(new SearchActionListener());
-        pnlFilter.add(btnSearch);
-        edtFilter.setEnabled(false);
         btnSearch.setEnabled(false);
         
         JLabel lblSearchInfo = new JLabel("A note on search");
@@ -633,7 +650,7 @@ public class MappingGui extends JFrame
         loadPrefs();
     }
     
-    class ComboItemChanged implements ItemListener
+    class McpBrowseDirComboItemChanged implements ItemListener
     {
         @Override
         public void itemStateChanged(ItemEvent e)
@@ -649,6 +666,29 @@ public class MappingGui extends JFrame
                     mcpBrowseDir.val = new File(".");
                 
                 btnRefreshTables.setEnabled(cmb.getItemCount() > 0);
+            }
+        }
+    }
+    
+    class FilterComboTextEdited implements ActionListener
+    {
+        @Override
+        public void actionPerformed(ActionEvent e)
+        {
+            if (e.getActionCommand().equals("comboBoxEdited"))
+            {
+                String filterText = cmbFilter.getSelectedItem().toString();
+                
+                if (filterText == null || filterText.trim().isEmpty())
+                    return;
+                
+                DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) cmbFilter.getModel();
+                
+                if (model.getIndexOf(filterText) != -1)
+                    model.removeElement(filterText);
+                
+                cmbFilter.insertItemAt(filterText, 0);
+                cmbFilter.setSelectedItem(filterText);
             }
         }
     }
@@ -697,12 +737,25 @@ public class MappingGui extends JFrame
         @Override
         public void actionPerformed(ActionEvent e)
         {
-            if (curTask != null && curTask.isAlive())
+            if (curTask != null && curTask.isAlive() || cmbFilter.getItemCount() == 0)
                 return;
+            
+            String filterText = cmbFilter.getSelectedItem().toString();
+            
+            if (filterText != null && !filterText.trim().isEmpty())
+            {
+                DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) cmbFilter.getModel();
+                
+                if (model.getIndexOf(filterText) != -1)
+                    model.removeElement(filterText);
+                
+                cmbFilter.insertItemAt(filterText, 0);
+                cmbFilter.setSelectedItem(filterText);
+            }
             
             savePrefs();
             
-            edtFilter.setEnabled(false);
+            cmbFilter.setEnabled(false);
             btnSearch.setEnabled(false);
             pnlProgress.setVisible(true);
             tblClasses.setModel(classesDefaultModel);
@@ -770,7 +823,7 @@ public class MappingGui extends JFrame
                         };
                         
                         progress.start(0, "Searching MCP objects for input");
-                        tblClasses.setModel(currentLoader.getSearchResults(edtFilter.getText(), progress));
+                        tblClasses.setModel(currentLoader.getSearchResults(cmbFilter.getSelectedItem().toString(), progress));
                         tblClasses.setEnabled(true);
                         new TableColumnAdjuster(tblClasses).adjustColumns();
                         loadPrefs();
@@ -808,12 +861,12 @@ public class MappingGui extends JFrame
                                 {
                                     progressBar.setString(" ");
                                     progressBar.setValue(0);
-                                    edtFilter.setEnabled(true);
+                                    cmbFilter.setEnabled(true);
                                 }
                             });
                         }
                         pnlProgress.setVisible(false);
-                        edtFilter.setEnabled(true);
+                        cmbFilter.setEnabled(true);
                         btnSearch.setEnabled(true);
                     }
                 }
@@ -1001,13 +1054,13 @@ public class MappingGui extends JFrame
                                 {
                                     progressBar.setString(" ");
                                     progressBar.setValue(0);
-                                    edtFilter.setEnabled(true);
+                                    cmbFilter.setEnabled(true);
                                 }
                             });
                         }
                         pnlProgress.setVisible(false);
                         pnlFilter.setVisible(true);
-                        edtFilter.setEnabled(true);
+                        cmbFilter.setEnabled(true);
                         btnSearch.setEnabled(true);
                     }
                 }
