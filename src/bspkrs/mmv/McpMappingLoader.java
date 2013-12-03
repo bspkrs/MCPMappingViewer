@@ -344,32 +344,48 @@ public class McpMappingLoader
                 if (columnIndex < columnNames.length && columnIndex >= 0)
                     return columnNames[columnIndex];
             }
-            return "";
             
+            return "";
         }
         
         @Override
         public Class<?> getColumnClass(int columnIndex)
         {
             if (side.equals(Side.Universal))
-                return uniColumnTypes[columnIndex];
+            {
+                if (columnIndex < uniColumnTypes.length && columnIndex >= 0)
+                    return uniColumnTypes[columnIndex];
+            }
             else
-                return columnTypes[columnIndex];
+            {
+                if (columnIndex < columnTypes.length && columnIndex >= 0)
+                    return columnTypes[columnIndex];
+            }
+            
+            return String.class;
         }
         
         @Override
         public boolean isCellEditable(int rowIndex, int columnIndex)
         {
             if (side.equals(Side.Universal))
-                return uniIsColumnEditable[columnIndex];
+            {
+                if (columnIndex < uniIsColumnEditable.length && columnIndex >= 0)
+                    return uniIsColumnEditable[columnIndex];
+            }
             else
-                return isColumnEditable[columnIndex];
+            {
+                if (columnIndex < isColumnEditable.length && columnIndex >= 0)
+                    return isColumnEditable[columnIndex];
+            }
+            
+            return false;
         }
         
         @Override
         public Object getValueAt(int rowIndex, int columnIndex)
         {
-            return data[rowIndex][columnIndex];
+            return data[rowIndex][Math.min(columnIndex, data[rowIndex].length - 1)];
         }
     }
     
@@ -449,32 +465,48 @@ public class McpMappingLoader
                 if (columnIndex < columnNames.length && columnIndex >= 0)
                     return columnNames[columnIndex];
             }
-            return "";
             
+            return "";
         }
         
         @Override
         public Class<?> getColumnClass(int columnIndex)
         {
             if (side.equals(Side.Universal))
-                return uniColumnTypes[columnIndex];
+            {
+                if (columnIndex < uniColumnTypes.length && columnIndex >= 0)
+                    return uniColumnTypes[columnIndex];
+            }
             else
-                return columnTypes[columnIndex];
+            {
+                if (columnIndex < columnTypes.length && columnIndex >= 0)
+                    return columnTypes[columnIndex];
+            }
+            
+            return String.class;
         }
         
         @Override
         public boolean isCellEditable(int rowIndex, int columnIndex)
         {
             if (side.equals(Side.Universal))
-                return uniIsColumnEditable[columnIndex];
+            {
+                if (columnIndex < uniIsColumnEditable.length && columnIndex >= 0)
+                    return uniIsColumnEditable[columnIndex];
+            }
             else
-                return isColumnEditable[columnIndex];
+            {
+                if (columnIndex < isColumnEditable.length && columnIndex >= 0)
+                    return isColumnEditable[columnIndex];
+            }
+            
+            return false;
         }
         
         @Override
         public Object getValueAt(int rowIndex, int columnIndex)
         {
-            return data[rowIndex][columnIndex];
+            return data[rowIndex][Math.min(columnIndex, data[rowIndex].length - 1)];
         }
         
         @Override
@@ -568,32 +600,48 @@ public class McpMappingLoader
                 if (columnIndex < columnNames.length && columnIndex >= 0)
                     return columnNames[columnIndex];
             }
-            return "";
             
+            return "";
         }
         
         @Override
         public Class<?> getColumnClass(int columnIndex)
         {
             if (side.equals(Side.Universal))
-                return uniColumnTypes[columnIndex];
+            {
+                if (columnIndex < uniColumnTypes.length && columnIndex >= 0)
+                    return uniColumnTypes[columnIndex];
+            }
             else
-                return columnTypes[columnIndex];
+            {
+                if (columnIndex < columnTypes.length && columnIndex >= 0)
+                    return columnTypes[columnIndex];
+            }
+            
+            return String.class;
         }
         
         @Override
         public boolean isCellEditable(int rowIndex, int columnIndex)
         {
             if (side.equals(Side.Universal))
-                return uniIsColumnEditable[columnIndex];
+            {
+                if (columnIndex < uniIsColumnEditable.length && columnIndex >= 0)
+                    return uniIsColumnEditable[columnIndex];
+            }
             else
-                return isColumnEditable[columnIndex];
+            {
+                if (columnIndex < isColumnEditable.length && columnIndex >= 0)
+                    return isColumnEditable[columnIndex];
+            }
+            
+            return false;
         }
         
         @Override
         public Object getValueAt(int rowIndex, int columnIndex)
         {
-            return data[rowIndex][columnIndex];
+            return data[rowIndex][Math.min(columnIndex, data[rowIndex].length - 1)];
         }
         
         @Override
