@@ -55,6 +55,7 @@ import java.util.Set;
 import java.util.prefs.Preferences;
 
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -87,7 +88,7 @@ import bspkrs.mmv.version.AppVersionChecker;
 
 public class MappingGui extends JFrame
 {
-    public static final String            VERSION_NUMBER        = "0.5.2";
+    public static final String            VERSION_NUMBER        = "0.5.3";
     private static final long             serialVersionUID      = 1L;
     private final Preferences             prefs                 = Preferences.userNodeForPackage(MappingGui.class);
     private JFrame                        frmMcpMappingViewer;
@@ -404,6 +405,7 @@ public class MappingGui extends JFrame
         }
         
         frmMcpMappingViewer = new JFrame();
+        frmMcpMappingViewer.setIconImage(new ImageIcon(MappingGui.class.getResource("/bspkrs/mmv/gui/icon/bspkrs24.png")).getImage());
         frmMcpMappingViewer.addWindowListener(new WindowAdapter()
         {
             @Override
@@ -623,7 +625,10 @@ public class MappingGui extends JFrame
             @Override
             public void mouseClicked(MouseEvent e)
             {
-                String message = "<center>MCP Mapping Viewer v" + VERSION_NUMBER + "<br/>" +
+                MappingGui.class.getClassLoader();
+                String imgsrc = MappingGui.class.getResource("/bspkrs/mmv/gui/icon/bspkrs.png").toString();
+                String message = "<center><img src=\"" + imgsrc + "\"/><br/>" +
+                        "MCP Mapping Viewer v" + VERSION_NUMBER + "<br/>" +
                         "Copyright (C) 2013 bspkrs<br/>" +
                         "Portions Copyright (C) 2013 Alex \"immibis\" Campbell<br/><br/>" +
                         "Author: bspkrs<br/>" +
@@ -1070,8 +1075,7 @@ public class MappingGui extends JFrame
         }
     }
     
-    public static void showHTMLDialog(Component parentComponent,
-            Object message, String title, int messageType)
+    public static void showHTMLDialog(Component parentComponent, Object message, String title, int messageType)
     {
         JLabel label = new JLabel();
         Font font = label.getFont();
