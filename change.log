@@ -1,3 +1,7 @@
+0.5.3 - 05-Dec-2013
+- added application icon and About image
+- cleaned up some messy code
+- filter is now clear on load
 0.5.2 - 03-Dec-2013
 - added search history
 0.5.1 - 26-Nov-2013
