@@ -44,9 +44,11 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -122,99 +124,53 @@ public class MappingGui extends JFrame
     private AppVersionChecker             versionChecker;
     private final String                  versionURL            = "http://dl.dropboxusercontent.com/u/20748481/Minecraft/MMV/MMV.version";
     private final String                  mcfTopic              = "http://www.minecraftforum.net/topic/2115030-";
-    private DefaultTableModel             classesDefaultModel   = new DefaultTableModel(
-                                                                        new Object[][] {
-                                                                        {},
-                                                                        },
-                                                                        new String[] {
-                                                                        "Pkg name", "SRG name", "Obf name"
-                                                                        }
-                                                                        )
-                                                                        {
-                                                                            private static final long serialVersionUID = 1L;
-                                                                            boolean[]                 columnEditables  = new boolean[] {
-                                                                                                                       false, false, false
-                                                                                                                       };
-                                                                            @SuppressWarnings("rawtypes")
-                                                                            Class[]                   columnTypes      = new Class[] {
-                                                                                                                       String.class, String.class, String.class
-                                                                                                                       };
-                                                                            
-                                                                            @SuppressWarnings({ "unchecked", "rawtypes" })
-                                                                            @Override
-                                                                            public Class getColumnClass(int columnIndex)
-                                                                            {
-                                                                                return columnTypes[columnIndex];
-                                                                            }
-                                                                            
-                                                                            @Override
-                                                                            public boolean isCellEditable(int row, int column)
-                                                                            {
-                                                                                return columnEditables[column];
-                                                                            }
-                                                                        };
-    private DefaultTableModel             methodsDefaultModel   = new DefaultTableModel(
-                                                                        new Object[][] {
-                                                                        {},
-                                                                        },
-                                                                        new String[] {
-                                                                        "MCP Name", "SRG Name", "Obf Name", "SRG Descriptor", "Comment"
-                                                                        }
-                                                                        )
-                                                                        {
-                                                                            private static final long serialVersionUID = 1L;
-                                                                            boolean[]                 columnEditables  = new boolean[] {
-                                                                                                                       false, false, false, false, false
-                                                                                                                       };
-                                                                            @SuppressWarnings("rawtypes")
-                                                                            Class[]                   columnTypes      = new Class[] {
-                                                                                                                       String.class, String.class, String.class, String.class, String.class
-                                                                                                                       };
-                                                                            
-                                                                            @SuppressWarnings({ "unchecked", "rawtypes" })
-                                                                            @Override
-                                                                            public Class getColumnClass(int columnIndex)
-                                                                            {
-                                                                                return columnTypes[columnIndex];
-                                                                            }
-                                                                            
-                                                                            @Override
-                                                                            public boolean isCellEditable(int row, int column)
-                                                                            {
-                                                                                return columnEditables[column];
-                                                                            }
-                                                                        };
-    private DefaultTableModel             fieldsDefaultModel    = new DefaultTableModel(
-                                                                        new Object[][] {
-                                                                        {},
-                                                                        },
-                                                                        new String[] {
-                                                                        "MCP Name", "SRG Name", "Obf Name", "Comment"
-                                                                        }
-                                                                        )
-                                                                        {
-                                                                            private static final long serialVersionUID = 1L;
-                                                                            boolean[]                 columnEditables  = new boolean[] {
-                                                                                                                       false, false, false, false
-                                                                                                                       };
-                                                                            @SuppressWarnings("rawtypes")
-                                                                            Class[]                   columnTypes      = new Class[] {
-                                                                                                                       String.class, String.class, String.class, String.class
-                                                                                                                       };
-                                                                            
-                                                                            @SuppressWarnings({ "unchecked", "rawtypes" })
-                                                                            @Override
-                                                                            public Class getColumnClass(int columnIndex)
-                                                                            {
-                                                                                return columnTypes[columnIndex];
-                                                                            }
-                                                                            
-                                                                            @Override
-                                                                            public boolean isCellEditable(int row, int column)
-                                                                            {
-                                                                                return columnEditables[column];
-                                                                            }
-                                                                        };
+    
+    // @formatter:off
+    private DefaultTableModel classesDefaultModel = new DefaultTableModel(new Object[][] { {}, }, new String[] { "Pkg name", "SRG name", "Obf name" })
+    {
+        private static final long serialVersionUID = 1L;
+        boolean[]                 columnEditables  = new boolean[] { false, false, false };
+        @SuppressWarnings("rawtypes")
+        Class[]                   columnTypes      = new Class[] { String.class, String.class, String.class };
+        
+        @SuppressWarnings({ "unchecked", "rawtypes" })
+        @Override
+        public Class getColumnClass(int columnIndex) { return columnTypes[columnIndex]; }
+        
+        @Override
+        public boolean isCellEditable(int row, int column) { return columnEditables[column]; }
+    };
+    
+    private DefaultTableModel methodsDefaultModel = new DefaultTableModel( new Object[][] { {}, }, new String[] { "MCP Name", "SRG Name", "Obf Name", "SRG Descriptor", "Comment" })
+    {
+        private static final long serialVersionUID = 1L;
+        boolean[]                 columnEditables  = new boolean[] { false, false, false, false, false };
+        @SuppressWarnings("rawtypes")
+        Class[]                   columnTypes      = new Class[] { String.class, String.class, String.class, String.class, String.class };
+        
+        @SuppressWarnings({ "unchecked", "rawtypes" })
+        @Override
+        public Class getColumnClass(int columnIndex) { return columnTypes[columnIndex]; }
+        
+        @Override
+        public boolean isCellEditable(int row, int column) { return columnEditables[column]; }
+    };
+    
+    private DefaultTableModel fieldsDefaultModel = new DefaultTableModel( new Object[][] { {}, }, new String[] { "MCP Name", "SRG Name", "Obf Name", "Comment" } )
+    {
+        private static final long serialVersionUID = 1L;
+        boolean[]                 columnEditables  = new boolean[] { false, false, false, false };
+        @SuppressWarnings("rawtypes")
+        Class[]                   columnTypes      = new Class[] { String.class, String.class, String.class, String.class };
+        
+        @SuppressWarnings({ "unchecked", "rawtypes" })
+        @Override
+        public Class getColumnClass(int columnIndex) { return columnTypes[columnIndex]; }
+        
+        @Override
+        public boolean isCellEditable(int row, int column) { return columnEditables[column]; }
+    };
+    // @formatter:on
     
     private void savePrefs()
     {
@@ -254,40 +210,45 @@ public class MappingGui extends JFrame
             prefs.putInt(PREFS_KEY_FIELD_SORT, 1);
     }
     
-    private void loadPrefs()
+    private void loadPrefs(boolean sortOnly)
     {
-        for (int i = 0; i < 8; i++)
+        if (!sortOnly)
         {
-            String item = prefs.get(PREFS_KEY_MCPDIR + i, "");
-            if (!item.equals(""))
+            DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) cmbMCPDirPath.getModel();
+            for (int i = 0; i < 8; i++)
             {
-                DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) cmbMCPDirPath.getModel();
-                if (model.getIndexOf(item) == -1)
-                    cmbMCPDirPath.addItem(item);
+                String item = prefs.get(PREFS_KEY_MCPDIR + i, "");
+                if (!item.equals(""))
+                {
+                    if (model.getIndexOf(item) == -1)
+                        cmbMCPDirPath.addItem(item);
+                }
             }
-        }
-        
-        for (int i = 0; i < 20; i++)
-        {
-            String item = prefs.get(PREFS_KEY_FILTER + i, "");
-            if (!item.equals(""))
+            
+            model = (DefaultComboBoxModel<String>) cmbFilter.getModel();
+            for (int i = 0; i < 20; i++)
             {
-                DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) cmbFilter.getModel();
-                if (model.getIndexOf(item) == -1)
-                    cmbFilter.addItem(item);
+                String item = prefs.get(PREFS_KEY_FILTER + i, " ");
+                if (!item.equals(" "))
+                {
+                    if (model.getIndexOf(item) == -1)
+                        cmbFilter.addItem(item);
+                }
             }
+            
+            cmbFilter.setSelectedIndex(-1);
+            
+            if (cmbMCPDirPath.getItemCount() > 0)
+            {
+                btnRefreshTables.setEnabled(true);
+                cmbMCPDirPath.setSelectedIndex(0);
+            }
+            else
+                btnRefreshTables.setEnabled(false);
+            
+            Side side = Side.valueOf(prefs.get(PREFS_KEY_SIDE, Side.Universal.toString()));
+            cmbSide.setSelectedItem(side);
         }
-        
-        if (cmbMCPDirPath.getItemCount() > 0)
-        {
-            btnRefreshTables.setEnabled(true);
-            cmbMCPDirPath.setSelectedIndex(0);
-        }
-        else
-            btnRefreshTables.setEnabled(false);
-        
-        Side side = Side.valueOf(prefs.get(PREFS_KEY_SIDE, Side.Universal.toString()));
-        cmbSide.setSelectedItem(side);
         
         classSort.clear();
         methodSort.clear();
@@ -405,7 +366,7 @@ public class MappingGui extends JFrame
         }
         
         frmMcpMappingViewer = new JFrame();
-        frmMcpMappingViewer.setIconImage(new ImageIcon(MappingGui.class.getResource("/bspkrs/mmv/gui/icon/bspkrs24.png")).getImage());
+        frmMcpMappingViewer.setIconImage(new ImageIcon(MappingGui.class.getResource("/bspkrs/mmv/gui/icon/bspkrs32.png")).getImage());
         frmMcpMappingViewer.addWindowListener(new WindowAdapter()
         {
             @Override
@@ -627,10 +588,11 @@ public class MappingGui extends JFrame
             {
                 MappingGui.class.getClassLoader();
                 String imgsrc = MappingGui.class.getResource("/bspkrs/mmv/gui/icon/bspkrs.png").toString();
+                String year = (new SimpleDateFormat("yyyy").format(new Date()));
                 String message = "<center><img src=\"" + imgsrc + "\"/><br/>" +
                         "MCP Mapping Viewer v" + VERSION_NUMBER + "<br/>" +
-                        "Copyright (C) 2013 bspkrs<br/>" +
-                        "Portions Copyright (C) 2013 Alex \"immibis\" Campbell<br/><br/>" +
+                        "Copyright (C) " + year + " bspkrs<br/>" +
+                        "Portions Copyright (C) " + year + " Alex \"immibis\" Campbell<br/><br/>" +
                         "Author: bspkrs<br/>" +
                         "Credits: immibis (for <a href=\"https://github.com/immibis/bearded-octo-nemesis\">BON</a> code), " +
                         "Searge et al (for <a href=\"http://mcp.ocean-labs.de\">MCP</a>)<br/><br/>" +
@@ -652,7 +614,7 @@ public class MappingGui extends JFrame
                 savePrefs();
             }
         });
-        loadPrefs();
+        loadPrefs(false);
     }
     
     class McpBrowseDirComboItemChanged implements ItemListener
@@ -724,7 +686,7 @@ public class MappingGui extends JFrame
                     tblFields.setEnabled(true);
                     new TableColumnAdjuster(tblMethods).adjustColumns();
                     new TableColumnAdjuster(tblFields).adjustColumns();
-                    loadPrefs();
+                    loadPrefs(true);
                 }
                 else
                 {
@@ -831,7 +793,7 @@ public class MappingGui extends JFrame
                         tblClasses.setModel(currentLoader.getSearchResults(cmbFilter.getSelectedItem().toString(), progress));
                         tblClasses.setEnabled(true);
                         new TableColumnAdjuster(tblClasses).adjustColumns();
-                        loadPrefs();
+                        loadPrefs(true);
                     }
                     catch (Exception e)
                     {
@@ -1001,9 +963,7 @@ public class MappingGui extends JFrame
                         tblClasses.setEnabled(true);
                         btnGetBotCommands.setEnabled(true);
                         new TableColumnAdjuster(tblClasses).adjustColumns();
-                        //                        TableRowSorter trs = (TableRowSorter) tblClasses.getRowSorter();
-                        //                        trs.setComparator(2, McpMappingLoader.OBF_COMPARATOR);
-                        loadPrefs();
+                        loadPrefs(true);
                     }
                     catch (CantLoadMCPMappingException e)
                     {

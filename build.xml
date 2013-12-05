@@ -30,6 +30,7 @@
 				<attribute name="Main-Class" value="${manifest.mainclass}" />
 			</manifest>
 			<zipfileset dir="${basedir}" includes="LICENSE" fullpath="LICENSE" />
+            <zipfileset dir="${src.dir}" includes="**/*.png" />
 		</jar>
 	</target>
 
