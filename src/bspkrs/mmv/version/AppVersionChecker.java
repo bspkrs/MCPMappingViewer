@@ -18,28 +18,29 @@ package bspkrs.mmv.version;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 import java.util.prefs.Preferences;
 
 public class AppVersionChecker
 {
-    private URL          versionURL;
-    private final String appName;
-    private final String newVer;
-    private final String oldVer;
-    private String       updateURL;
-    private String[]     logMsg;
-    private String[]     dialogMsg;
-    private Preferences  versionCheckTracker = Preferences.userNodeForPackage(AppVersionChecker.class);
-    private final String LAST_VERSION_FOUND  = "lastversionfound";
-    private final String lastNewVersionFound;
+    private URL           versionURL;
+    private final String  appName;
+    private String        newVersion;
+    private final String  currentVersion;
+    private String        updateURL;
+    private String[]      logMsg;
+    private String[]      dialogMsg;
+    private Preferences   versionCheckTracker;
+    private final String  LAST_VERSION_FOUND = "lastversionfound";
+    private final String  CHECK_ERROR        = "check_error";
+    private final String  lastNewVersionFound;
+    private final boolean errorDetected;
     
-    public AppVersionChecker(String appName, String oldVer, String versionURL, String updateURL, String[] logMsg, String[] dialogMsg, int timeoutMS)
+    public AppVersionChecker(String appName, String currentVersion, String versionURL, String updateURL, String[] logMsg, String[] dialogMsg, int timeoutMS)
     {
         this.appName = appName;
-        this.oldVer = oldVer;
+        this.currentVersion = currentVersion;
         this.updateURL = updateURL;
         this.logMsg = logMsg;
         this.dialogMsg = dialogMsg;
@@ -51,20 +52,27 @@ public class AppVersionChecker
         catch (Throwable ignore)
         {}
         
-        String[] versionLines = loadTextFromURL(this.versionURL, new String[] { oldVer }, timeoutMS);
+        versionCheckTracker = Preferences.userNodeForPackage(AppVersionChecker.class);
         
-        newVer = versionLines[0].trim();
+        String[] versionLines = loadTextFromURL(this.versionURL, new String[] { CHECK_ERROR }, timeoutMS);
         
-        // Keep track of the versions we've seen to keep from nagging users with new version notifications beyond the first time   
-        if (isCurrentVersion(oldVer, newVer))
-            lastNewVersionFound = newVer;
+        newVersion = versionLines[0].trim();
+        
+        if (!newVersion.equals(CHECK_ERROR) && isCurrentVersion(currentVersion, newVersion))
+            lastNewVersionFound = newVersion;
         else
-            lastNewVersionFound = versionCheckTracker.get(LAST_VERSION_FOUND, oldVer);
+            lastNewVersionFound = versionCheckTracker.get(LAST_VERSION_FOUND, currentVersion);
         
-        if (!isCurrentVersion(lastNewVersionFound, newVer))
-            versionCheckTracker.put(LAST_VERSION_FOUND, newVer);
+        if (!newVersion.equals(CHECK_ERROR))
+        {
+            versionCheckTracker.put(LAST_VERSION_FOUND, newVersion);
+            errorDetected = false;
+        }
         else
-            versionCheckTracker.put(LAST_VERSION_FOUND, lastNewVersionFound);
+        {
+            newVersion = lastNewVersionFound;
+            errorDetected = true;
+        }
         
         // Override instantiated updateURL with second line of version file if
         // it exists and is non-blank
@@ -82,7 +90,7 @@ public class AppVersionChecker
     
     public void checkVersionWithLogging()
     {
-        if (!isCurrentVersion(oldVer, newVer))
+        if (!isCurrentVersion(currentVersion, newVersion))
             for (String msg : logMsg)
                 System.out.println(msg);
     }
@@ -116,22 +124,17 @@ public class AppVersionChecker
     
     public boolean isCurrentVersion()
     {
-        return isCurrentVersion(lastNewVersionFound, newVer);
+        return isCurrentVersion(lastNewVersionFound, newVersion);
     }
     
-    public static boolean isCurrentVersion(String oldVer, String newVer)
+    public static boolean isCurrentVersion(String currentVersion, String newVersion)
     {
-        List<String> list = new ArrayList<String>();
-        list.add(oldVer);
-        list.add(newVer);
-        Collections.sort(list, new NaturalOrderComparator());
-        
-        return list.get(1).equals(oldVer);
+        return new NaturalOrderComparator().compare(currentVersion, newVersion) >= 0;
     }
     
     private String replaceAllTags(String s)
     {
-        return s.replace("{oldVer}", oldVer).replace("{newVer}", newVer).replace("{appName}", appName).replace("{updateURL}", updateURL);
+        return s.replace("{oldVer}", currentVersion).replace("{newVer}", newVersion).replace("{appName}", appName).replace("{updateURL}", updateURL);
     }
     
     private String[] loadTextFromURL(URL url, String[] defaultValue, int timeoutMS)

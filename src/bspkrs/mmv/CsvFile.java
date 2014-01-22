@@ -66,22 +66,32 @@ public class CsvFile
         }
     }
     
-    private boolean sideIn(int i, int[] ar)
-    {
-        for (int n : ar)
-            if (n == i)
-                return true;
-        return false;
-    }
-    
     public void writeToFile() throws IOException
     {
+        if (file.exists())
+        {
+            File fileBak = new File(file.getAbsolutePath() + ".bak");
+            if (fileBak.exists())
+                fileBak.delete();
+            
+            file.renameTo(fileBak);
+        }
+        
+        file.createNewFile();
+        
         PrintWriter out = new PrintWriter(new FileWriter(file));
         
         for (CsvData data : this.srgName2CsvData.values())
             out.println(data.toCsv());
         
         out.close();
-        
+    }
+    
+    private boolean sideIn(int i, int[] ar)
+    {
+        for (int n : ar)
+            if (n == i)
+                return true;
+        return false;
     }
 }

@@ -76,6 +76,6 @@ public class McpBotCommand
     @Override
     public String toString()
     {
-        return String.format("%s %s %s %s", command.toString().toLowerCase(), srgName, newName, comment);
+        return String.format("!%s %s %s %s", command.toString().toLowerCase(), srgName, newName, comment);
     }
 }

@@ -19,7 +19,7 @@ import immibis.bon.NameSet;
 
 public enum Side
 {
-    Universal(NameSet.Side.UNIVERSAL, "bin/minecraft", new int[] { 2, 0 }),
+    Universal(NameSet.Side.UNIVERSAL, "bin/minecraft", new int[] { 2, 0, 1 }),
     Client(NameSet.Side.CLIENT, "bin/minecraft", new int[] { 0 }),
     Server(NameSet.Side.SERVER, "bin/minecraft_server", new int[] { 1 });
     

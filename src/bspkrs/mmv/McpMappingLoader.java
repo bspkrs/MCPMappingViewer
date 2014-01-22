@@ -151,14 +151,14 @@ public class McpMappingLoader
         }
     }
     
-    private void processDataEdit(MemberType type, Map<String, ? extends MemberSrgData> srg2MemberData, Map<? extends MemberSrgData, CsvData> memberData2CsvData,
+    private CsvData processDataEdit(MemberType type, Map<String, ? extends MemberSrgData> srg2MemberData, Map<? extends MemberSrgData, CsvData> memberData2CsvData,
             String srgName, String mcpName, String comment)
     {
         MemberSrgData memberData = srg2MemberData.get(srgName);
+        CsvData csvData = null;
         if (memberData != null)
         {
             boolean isForced = memberData2CsvData.containsKey(memberData);
-            CsvData csvData;
             if (isForced)
             {
                 csvData = memberData2CsvData.get(memberData);
@@ -166,7 +166,9 @@ public class McpMappingLoader
                 csvData.setComment(comment);
             }
             else
+            {
                 csvData = new CsvData(srgName, mcpName, side.intSide[0], comment);
+            }
             
             McpBotCommand command;
             
@@ -179,6 +181,8 @@ public class McpMappingLoader
             
             commandMap.put(srgName, command);
         }
+        
+        return csvData;
     }
     
     public String getBotCommands(boolean clear)
@@ -192,6 +196,25 @@ public class McpMappingLoader
             commandMap.clear();
         
         return r;
+    }
+    
+    public void saveCSVs(IProgressListener progress) throws IOException
+    {
+        if (progress != null)
+        {
+            progress.setMax(2);
+            progress.set(0);
+        }
+        
+        csvFieldData.writeToFile();
+        
+        if (progress != null)
+            progress.set(1);
+        
+        csvMethodData.writeToFile();
+        
+        if (progress != null)
+            progress.set(2);
     }
     
     public File getMcpDir()
@@ -512,7 +535,6 @@ public class McpMappingLoader
         @Override
         public void setValueAt(Object aValue, int rowIndex, int columnIndex)
         {
-            // TODO: update the data structures that will be used for export
             data[rowIndex][columnIndex] = aValue;
             
             if (columnIndex == 4 && aValue != null && (data[rowIndex][0] == null || data[rowIndex][0].toString().trim().isEmpty()))
@@ -521,7 +543,13 @@ public class McpMappingLoader
             String srgName = (String) data[rowIndex][1];
             String mcpName = (String) data[rowIndex][0];
             String comment = (String) data[rowIndex][4];
-            processDataEdit(MemberType.METHOD, srgFileData.srgName2MethodData, srgMethodData2CsvData, srgName, mcpName, comment);
+            CsvData result = processDataEdit(MemberType.METHOD, srgFileData.srgName2MethodData, srgMethodData2CsvData, srgName, mcpName, comment);
+            
+            if (result != null)
+            {
+                csvMethodData.srgName2CsvData.put(srgName, result);
+                srgMethodData2CsvData.put(srgFileData.srgName2MethodData.get(srgName), result);
+            }
         }
     }
     
@@ -647,7 +675,6 @@ public class McpMappingLoader
         @Override
         public void setValueAt(Object aValue, int rowIndex, int columnIndex)
         {
-            // TODO: update the data structures that will be used for export
             data[rowIndex][columnIndex] = aValue;
             
             if (columnIndex == 3 && aValue != null && (data[rowIndex][0] == null || data[rowIndex][0].toString().trim().isEmpty()))
@@ -656,7 +683,13 @@ public class McpMappingLoader
             String srgName = (String) data[rowIndex][1];
             String mcpName = (String) data[rowIndex][0];
             String comment = (String) data[rowIndex][3];
-            processDataEdit(MemberType.FIELD, srgFileData.srgName2FieldData, srgFieldData2CsvData, srgName, mcpName, comment);
+            CsvData result = processDataEdit(MemberType.FIELD, srgFileData.srgName2FieldData, srgFieldData2CsvData, srgName, mcpName, comment);
+            
+            if (result != null)
+            {
+                csvFieldData.srgName2CsvData.put(srgName, result);
+                srgFieldData2CsvData.put(srgFileData.srgName2FieldData.get(srgName), result);
+            }
         }
     }
 }

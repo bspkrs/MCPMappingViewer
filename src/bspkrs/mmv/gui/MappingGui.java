@@ -90,7 +90,7 @@ import bspkrs.mmv.version.AppVersionChecker;
 
 public class MappingGui extends JFrame
 {
-    public static final String            VERSION_NUMBER        = "0.5.3";
+    public static final String            VERSION_NUMBER        = "0.6.0";
     private static final long             serialVersionUID      = 1L;
     private final Preferences             prefs                 = Preferences.userNodeForPackage(MappingGui.class);
     private JFrame                        frmMcpMappingViewer;
@@ -104,6 +104,7 @@ public class MappingGui extends JFrame
     private JComboBox<String>             cmbFilter;
     private JButton                       btnSearch;
     private JButton                       btnGetBotCommands;
+    private JButton                       btnSave;
     private JCheckBox                     chkClearOnCopy;
     private final static String           PREFS_KEY_MCPDIR      = "mcpDir";
     private final static String           PREFS_KEY_FILTER      = "filter";
@@ -559,6 +560,7 @@ public class MappingGui extends JFrame
         pnlFilter.add(separator_1);
         
         btnGetBotCommands = new JButton("Get Command List");
+        btnGetBotCommands.setToolTipText("Exports to the system clipboard a listing of MCPBot commands for any edits you have made in the GUI.");
         btnGetBotCommands.setEnabled(false);
         btnGetBotCommands.addActionListener(new ActionListener()
         {
@@ -580,7 +582,125 @@ public class MappingGui extends JFrame
         pnlFilter.add(btnGetBotCommands);
         
         chkClearOnCopy = new JCheckBox("Clear");
+        chkClearOnCopy.setToolTipText("Whether or not to clear the MCPBot command list when the button is clicked.");
         pnlFilter.add(chkClearOnCopy);
+        
+        btnSave = new JButton("Save CSVs");
+        btnSave.setToolTipText("Saves edits you have made in the GUI to your local CSV files.");
+        btnSave.setEnabled(false);
+        btnSave.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                curTask = new Thread()
+                {
+                    @Override
+                    public void run()
+                    {
+                        boolean crashed = false;
+                        
+                        try
+                        {
+                            IProgressListener progress = new IProgressListener()
+                            {
+                                private String currentText;
+                                
+                                @Override
+                                public void start(final int max, final String text)
+                                {
+                                    currentText = text.equals("") ? " " : text;
+                                    SwingUtilities.invokeLater(new Runnable()
+                                    {
+                                        @Override
+                                        public void run()
+                                        {
+                                            progressBar.setString(currentText);
+                                            if (max >= 0)
+                                                progressBar.setMaximum(max);
+                                            progressBar.setValue(0);
+                                        }
+                                    });
+                                }
+                                
+                                @Override
+                                public void set(final int value)
+                                {
+                                    SwingUtilities.invokeLater(new Runnable()
+                                    {
+                                        @Override
+                                        public void run()
+                                        {
+                                            progressBar.setValue(value);
+                                        }
+                                    });
+                                }
+                                
+                                @Override
+                                public void setMax(final int max)
+                                {
+                                    SwingUtilities.invokeLater(new Runnable()
+                                    {
+                                        @Override
+                                        public void run()
+                                        {
+                                            progressBar.setMaximum(max);
+                                        }
+                                    });
+                                }
+                            };
+                            
+                            progress.start(0, "Saving data to CSV files");
+                            currentLoader.saveCSVs(progress);
+                        }
+                        catch (Exception e)
+                        {
+                            String s = getStackTraceMessage("An error has occurred - give bspkrs this stack trace (which has been copied to the clipboard)\n", e);
+                            
+                            System.err.println(s);
+                            
+                            crashed = true;
+                            
+                            final String errMsg = s;
+                            SwingUtilities.invokeLater(new Runnable()
+                            {
+                                @Override
+                                public void run()
+                                {
+                                    progressBar.setString(" ");
+                                    progressBar.setValue(0);
+                                    
+                                    Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(errMsg), null);
+                                    JOptionPane.showMessageDialog(MappingGui.this, errMsg, "MMV - Error", JOptionPane.ERROR_MESSAGE);
+                                }
+                            });
+                        }
+                        finally
+                        {
+                            if (!crashed)
+                            {
+                                SwingUtilities.invokeLater(new Runnable()
+                                {
+                                    @Override
+                                    public void run()
+                                    {
+                                        progressBar.setString(" ");
+                                        progressBar.setValue(0);
+                                        cmbFilter.setEnabled(true);
+                                    }
+                                });
+                            }
+                            pnlProgress.setVisible(false);
+                            cmbFilter.setEnabled(true);
+                            btnSearch.setEnabled(true);
+                        }
+                    }
+                };
+                
+                curTask.start();
+            }
+        });
+        pnlFilter.add(btnSave);
         lblAbout.addMouseListener(new MouseAdapter()
         {
             @Override
@@ -962,6 +1082,7 @@ public class MappingGui extends JFrame
                         tblClasses.setModel(currentLoader.getClassModel());
                         tblClasses.setEnabled(true);
                         btnGetBotCommands.setEnabled(true);
+                        btnSave.setEnabled(true);
                         new TableColumnAdjuster(tblClasses).adjustColumns();
                         loadPrefs(true);
                     }
