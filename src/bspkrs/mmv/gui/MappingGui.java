@@ -284,6 +284,13 @@ public class MappingGui extends JFrame
      */
     public static void main(String[] args)
     {
+        try
+        {
+            // Set System L&F
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        }
+        catch (Throwable e)
+        {}
         EventQueue.invokeLater(new Runnable()
         {
             @Override
@@ -1205,6 +1212,8 @@ public class MappingGui extends JFrame
                     {}
             }
         });
+        // Dunno why, but if I do this the About dialog no longer gets cut off...
+        ep.setSize(100, 100);
         ep.setEditable(false);
         ep.setBackground(label.getBackground());
         JOptionPane.showMessageDialog(parentComponent, ep, title, messageType);
