@@ -352,6 +352,12 @@ public class MappingGui extends JFrame
         checkForUpdates();
     }
     
+    public void setCsvFileEdited(boolean bol)
+    {
+        btnSave.setEnabled(bol);
+        btnGetBotCommands.setEnabled(bol);
+    }
+    
     /**
      * Initialize the contents of the frame.
      */
@@ -572,6 +578,9 @@ public class MappingGui extends JFrame
                 {
                     Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(commands), null);
                     JOptionPane.showMessageDialog(MappingGui.this, "Commands copied to clipboard: \n" + commands, "MMV - MCPBot Commands", JOptionPane.INFORMATION_MESSAGE);
+                    
+                    if (chkClearOnCopy.isSelected())
+                        btnGetBotCommands.setEnabled(false);
                 }
                 else
                     JOptionPane.showMessageDialog(MappingGui.this, "No commands to copy.", "MMV - MCPBot Commands", JOptionPane.INFORMATION_MESSAGE);
@@ -652,6 +661,7 @@ public class MappingGui extends JFrame
                             
                             progress.start(0, "Saving data to CSV files");
                             currentLoader.saveCSVs(progress);
+                            btnSave.setEnabled(false);
                         }
                         catch (Exception e)
                         {
@@ -697,10 +707,24 @@ public class MappingGui extends JFrame
                     }
                 };
                 
-                curTask.start();
+                Side side = (Side) cmbSide.getSelectedItem();
+                int option = JOptionPane.YES_OPTION;
+                
+                if (side.equals(Side.Universal))
+                    option = JOptionPane.showConfirmDialog(
+                            MappingGui.this,
+                            "When using Forge (Side == Universal), saving local edits to the CSV files will likely\n" +
+                                    "mess up future Forge decompilation runs due to how the Forge patches are applied.\n\n" +
+                                    "Are you sure you want to save your changes to the CSV files?",
+                            "Save CSV Edits?",
+                            JOptionPane.YES_NO_OPTION);
+                
+                if (option == JOptionPane.YES_OPTION)
+                    curTask.start();
             }
         });
         pnlFilter.add(btnSave);
+        
         lblAbout.addMouseListener(new MouseAdapter()
         {
             @Override
@@ -1072,7 +1096,7 @@ public class MappingGui extends JFrame
                         if (!mcpInstances.containsKey(mcpDir.getAbsolutePath() + " " + side) || chkForceRefresh.isSelected())
                         {
                             progress.start(0, "Reading MCP configuration");
-                            currentLoader = new McpMappingLoader(side, mcpDir, progress);
+                            currentLoader = new McpMappingLoader(MappingGui.this, side, mcpDir, progress);
                             mcpInstances.put(mcpDir.getAbsolutePath() + " " + side, currentLoader);
                             chkForceRefresh.setSelected(false);
                         }
@@ -1081,8 +1105,6 @@ public class MappingGui extends JFrame
                         
                         tblClasses.setModel(currentLoader.getClassModel());
                         tblClasses.setEnabled(true);
-                        btnGetBotCommands.setEnabled(true);
-                        btnSave.setEnabled(true);
                         new TableColumnAdjuster(tblClasses).adjustColumns();
                         loadPrefs(true);
                     }
@@ -1148,6 +1170,8 @@ public class MappingGui extends JFrame
                         pnlFilter.setVisible(true);
                         cmbFilter.setEnabled(true);
                         btnSearch.setEnabled(true);
+                        btnSave.setEnabled(currentLoader.hasPendingEdits());
+                        btnGetBotCommands.setEnabled(currentLoader.hasPendingCommands());
                     }
                 }
             };

@@ -24,15 +24,18 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.TreeMap;
 
 public class CsvFile
 {
-    private final File                file;
-    private final Side                side;
-    public final Map<String, CsvData> srgName2CsvData;
+    private final File                 file;
+    private final Side                 side;
+    private final Map<String, CsvData> srgName2CsvData;
+    private boolean                    isDirty;
     
     public CsvFile(File file, Side side) throws IOException
     {
@@ -40,6 +43,7 @@ public class CsvFile
         this.side = side;
         this.srgName2CsvData = new TreeMap<String, CsvData>();
         readFromFile();
+        isDirty = false;
     }
     
     public void readFromFile() throws IOException
@@ -68,23 +72,41 @@ public class CsvFile
     
     public void writeToFile() throws IOException
     {
-        if (file.exists())
+        if (isDirty)
         {
-            File fileBak = new File(file.getAbsolutePath() + ".bak");
-            if (fileBak.exists())
-                fileBak.delete();
+            if (file.exists())
+            {
+                File fileBak = new File(file.getAbsolutePath() + "_" + new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()) + ".bak");
+                file.renameTo(fileBak);
+            }
             
-            file.renameTo(fileBak);
+            file.createNewFile();
+            
+            PrintWriter out = new PrintWriter(new FileWriter(file));
+            
+            for (CsvData data : this.srgName2CsvData.values())
+                out.println(data.toCsv());
+            
+            out.close();
+            
+            isDirty = false;
         }
-        
-        file.createNewFile();
-        
-        PrintWriter out = new PrintWriter(new FileWriter(file));
-        
-        for (CsvData data : this.srgName2CsvData.values())
-            out.println(data.toCsv());
-        
-        out.close();
+    }
+    
+    public boolean hasCsvDataForKey(String srgName)
+    {
+        return srgName2CsvData.containsKey(srgName);
+    }
+    
+    public CsvData getCsvDataForKey(String srgName)
+    {
+        return srgName2CsvData.get(srgName);
+    }
+    
+    public void updateCsvDataForKey(String srgName, CsvData csvData)
+    {
+        srgName2CsvData.put(srgName, csvData);
+        isDirty = true;
     }
     
     private boolean sideIn(int i, int[] ar)
@@ -93,5 +115,15 @@ public class CsvFile
             if (n == i)
                 return true;
         return false;
+    }
+    
+    public boolean isDirty()
+    {
+        return isDirty;
+    }
+    
+    public void setIsDirty(boolean bol)
+    {
+        isDirty = bol;
     }
 }

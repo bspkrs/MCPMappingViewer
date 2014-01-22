@@ -63,6 +63,30 @@ public class McpBotCommand
         this(command, srgName, newName, "");
     }
     
+    public static McpBotCommand[] getMcpBotCommands(MemberType type, Side side, boolean isForced, boolean isClientOnly, String srgName, String newName, String comment)
+    {
+        McpBotCommand[] commands = new McpBotCommand[1];
+        if (side.equals(Side.Universal) && !isClientOnly)
+        {
+            commands = new McpBotCommand[2];
+            commands[1] = new McpBotCommand(getCommand(type, Side.Server, isForced), srgName, newName, comment);
+        }
+        
+        commands[0] = new McpBotCommand(getCommand(type, side, isForced), srgName, newName, comment);
+        
+        return commands;
+    }
+    
+    public static McpBotCommand[] updateMcpBotCommands(McpBotCommand[] commands, String srgName, String newName, String comment)
+    {
+        for (int i = 0; i < commands.length; i++)
+        {
+            commands[i] = new McpBotCommand(commands[i].getCommand(), srgName, newName, comment);
+        }
+        
+        return commands;
+    }
+    
     public BotCommand getCommand()
     {
         return command;

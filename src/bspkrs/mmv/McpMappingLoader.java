@@ -33,6 +33,7 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 
 import bspkrs.mmv.McpBotCommand.MemberType;
+import bspkrs.mmv.gui.MappingGui;
 
 public class McpMappingLoader
 {
@@ -47,18 +48,20 @@ public class McpMappingLoader
         }
     }
     
-    private final File                       mcpDir;
-    private final File                       srgFile;
-    private final Side                       side;
-    private SrgFile                          srgFileData;
-    private CsvFile                          csvFieldData, csvMethodData;
-    private final Map<String, McpBotCommand> commandMap            = new TreeMap<String, McpBotCommand>(); // srgName -> McpBotCommand
-                                                                                                            
-    public final Map<MethodSrgData, CsvData> srgMethodData2CsvData = new TreeMap<MethodSrgData, CsvData>();
-    public final Map<FieldSrgData, CsvData>  srgFieldData2CsvData  = new TreeMap<FieldSrgData, CsvData>();
+    private final File                         mcpDir;
+    private final File                         srgFile;
+    private final Side                         side;
+    private SrgFile                            srgFileData;
+    private CsvFile                            csvFieldData, csvMethodData;
+    private MappingGui                         parentGui;
+    private final Map<String, McpBotCommand[]> commandMap            = new TreeMap<String, McpBotCommand[]>(); // srgName -> McpBotCommand
+                                                                                                               
+    public final Map<MethodSrgData, CsvData>   srgMethodData2CsvData = new TreeMap<MethodSrgData, CsvData>();
+    public final Map<FieldSrgData, CsvData>    srgFieldData2CsvData  = new TreeMap<FieldSrgData, CsvData>();
     
-    public McpMappingLoader(Side side, File mcpDir, IProgressListener progress) throws IOException, CantLoadMCPMappingException
+    public McpMappingLoader(MappingGui parentGui, Side side, File mcpDir, IProgressListener progress) throws IOException, CantLoadMCPMappingException
     {
+        this.parentGui = parentGui;
         this.mcpDir = mcpDir;
         this.side = side;
         
@@ -94,21 +97,21 @@ public class McpMappingLoader
             progress.setMax(3);
         if (progress != null)
             progress.set(0);
-        loadCSVMapping();
+        loadCsvMapping();
         if (progress != null)
             progress.set(1);
-        loadSRGMapping();
+        loadSrgMapping();
         if (progress != null)
             progress.set(2);
         linkSrgDataToCsvData();
     }
     
-    private void loadSRGMapping() throws IOException
+    private void loadSrgMapping() throws IOException
     {
         srgFileData = new SrgFile(srgFile);
     }
     
-    private void loadCSVMapping() throws IOException
+    private void loadCsvMapping() throws IOException
     {
         csvFieldData = new CsvFile(new File(mcpDir, "conf/fields.csv"), side);
         csvMethodData = new CsvFile(new File(mcpDir, "conf/methods.csv"), side);
@@ -118,9 +121,9 @@ public class McpMappingLoader
     {
         for (Entry<String, MethodSrgData> methodData : srgFileData.srgName2MethodData.entrySet())
         {
-            if (!srgMethodData2CsvData.containsKey(methodData.getValue()) && csvMethodData.srgName2CsvData.containsKey(methodData.getKey()))
+            if (!srgMethodData2CsvData.containsKey(methodData.getValue()) && csvMethodData.hasCsvDataForKey(methodData.getKey()))
             {
-                srgMethodData2CsvData.put(methodData.getValue(), csvMethodData.srgName2CsvData.get(methodData.getKey()));
+                srgMethodData2CsvData.put(methodData.getValue(), csvMethodData.getCsvDataForKey(methodData.getKey()));
             }
             else if (srgMethodData2CsvData.containsKey(methodData.getValue()))
                 System.out.println("SRG method " + methodData.getKey() + " has multiple entries in CSV file!");
@@ -128,9 +131,9 @@ public class McpMappingLoader
         
         for (Entry<String, FieldSrgData> fieldData : srgFileData.srgName2FieldData.entrySet())
         {
-            if (!srgFieldData2CsvData.containsKey(fieldData.getValue()) && csvFieldData.srgName2CsvData.containsKey(fieldData.getKey()))
+            if (!srgFieldData2CsvData.containsKey(fieldData.getValue()) && csvFieldData.hasCsvDataForKey(fieldData.getKey()))
             {
-                srgFieldData2CsvData.put(fieldData.getValue(), csvFieldData.srgName2CsvData.get(fieldData.getKey()));
+                srgFieldData2CsvData.put(fieldData.getValue(), csvFieldData.getCsvDataForKey(fieldData.getKey()));
             }
             else if (srgFieldData2CsvData.containsKey(fieldData.getValue()))
                 System.out.println("SRG field " + fieldData.getKey() + " has multiple entries in CSV file!");
@@ -156,6 +159,7 @@ public class McpMappingLoader
     {
         MemberSrgData memberData = srg2MemberData.get(srgName);
         CsvData csvData = null;
+        
         if (memberData != null)
         {
             boolean isForced = memberData2CsvData.containsKey(memberData);
@@ -170,16 +174,18 @@ public class McpMappingLoader
                 csvData = new CsvData(srgName, mcpName, side.intSide[0], comment);
             }
             
-            McpBotCommand command;
+            McpBotCommand[] commands;
             
             if (!commandMap.containsKey(srgName))
-                command = new McpBotCommand(McpBotCommand.getCommand(type, side, isForced),
+            {
+                commands = McpBotCommand.getMcpBotCommands(type, side, isForced, memberData.isClientOnly(),
                         csvData.getSrgName(), csvData.getMcpName(), csvData.getComment());
+            }
             else
-                command = new McpBotCommand(commandMap.get(srgName).getCommand(),
+                commands = McpBotCommand.updateMcpBotCommands(commandMap.get(srgName),
                         csvData.getSrgName(), csvData.getMcpName(), csvData.getComment());
             
-            commandMap.put(srgName, command);
+            commandMap.put(srgName, commands);
         }
         
         return csvData;
@@ -189,13 +195,24 @@ public class McpMappingLoader
     {
         String r = "";
         
-        for (McpBotCommand command : commandMap.values())
-            r += command.toString() + "\n";
+        for (McpBotCommand[] commands : commandMap.values())
+            for (McpBotCommand command : commands)
+                r += command.toString() + "\n";
         
         if (clear)
             commandMap.clear();
         
         return r;
+    }
+    
+    public boolean hasPendingCommands()
+    {
+        return !commandMap.isEmpty();
+    }
+    
+    public boolean hasPendingEdits()
+    {
+        return csvFieldData.isDirty() || csvMethodData.isDirty();
     }
     
     public void saveCSVs(IProgressListener progress) throws IOException
@@ -543,12 +560,14 @@ public class McpMappingLoader
             String srgName = (String) data[rowIndex][1];
             String mcpName = (String) data[rowIndex][0];
             String comment = (String) data[rowIndex][4];
+            
             CsvData result = processDataEdit(MemberType.METHOD, srgFileData.srgName2MethodData, srgMethodData2CsvData, srgName, mcpName, comment);
             
             if (result != null)
             {
-                csvMethodData.srgName2CsvData.put(srgName, result);
+                csvMethodData.updateCsvDataForKey(srgName, result);
                 srgMethodData2CsvData.put(srgFileData.srgName2MethodData.get(srgName), result);
+                parentGui.setCsvFileEdited(true);
             }
         }
     }
@@ -683,12 +702,14 @@ public class McpMappingLoader
             String srgName = (String) data[rowIndex][1];
             String mcpName = (String) data[rowIndex][0];
             String comment = (String) data[rowIndex][3];
+            
             CsvData result = processDataEdit(MemberType.FIELD, srgFileData.srgName2FieldData, srgFieldData2CsvData, srgName, mcpName, comment);
             
             if (result != null)
             {
-                csvFieldData.srgName2CsvData.put(srgName, result);
+                csvFieldData.updateCsvDataForKey(srgName, result);
                 srgFieldData2CsvData.put(srgFileData.srgName2FieldData.get(srgName), result);
+                parentGui.setCsvFileEdited(true);
             }
         }
     }
