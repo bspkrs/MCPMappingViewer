@@ -1,3 +1,7 @@
+0.6.0 - 22-Jan-2014
+- saving of edits back to CSVs is now possible! careful if you are editing Forge CSVs!
+- when using side Universal (Forge), edits will produce multiple bot commands unless the item is client only
+- better handling of button states based on edits
 0.5.3 - 05-Dec-2013
 - added application icon and About image
 - cleaned up some messy code
