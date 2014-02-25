@@ -90,7 +90,7 @@ import bspkrs.mmv.version.AppVersionChecker;
 
 public class MappingGui extends JFrame
 {
-    public static final String            VERSION_NUMBER        = "0.6.0";
+    public static final String            VERSION_NUMBER        = "0.6.1";
     private static final long             serialVersionUID      = 1L;
     private final Preferences             prefs                 = Preferences.userNodeForPackage(MappingGui.class);
     private JFrame                        frmMcpMappingViewer;
@@ -944,6 +944,69 @@ public class MappingGui extends JFrame
                         tblClasses.setModel(currentLoader.getSearchResults(cmbFilter.getSelectedItem().toString(), progress));
                         tblClasses.setEnabled(true);
                         new TableColumnAdjuster(tblClasses).adjustColumns();
+                        
+                        if (tblClasses.getRowCount() > 0)
+                        {
+                            String pkg = (String) tblClasses.getModel().getValueAt(0, 0);
+                            String name = (String) tblClasses.getModel().getValueAt(0, 1);
+                            tblMethods.setModel(currentLoader.getMethodModel(pkg + "/" + name));
+                            tblMethods.setEnabled(true);
+                            tblFields.setModel(currentLoader.getFieldModel(pkg + "/" + name));
+                            tblFields.setEnabled(true);
+                            new TableColumnAdjuster(tblMethods).adjustColumns();
+                            new TableColumnAdjuster(tblFields).adjustColumns();
+                            
+                            if (cmbFilter.getSelectedItem().toString().trim().startsWith("field") && tblFields.getRowCount() > 0)
+                            {
+                                for (int i = 0; i < tblFields.getRowCount(); i++)
+                                {
+                                    if (((String) tblFields.getModel().getValueAt(i, 1)).contains(cmbFilter.getSelectedItem().toString()))
+                                    {
+                                        final int rowIndex = i;
+                                        tblFields.setRowSelectionInterval(rowIndex, rowIndex);
+                                        tblFields.setColumnSelectionInterval(1, 1);
+                                        tblFields.requestFocus();
+                                        
+                                        SwingUtilities.invokeLater(new Runnable()
+                                        {
+                                            @Override
+                                            public void run()
+                                            {
+                                                tblFields.scrollRectToVisible(tblFields.getCellRect(rowIndex, 0, true));
+                                            }
+                                        });
+                                        
+                                        break;
+                                    }
+                                }
+                            }
+                            else if (cmbFilter.getSelectedItem().toString().trim().startsWith("func") && tblMethods.getRowCount() > 0)
+                            {
+                                for (int i = 0; i < tblMethods.getRowCount(); i++)
+                                {
+                                    if (((String) tblMethods.getModel().getValueAt(i, 1)).contains(cmbFilter.getSelectedItem().toString()))
+                                    {
+                                        final int rowIndex = i;
+                                        tblMethods.setRowSelectionInterval(rowIndex, rowIndex);
+                                        tblMethods.setColumnSelectionInterval(1, 1);
+                                        tblMethods.requestFocus();
+                                        
+                                        SwingUtilities.invokeLater(new Runnable()
+                                        {
+                                            @Override
+                                            public void run()
+                                            {
+                                                tblMethods.scrollRectToVisible(tblMethods.getCellRect(rowIndex, 0, true));
+                                            }
+                                        });
+                                        
+                                        break;
+                                    }
+                                }
+                                
+                            }
+                        }
+                        
                         loadPrefs(true);
                     }
                     catch (Exception e)
