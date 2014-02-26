@@ -1,3 +1,5 @@
+0.6.1 - 24-Feb-2014
+- added code to make SRG name searches actually highlight the item they are meant to find
 0.6.0 - 22-Jan-2014
 - saving of edits back to CSVs is now possible! careful if you are editing Forge CSVs!
 - when using side Universal (Forge), edits will produce multiple bot commands unless the item is client only
