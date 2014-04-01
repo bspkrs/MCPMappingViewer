@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2013 bspkrs
- * Portions Copyright (C) 2013 Alex "immibis" Campbell
+ * Copyright (C) 2014 bspkrs
+ * Portions Copyright (C) 2014 Alex "immibis" Campbell
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation 
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, 
@@ -36,6 +36,7 @@ public class CsvFile
     private final Side                 side;
     private final Map<String, CsvData> srgName2CsvData;
     private boolean                    isDirty;
+    private String                     headerLine;
     
     public CsvFile(File file, Side side) throws IOException
     {
@@ -52,7 +53,7 @@ public class CsvFile
         try
         {
             in.useDelimiter(",");
-            in.nextLine(); // Skip header row
+            headerLine = in.nextLine(); // Skip header row
             while (in.hasNextLine())
             {
                 String srgName = in.next();
@@ -83,6 +84,7 @@ public class CsvFile
             file.createNewFile();
             
             PrintWriter out = new PrintWriter(new FileWriter(file));
+            out.println(headerLine);
             
             for (CsvData data : this.srgName2CsvData.values())
                 out.println(data.toCsv());
