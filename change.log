@@ -1,3 +1,6 @@
+0.7.0 - 01-Apr-2014
+- fixed a potential issue with not adding the header row when exporting CSV files
+- added support for viewing and editing params.csv :D
 0.6.1 - 24-Feb-2014
 - added code to make SRG name searches actually highlight the item they are meant to find
 0.6.0 - 22-Jan-2014

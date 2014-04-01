@@ -15,38 +15,22 @@
  */
 package bspkrs.mmv;
 
-public class CsvData implements Comparable<CsvData>
+public class ParamCsvData implements Comparable<ParamCsvData>
 {
     private final String srgName;
     private String       mcpName;
     private final int    side;
-    private String       comment;
-    private boolean      needsQuoted;
     
-    public CsvData(String srgName, String mcpName, int side, String comment)
+    public ParamCsvData(String srgName, String mcpName, int side)
     {
         this.srgName = srgName;
         this.mcpName = mcpName;
         this.side = side;
-        
-        if (comment.contains(",") || (!comment.isEmpty() && comment.charAt(0) == '"' && comment.charAt(comment.length() - 1) == '"'))
-        {
-            needsQuoted = true;
-            if (comment.charAt(0) == '"' && comment.charAt(comment.length() - 1) == '"')
-                this.comment = comment.substring(1, comment.length() - 1);
-            else
-                this.comment = comment;
-        }
-        else
-        {
-            this.comment = comment;
-            needsQuoted = false;
-        }
     }
     
     public String toCsv()
     {
-        return srgName + "," + mcpName + "," + side + "," + (needsQuoted ? "\"" + comment + "\"" : comment);
+        return srgName + "," + mcpName + "," + side;
     }
     
     public String getSrgName()
@@ -59,7 +43,7 @@ public class CsvData implements Comparable<CsvData>
         return mcpName;
     }
     
-    public CsvData setMcpName(String mcpName)
+    public ParamCsvData setMcpName(String mcpName)
     {
         this.mcpName = mcpName;
         return this;
@@ -70,19 +54,8 @@ public class CsvData implements Comparable<CsvData>
         return side;
     }
     
-    public String getComment()
-    {
-        return comment;
-    }
-    
-    public CsvData setComment(String comment)
-    {
-        this.comment = comment;
-        return this;
-    }
-    
     @Override
-    public int compareTo(CsvData o)
+    public int compareTo(ParamCsvData o)
     {
         if (o != null)
             return this.srgName.compareTo(o.srgName);
@@ -92,6 +65,6 @@ public class CsvData implements Comparable<CsvData>
     
     public boolean contains(String s)
     {
-        return this.mcpName.contains(s) || this.comment.contains(s);
+        return this.mcpName.contains(s);
     }
 }

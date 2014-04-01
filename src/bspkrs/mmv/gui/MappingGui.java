@@ -90,7 +90,7 @@ import bspkrs.mmv.version.AppVersionChecker;
 
 public class MappingGui extends JFrame
 {
-    public static final String            VERSION_NUMBER        = "0.6.1";
+    public static final String            VERSION_NUMBER        = "0.7.0";
     private static final long             serialVersionUID      = 1L;
     private final Preferences             prefs                 = Preferences.userNodeForPackage(MappingGui.class);
     private JFrame                        frmMcpMappingViewer;
@@ -111,14 +111,17 @@ public class MappingGui extends JFrame
     private final static String           PREFS_KEY_SIDE        = "side";
     private final static String           PREFS_KEY_CLASS_SORT  = "classSort";
     private final static String           PREFS_KEY_METHOD_SORT = "methodSort";
+    private final static String           PREFS_KEY_PARAM_SORT  = "paramSort";
     private final static String           PREFS_KEY_FIELD_SORT  = "fieldSort";
     private List<RowSorter.SortKey>       classSort             = new ArrayList<RowSorter.SortKey>();
     private List<RowSorter.SortKey>       methodSort            = new ArrayList<RowSorter.SortKey>();
+    private List<RowSorter.SortKey>       paramSort             = new ArrayList<RowSorter.SortKey>();
     private List<RowSorter.SortKey>       fieldSort             = new ArrayList<RowSorter.SortKey>();
     private final Reference<File>         mcpBrowseDir          = new Reference<File>();
     private JTable                        tblClasses;
     private JTable                        tblMethods;
     private JTable                        tblFields;
+    private JTable                        tblParams;
     private Thread                        curTask               = null;
     private Map<String, McpMappingLoader> mcpInstances          = new HashMap<>();
     private McpMappingLoader              currentLoader;
@@ -157,6 +160,21 @@ public class MappingGui extends JFrame
         public boolean isCellEditable(int row, int column) { return columnEditables[column]; }
     };
     
+    private DefaultTableModel paramsDefaultModel = new DefaultTableModel( new Object[][] { {}, }, new String[] { "MCP Name", "SRG Name" })
+    {
+        private static final long serialVersionUID = 1L;
+        boolean[]                 columnEditables  = new boolean[] { false, false };
+        @SuppressWarnings("rawtypes")
+        Class[]                   columnTypes      = new Class[] { String.class, String.class };
+        
+        @SuppressWarnings({ "unchecked", "rawtypes" })
+        @Override
+        public Class getColumnClass(int columnIndex) { return columnTypes[columnIndex]; }
+        
+        @Override
+        public boolean isCellEditable(int row, int column) { return columnEditables[column]; }
+    };
+    
     private DefaultTableModel fieldsDefaultModel = new DefaultTableModel( new Object[][] { {}, }, new String[] { "MCP Name", "SRG Name", "Obf Name", "Comment" } )
     {
         private static final long serialVersionUID = 1L;
@@ -171,6 +189,7 @@ public class MappingGui extends JFrame
         @Override
         public boolean isCellEditable(int row, int column) { return columnEditables[column]; }
     };
+    private JSplitPane splitMethods;
     // @formatter:on
     
     private void savePrefs()
@@ -200,6 +219,15 @@ public class MappingGui extends JFrame
         }
         else
             prefs.putInt(PREFS_KEY_METHOD_SORT, 1);
+        
+        if (tblParams.getRowSorter().getSortKeys().size() > 0)
+        {
+            int i = tblParams.getRowSorter().getSortKeys().get(0).getColumn() + 1;
+            SortOrder order = tblParams.getRowSorter().getSortKeys().get(0).getSortOrder();
+            prefs.putInt(PREFS_KEY_PARAM_SORT, order == SortOrder.DESCENDING ? i * -1 : i);
+        }
+        else
+            prefs.putInt(PREFS_KEY_PARAM_SORT, 1);
         
         if (tblFields.getRowSorter().getSortKeys().size() > 0)
         {
@@ -262,6 +290,10 @@ public class MappingGui extends JFrame
         i = prefs.getInt(PREFS_KEY_METHOD_SORT, 1);
         methodSort.add(new RowSorter.SortKey(Math.abs(i) - 1, (i > 0 ? SortOrder.ASCENDING : SortOrder.DESCENDING)));
         tblMethods.getRowSorter().setSortKeys(methodSort);
+        
+        i = prefs.getInt(PREFS_KEY_PARAM_SORT, 1);
+        paramSort.add(new RowSorter.SortKey(Math.abs(i) - 1, (i > 0 ? SortOrder.ASCENDING : SortOrder.DESCENDING)));
+        tblParams.getRowSorter().setSortKeys(paramSort);
         
         i = prefs.getInt(PREFS_KEY_FIELD_SORT, 1);
         fieldSort.add(new RowSorter.SortKey(Math.abs(i) - 1, (i > 0 ? SortOrder.ASCENDING : SortOrder.DESCENDING)));
@@ -395,6 +427,7 @@ public class MappingGui extends JFrame
         frmMcpMappingViewer.getContentPane().setLayout(new BorderLayout(0, 0));
         
         JSplitPane splitMain = new JSplitPane();
+        splitMain.setBorder(null);
         splitMain.setDividerSize(3);
         splitMain.setResizeWeight(0.5);
         splitMain.setContinuousLayout(true);
@@ -419,23 +452,53 @@ public class MappingGui extends JFrame
         frmMcpMappingViewer.getContentPane().add(splitMain, BorderLayout.CENTER);
         
         JSplitPane splitMembers = new JSplitPane();
+        splitMembers.setBorder(null);
         splitMembers.setDividerSize(3);
         splitMembers.setResizeWeight(0.5);
         splitMembers.setOrientation(JSplitPane.VERTICAL_SPLIT);
         splitMain.setRightComponent(splitMembers);
         
+        splitMethods = new JSplitPane();
+        splitMethods.setBorder(null);
+        splitMethods.setDividerSize(3);
+        splitMethods.setResizeWeight(0.5);
+        splitMembers.setLeftComponent(splitMethods);
+        
         JScrollPane scrlpnMethods = new JScrollPane();
         scrlpnMethods.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-        splitMembers.setLeftComponent(scrlpnMethods);
+        splitMethods.setLeftComponent(scrlpnMethods);
         
         tblMethods = new JTable();
         tblMethods.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        tblMethods.getSelectionModel().addListSelectionListener(new MethodTableSelectionListener(tblMethods));
         tblMethods.setCellSelectionEnabled(true);
         tblMethods.setFillsViewportHeight(true);
         tblMethods.setAutoCreateRowSorter(true);
         tblMethods.setEnabled(false);
         tblMethods.setModel(methodsDefaultModel);
         scrlpnMethods.setViewportView(tblMethods);
+        
+        JScrollPane scrlpnParams = new JScrollPane();
+        scrlpnParams.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        splitMethods.setRightComponent(scrlpnParams);
+        
+        tblParams = new JTable();
+        tblParams.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        tblParams.setCellSelectionEnabled(true);
+        tblParams.setFillsViewportHeight(true);
+        tblParams.setAutoCreateRowSorter(true);
+        tblParams.setEnabled(false);
+        tblParams.setModel(paramsDefaultModel);
+        scrlpnParams.setViewportView(tblParams);
+        
+        SwingUtilities.invokeLater(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                splitMethods.setDividerLocation(0.8);
+            }
+        });
         
         JScrollPane scrlpnFields = new JScrollPane();
         scrlpnFields.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
@@ -845,6 +908,39 @@ public class MappingGui extends JFrame
                     tblMethods.setEnabled(false);
                     tblFields.setModel(fieldsDefaultModel);
                     tblFields.setEnabled(false);
+                }
+            }
+        }
+    }
+    
+    class MethodTableSelectionListener implements ListSelectionListener
+    {
+        private final JTable table;
+        
+        public MethodTableSelectionListener(JTable table)
+        {
+            this.table = table;
+        }
+        
+        @Override
+        public void valueChanged(ListSelectionEvent e)
+        {
+            if (!e.getValueIsAdjusting() && !table.getModel().equals(methodsDefaultModel))
+            {
+                int i = table.getSelectedRow();
+                if (i > -1)
+                {
+                    savePrefs();
+                    String name = (String) table.getModel().getValueAt(table.convertRowIndexToModel(i), 1);
+                    tblParams.setModel(currentLoader.getParamModel(name));
+                    tblParams.setEnabled(true);
+                    new TableColumnAdjuster(tblParams).adjustColumns();
+                    loadPrefs(true);
+                }
+                else
+                {
+                    tblParams.setModel(paramsDefaultModel);
+                    tblParams.setEnabled(false);
                 }
             }
         }

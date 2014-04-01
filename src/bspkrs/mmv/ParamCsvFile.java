@@ -30,19 +30,19 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.TreeMap;
 
-public class CsvFile
+public class ParamCsvFile
 {
-    private final File                 file;
-    private final Side                 side;
-    private final Map<String, CsvData> srgMemberName2CsvData;
-    private boolean                    isDirty;
-    private String                     headerLine;
+    private final File                      file;
+    private final Side                      side;
+    private final Map<String, ParamCsvData> srgParamName2ParamCsvData;
+    private boolean                         isDirty;
+    private String                          headerLine;
     
-    public CsvFile(File file, Side side) throws IOException
+    public ParamCsvFile(File file, Side side) throws IOException
     {
         this.file = file;
         this.side = side;
-        this.srgMemberName2CsvData = new TreeMap<String, CsvData>();
+        this.srgParamName2ParamCsvData = new TreeMap<String, ParamCsvData>();
         readFromFile();
         isDirty = false;
     }
@@ -58,11 +58,9 @@ public class CsvFile
             {
                 String srgName = in.next();
                 String mcpName = in.next();
-                String side = in.next();
-                String comment = in.nextLine();
-                comment = comment.substring(1); // removes the ','
+                String side = in.nextLine().substring(1);
                 if (sideIn(Integer.valueOf(side), this.side.intSide))
-                    srgMemberName2CsvData.put(srgName, new CsvData(srgName, mcpName, Integer.valueOf(side), comment));
+                    srgParamName2ParamCsvData.put(srgName, new ParamCsvData(srgName, mcpName, Integer.valueOf(side)));
             }
         }
         finally
@@ -86,7 +84,7 @@ public class CsvFile
             PrintWriter out = new PrintWriter(new FileWriter(file));
             out.println(headerLine);
             
-            for (CsvData data : this.srgMemberName2CsvData.values())
+            for (ParamCsvData data : this.srgParamName2ParamCsvData.values())
                 out.println(data.toCsv());
             
             out.close();
@@ -97,17 +95,17 @@ public class CsvFile
     
     public boolean hasCsvDataForKey(String srgName)
     {
-        return srgMemberName2CsvData.containsKey(srgName);
+        return srgParamName2ParamCsvData.containsKey(srgName);
     }
     
-    public CsvData getCsvDataForKey(String srgName)
+    public ParamCsvData getCsvDataForKey(String srgName)
     {
-        return srgMemberName2CsvData.get(srgName);
+        return srgParamName2ParamCsvData.get(srgName);
     }
     
-    public void updateCsvDataForKey(String srgName, CsvData csvData)
+    public void updateCsvDataForKey(String srgName, ParamCsvData csvData)
     {
-        srgMemberName2CsvData.put(srgName, csvData);
+        srgParamName2ParamCsvData.put(srgName, csvData);
         isDirty = true;
     }
     
