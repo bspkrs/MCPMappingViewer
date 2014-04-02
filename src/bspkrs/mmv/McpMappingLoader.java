@@ -167,7 +167,7 @@ public class McpMappingLoader
         {
             if (!excData2MapParamCsvData.containsKey(excData.getValue()) && excData.getValue().getParameters().length > 0)
             {
-                TreeMap<String, ParamCsvData> params = new TreeMap();
+                TreeMap<String, ParamCsvData> params = new TreeMap<String, ParamCsvData>();
                 for (String srgName : excData.getValue().getParameters())
                     if (csvParamData.hasCsvDataForKey(srgName))
                         params.put(srgName, csvParamData.getCsvDataForKey(srgName));
