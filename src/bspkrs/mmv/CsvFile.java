@@ -59,8 +59,7 @@ public class CsvFile
                 String srgName = in.next();
                 String mcpName = in.next();
                 String side = in.next();
-                String comment = in.nextLine();
-                comment = comment.substring(1); // removes the ','
+                String comment = in.nextLine().substring(1);
                 if (sideIn(Integer.valueOf(side), this.side.intSide))
                     srgMemberName2CsvData.put(srgName, new CsvData(srgName, mcpName, Integer.valueOf(side), comment));
             }

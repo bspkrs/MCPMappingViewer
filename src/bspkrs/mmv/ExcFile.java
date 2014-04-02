@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.regex.Pattern;
 
 public class ExcFile
 {
@@ -37,17 +38,43 @@ public class ExcFile
         // net/minecraft/world/chunk/storage/AnvilChunkLoader.func_75816_a(Lnet/minecraft/world/World;Lnet/minecraft/world/chunk/Chunk;)V=net/minecraft/world/MinecraftException,java/io/IOException|p_75816_1_,p_75816_2_
         // net/minecraft/world/biome/BiomeGenMutated.func_150571_c(III)I=|p_150571_1_,p_150571_2_,p_150571_3_
         // net/minecraft/world/chunk/storage/AnvilChunkLoader.func_75818_b()V=|
+        // net/minecraft/server/MinecraftServer.func_145747_a(Lnet/minecraft/util/IChatComponent;)V=|p_145747_1_
         
         Scanner in = new Scanner(new FileReader(f));
         try
         {
+            final Pattern pattern = Pattern.compile("^(.*?)\\.(.*?)\\((.*?)=(.*?)\\|(.*?)$");
+            
             while (in.hasNextLine())
             {
                 if (in.hasNext("#"))
                 {
-                    System.out.println(in.nextLine());
+                    in.nextLine();
                     continue;
                 }
+                
+                //                String line = in.nextLine();
+                //                
+                //                Matcher matcher = pattern.matcher(line);
+                //                if (matcher.find())
+                //                {
+                //                    String srgOwner = matcher.group(1);
+                //                    String srgName = matcher.group(2);
+                //                    String descriptor = matcher.group(3);
+                //                    String excs = matcher.group(4);
+                //                    String params = matcher.group(5);
+                //                    
+                //                    ExcData toAdd = new ExcData(srgOwner, srgName, descriptor,
+                //                            (excs.length() > 0 ? excs.split(",") : new String[0]),
+                //                            (params.length() > 0 ? params.split(",") : new String[0]));
+                //                    
+                //                    srgMethodName2ExcData.put(srgName, toAdd);
+                //                    
+                //                    for (String parameter : toAdd.getParameters())
+                //                        srgParamName2ExcData.put(parameter, toAdd);
+                //                }
+                //                else
+                //                    System.out.println("exc line failed regex: " + line);
                 
                 in.useDelimiter("\\.");
                 String srgOwner = in.next();
@@ -63,10 +90,15 @@ public class ExcFile
                         (excs.length() > 0 ? excs.split(",") : new String[0]),
                         (params.length() > 0 ? params.split(",") : new String[0]));
                 
-                srgMethodName2ExcData.put(srgName, toAdd);
+                ExcData existing = srgMethodName2ExcData.get(srgName);
                 
-                for (String parameter : toAdd.getParameters())
-                    srgParamName2ExcData.put(parameter, toAdd);
+                if (existing == null || existing.getParameters().length < toAdd.getParameters().length)
+                {
+                    srgMethodName2ExcData.put(srgName, toAdd);
+                    
+                    for (String parameter : toAdd.getParameters())
+                        srgParamName2ExcData.put(parameter, toAdd);
+                }
             }
         }
         finally
