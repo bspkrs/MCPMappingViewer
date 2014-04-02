@@ -160,12 +160,12 @@ public class MappingGui extends JFrame
         public boolean isCellEditable(int row, int column) { return columnEditables[column]; }
     };
     
-    private DefaultTableModel paramsDefaultModel = new DefaultTableModel( new Object[][] { {}, }, new String[] { "MCP Name", "SRG Name" })
+    private DefaultTableModel paramsDefaultModel = new DefaultTableModel( new Object[][] { {}, }, new String[] { "MCP Name", "SRG Name", "Type" })
     {
         private static final long serialVersionUID = 1L;
-        boolean[]                 columnEditables  = new boolean[] { false, false };
+        boolean[]                 columnEditables  = new boolean[] { false, false, false };
         @SuppressWarnings("rawtypes")
-        Class[]                   columnTypes      = new Class[] { String.class, String.class };
+        Class[]                   columnTypes      = new Class[] { String.class, String.class, String.class };
         
         @SuppressWarnings({ "unchecked", "rawtypes" })
         @Override
@@ -612,7 +612,8 @@ public class MappingGui extends JFrame
                 String message = "Search is global and returns a set of classes that contain a match for the input. \n" +
                         "Search is case sensitive!\n\nData elements searched on:\n" +
                         "Classes:\n    ~ Pkg Name\n    ~ SRG Name\n    ~ Obf Name\n" +
-                        "Methods/Fields:\n    ~ SRG Name\n    ~ Obf Name\n    ~ MCP Name\n    ~ Comment";
+                        "Methods/Fields:\n    ~ SRG Name\n    ~ Obf Name\n    ~ MCP Name\n    ~ Comment\n\n" +
+                        "Parameters are not currently searchable.";
                 JOptionPane.showMessageDialog(MappingGui.this, message, "Search Info", JOptionPane.INFORMATION_MESSAGE);
             }
         });

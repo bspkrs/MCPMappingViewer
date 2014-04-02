@@ -627,26 +627,25 @@ public class McpMappingLoader
     public class ParamModel extends AbstractTableModel
     {
         private static final long serialVersionUID = 1L;
-        private final String[]    columnNames      = { "MCP Name", "SRG Name" };
-        private final Class[]     columnTypes      = { String.class, String.class };
-        private final boolean[]   isColumnEditable = { true, false };
+        private final String[]    columnNames      = { "MCP Name", "SRG Name", "Type" };
+        private final Class[]     columnTypes      = { String.class, String.class, String.class };
+        private final boolean[]   isColumnEditable = { true, false, false };
         private final Object[][]  data;
         
         public ParamModel(ExcData excData)
         {
             data = new Object[excData.getParameters().length][columnNames.length];
             
-            int i = 0;
-            
-            for (String paramName : excData.getParameters())
+            for (int i = 0; i < excData.getParameters().length; i++)
             {
-                if (excData2MapParamCsvData.containsKey(excData) && excData2MapParamCsvData.get(excData).containsKey(paramName))
-                    data[i][0] = excData2MapParamCsvData.get(excData).get(paramName).getMcpName();
+                if (excData2MapParamCsvData.containsKey(excData) && excData2MapParamCsvData.get(excData).containsKey(excData.getParameters()[i]))
+                    data[i][0] = excData2MapParamCsvData.get(excData).get(excData.getParameters()[i]).getMcpName();
                 else
                     data[i][0] = "";
                 
-                data[i][1] = paramName;
-                i++;
+                data[i][1] = excData.getParameters()[i];
+                data[i][2] = excData.getParamTypes()[i];
+                //i++;
             }
         }
         
