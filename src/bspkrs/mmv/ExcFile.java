@@ -79,6 +79,13 @@ public class ExcFile
                 in.useDelimiter("\\.");
                 String srgOwner = in.next();
                 in.useDelimiter("\\(");
+                
+                if (!in.hasNext())
+                    if (in.hasNextLine())
+                        in.nextLine();
+                    else
+                        break;
+                
                 String srgName = in.next().substring(1);
                 in.useDelimiter("=");
                 String descriptor = in.next();
