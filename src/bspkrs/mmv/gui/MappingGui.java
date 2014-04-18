@@ -90,7 +90,7 @@ import bspkrs.mmv.version.AppVersionChecker;
 
 public class MappingGui extends JFrame
 {
-    public static final String            VERSION_NUMBER        = "0.7.1";
+    public static final String            VERSION_NUMBER        = "0.7.2";
     private static final long             serialVersionUID      = 1L;
     private final Preferences             prefs                 = Preferences.userNodeForPackage(MappingGui.class);
     private JFrame                        frmMcpMappingViewer;
@@ -281,6 +281,7 @@ public class MappingGui extends JFrame
         
         classSort.clear();
         methodSort.clear();
+        paramSort.clear();
         fieldSort.clear();
         
         int i = prefs.getInt(PREFS_KEY_CLASS_SORT, 1);
@@ -980,6 +981,8 @@ public class MappingGui extends JFrame
             tblFields.setModel(fieldsDefaultModel);
             tblFields.setEnabled(false);
             
+            loadPrefs(true);
+            
             curTask = new Thread()
             {
                 @Override
@@ -1041,6 +1044,7 @@ public class MappingGui extends JFrame
                         tblClasses.setModel(currentLoader.getSearchResults(cmbFilter.getSelectedItem().toString(), progress));
                         tblClasses.setEnabled(true);
                         new TableColumnAdjuster(tblClasses).adjustColumns();
+                        loadPrefs(true);
                         
                         if (tblClasses.getRowCount() > 0)
                         {
@@ -1052,6 +1056,7 @@ public class MappingGui extends JFrame
                             tblFields.setEnabled(true);
                             new TableColumnAdjuster(tblMethods).adjustColumns();
                             new TableColumnAdjuster(tblFields).adjustColumns();
+                            loadPrefs(true);
                             
                             if (cmbFilter.getSelectedItem().toString().trim().startsWith("field") && tblFields.getRowCount() > 0)
                             {
@@ -1202,6 +1207,8 @@ public class MappingGui extends JFrame
             tblMethods.setEnabled(false);
             tblFields.setModel(fieldsDefaultModel);
             tblFields.setEnabled(false);
+            
+            loadPrefs(true);
             
             curTask = new Thread()
             {

@@ -1,3 +1,5 @@
+0.7.2 - 18-Apr-2014
+- fixed derp where column sort settings were reset on search
 0.7.1 - 12-Apr-2014
 - fixed compabibility with latest Forge releases
 0.7.0 - 01-Apr-2014
