@@ -32,10 +32,12 @@ public class AppVersionChecker
     private String[]      logMsg;
     private String[]      dialogMsg;
     private Preferences   versionCheckTracker;
-    private final String  LAST_VERSION_FOUND = "lastversionfound";
-    private final String  CHECK_ERROR        = "check_error";
-    private final String  lastNewVersionFound;
+    private final String  LAST_VERSION_FOUND  = "lastversionfound";
+    private final String  RUNS_SINCE_LAST_MSG = "runs_since_last_message";
+    private final String  CHECK_ERROR         = "check_error";
+    private String        lastNewVersionFound;
     private final boolean errorDetected;
+    private int           runsSinceLastMessage;
     
     public AppVersionChecker(String appName, String currentVersion, String versionURL, String updateURL, String[] logMsg, String[] dialogMsg, int timeoutMS)
     {
@@ -47,35 +49,47 @@ public class AppVersionChecker
         
         try
         {
+            if (versionURL.startsWith("http://dl.dropboxusercontent.com"))
+                versionURL = versionURL.replaceFirst("http", "https");
+            
             this.versionURL = new URL(versionURL);
         }
         catch (Throwable ignore)
         {}
         
-        versionCheckTracker = Preferences.userNodeForPackage(AppVersionChecker.class);
-        
         String[] versionLines = loadTextFromURL(this.versionURL, new String[] { CHECK_ERROR }, timeoutMS);
         
-        newVersion = versionLines[0].trim();
-        
-        if (!newVersion.equals(CHECK_ERROR) && isCurrentVersion(currentVersion, newVersion))
-            lastNewVersionFound = newVersion;
+        if (versionLines.length == 0 || versionLines[0].trim().equals("<html>"))
+            newVersion = CHECK_ERROR;
         else
-            lastNewVersionFound = versionCheckTracker.get(LAST_VERSION_FOUND, currentVersion);
+            newVersion = versionLines[0].trim();
         
-        if (!newVersion.equals(CHECK_ERROR))
-        {
-            versionCheckTracker.put(LAST_VERSION_FOUND, newVersion);
-            errorDetected = false;
-        }
-        else
-        {
+        errorDetected = newVersion.equals(CHECK_ERROR);
+        
+        versionCheckTracker = Preferences.userNodeForPackage(AppVersionChecker.class);
+        
+        lastNewVersionFound = versionCheckTracker.get(LAST_VERSION_FOUND, currentVersion);
+        
+        if (lastNewVersionFound.equals("<html>"))
+            lastNewVersionFound = currentVersion;
+        
+        runsSinceLastMessage = versionCheckTracker.getInt(RUNS_SINCE_LAST_MSG, 0);
+        
+        if (errorDetected)
             newVersion = lastNewVersionFound;
-            errorDetected = true;
-        }
         
-        // Override instantiated updateURL with second line of version file if
-        // it exists and is non-blank
+        if (!errorDetected && !isCurrentVersion(lastNewVersionFound, newVersion))
+        {
+            runsSinceLastMessage = 0;
+            lastNewVersionFound = newVersion;
+        }
+        else
+            runsSinceLastMessage = runsSinceLastMessage % 10;
+        
+        versionCheckTracker.putInt(RUNS_SINCE_LAST_MSG, runsSinceLastMessage + 1);
+        versionCheckTracker.put(LAST_VERSION_FOUND, lastNewVersionFound);
+        
+        // Override instantiated updateURL with second line of version file if it exists and is non-blank
         if (versionLines.length > 1 && versionLines[1].trim().length() != 0)
             this.updateURL = versionLines[1];
         
@@ -124,7 +138,7 @@ public class AppVersionChecker
     
     public boolean isCurrentVersion()
     {
-        return isCurrentVersion(lastNewVersionFound, newVersion);
+        return isCurrentVersion(runsSinceLastMessage == 0 ? currentVersion : lastNewVersionFound, newVersion);
     }
     
     public static boolean isCurrentVersion(String currentVersion, String newVersion)
