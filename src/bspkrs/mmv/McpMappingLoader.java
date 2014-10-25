@@ -358,7 +358,10 @@ public class McpMappingLoader
     
     public TableModel getParamModel(String srgMethodName)
     {
-        return new ParamModel(excFileData.srgMethodName2ExcData.get(srgMethodName));
+        if (excFileData.srgMethodName2ExcData.containsKey(srgMethodName))
+            return new ParamModel(excFileData.srgMethodName2ExcData.get(srgMethodName));
+        else
+            return MappingGui.paramsDefaultModel;
     }
     
     public TableModel getFieldModel(String srgPkgAndOwner)

@@ -126,11 +126,11 @@ public class MappingGui extends JFrame
     private Map<String, McpMappingLoader> mcpInstances          = new HashMap<>();
     private McpMappingLoader              currentLoader;
     private AppVersionChecker             versionChecker;
-    private final String                  versionURL            = "http://dl.dropboxusercontent.com/u/20748481/Minecraft/MMV/MMV.version";
+    private final String                  versionURL            = "http://bspk.rs/Minecraft/MMV/MMV.version";
     private final String                  mcfTopic              = "http://www.minecraftforum.net/topic/2115030-";
     
     // @formatter:off
-    private DefaultTableModel classesDefaultModel = new DefaultTableModel(new Object[][] { {}, }, new String[] { "Pkg name", "SRG name", "Obf name" })
+    public static DefaultTableModel classesDefaultModel = new DefaultTableModel(new Object[][] { {}, }, new String[] { "Pkg name", "SRG name", "Obf name" })
     {
         private static final long serialVersionUID = 1L;
         boolean[]                 columnEditables  = new boolean[] { false, false, false };
@@ -145,7 +145,7 @@ public class MappingGui extends JFrame
         public boolean isCellEditable(int row, int column) { return columnEditables[column]; }
     };
     
-    private DefaultTableModel methodsDefaultModel = new DefaultTableModel( new Object[][] { {}, }, new String[] { "MCP Name", "SRG Name", "Obf Name", "SRG Descriptor", "Comment" })
+    public static DefaultTableModel methodsDefaultModel = new DefaultTableModel( new Object[][] { {}, }, new String[] { "MCP Name", "SRG Name", "Obf Name", "SRG Descriptor", "Comment" })
     {
         private static final long serialVersionUID = 1L;
         boolean[]                 columnEditables  = new boolean[] { false, false, false, false, false };
@@ -160,7 +160,7 @@ public class MappingGui extends JFrame
         public boolean isCellEditable(int row, int column) { return columnEditables[column]; }
     };
     
-    private DefaultTableModel paramsDefaultModel = new DefaultTableModel( new Object[][] { {}, }, new String[] { "MCP Name", "SRG Name", "Type" })
+    public static DefaultTableModel paramsDefaultModel = new DefaultTableModel( new Object[][] { {}, }, new String[] { "MCP Name", "SRG Name", "Type" })
     {
         private static final long serialVersionUID = 1L;
         boolean[]                 columnEditables  = new boolean[] { false, false, false };
@@ -175,7 +175,7 @@ public class MappingGui extends JFrame
         public boolean isCellEditable(int row, int column) { return columnEditables[column]; }
     };
     
-    private DefaultTableModel fieldsDefaultModel = new DefaultTableModel( new Object[][] { {}, }, new String[] { "MCP Name", "SRG Name", "Obf Name", "Comment" } )
+    public static DefaultTableModel fieldsDefaultModel = new DefaultTableModel( new Object[][] { {}, }, new String[] { "MCP Name", "SRG Name", "Obf Name", "Comment" } )
     {
         private static final long serialVersionUID = 1L;
         boolean[]                 columnEditables  = new boolean[] { false, false, false, false };
@@ -830,7 +830,31 @@ public class MappingGui extends JFrame
                 savePrefs();
             }
         });
-        loadPrefs(false);
+        
+        try
+        {
+            loadPrefs(false);
+        }
+        catch (Throwable e)
+        {
+            String s = getStackTraceMessage("An error has occurred - give bspkrs this stack trace (which has been copied to the clipboard) if the error continues to occur on launch.\n", e);
+            
+            System.err.println(s);
+            
+            final String errMsg = s;
+            SwingUtilities.invokeLater(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    progressBar.setString(" ");
+                    progressBar.setValue(0);
+                    
+                    Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(errMsg), null);
+                    JOptionPane.showMessageDialog(MappingGui.this, errMsg, "MMV - Error", JOptionPane.ERROR_MESSAGE);
+                }
+            });
+        }
     }
     
     class McpBrowseDirComboItemChanged implements ItemListener
