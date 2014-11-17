@@ -21,7 +21,7 @@ public class FieldSrgData extends MemberSrgData implements Comparable<FieldSrgDa
     {
         super(obfOwner, obfName, srgOwner, srgPkg, srgName, isClientOnly);
     }
-    
+
     @Override
     public int compareTo(FieldSrgData o)
     {

@@ -22,14 +22,14 @@ public enum Side
     Universal(NameSet.Side.UNIVERSAL, "bin/minecraft", new int[] { 2, 0, 1 }),
     Client(NameSet.Side.CLIENT, "bin/minecraft", new int[] { 0 }),
     Server(NameSet.Side.SERVER, "bin/minecraft_server", new int[] { 1 });
-    
+
     private Side(NameSet.Side nsside, String referencePath, int[] side)
     {
         this.nsside = nsside;
         this.referencePath = referencePath;
         this.intSide = side;
     }
-    
+
     public final NameSet.Side nsside;
     public final String       referencePath;
     public final int[]        intSide;

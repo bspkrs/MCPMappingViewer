@@ -22,13 +22,13 @@ public class CsvData implements Comparable<CsvData>
     private final int    side;
     private String       comment;
     private boolean      needsQuoted;
-    
+
     public CsvData(String srgName, String mcpName, int side, String comment)
     {
         this.srgName = srgName;
         this.mcpName = mcpName;
         this.side = side;
-        
+
         if (comment.contains(",") || (!comment.isEmpty() && comment.charAt(0) == '"' && comment.charAt(comment.length() - 1) == '"'))
         {
             needsQuoted = true;
@@ -43,53 +43,53 @@ public class CsvData implements Comparable<CsvData>
             needsQuoted = false;
         }
     }
-    
+
     public String toCsv()
     {
         return srgName + "," + mcpName + "," + side + "," + (needsQuoted ? "\"" + comment + "\"" : comment);
     }
-    
+
     public String getSrgName()
     {
         return srgName;
     }
-    
+
     public String getMcpName()
     {
         return mcpName;
     }
-    
+
     public CsvData setMcpName(String mcpName)
     {
         this.mcpName = mcpName;
         return this;
     }
-    
+
     public int getSide()
     {
         return side;
     }
-    
+
     public String getComment()
     {
         return comment;
     }
-    
+
     public CsvData setComment(String comment)
     {
         this.comment = comment;
         return this;
     }
-    
+
     @Override
     public int compareTo(CsvData o)
     {
         if (o != null)
             return this.srgName.compareTo(o.srgName);
-        
+
         return 1;
     }
-    
+
     public boolean contains(String s)
     {
         return this.mcpName.contains(s) || this.comment.contains(s);

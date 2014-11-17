@@ -26,25 +26,25 @@ public class NameSet
         SRG,
         MCP
     }
-    
+
     public static enum Side
     {
         UNIVERSAL,
         CLIENT,
         SERVER
     }
-    
+
     public final Type   type;
     public final String mcVersion;
     public final Side   side;
-    
+
     public NameSet(Type type, Side side, String mcVersion)
     {
         this.type = type;
         this.side = side;
         this.mcVersion = mcVersion;
     }
-    
+
     @Override
     public boolean equals(Object obj)
     {
@@ -52,20 +52,20 @@ public class NameSet
         {
             NameSet ns = (NameSet) obj;
             return ns.type == type && ns.side == side && ns.mcVersion.equals(mcVersion);
-            
+
         }
         catch (ClassCastException e)
         {
             return false;
         }
     }
-    
+
     @Override
     public int hashCode()
     {
         return (side.ordinal() << 8) + type.ordinal() + mcVersion.hashCode();
     }
-    
+
     @Override
     public String toString()
     {

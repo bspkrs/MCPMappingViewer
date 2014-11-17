@@ -28,7 +28,7 @@ public class ExcData implements Comparable<ExcData>
     private final String[] exceptions;
     private final String[] parameters;
     private final String[] paramTypes;
-    
+
     public ExcData(String srgOwner, String srgName, String descriptor, String[] exceptions, String[] parameters)
     {
         this.srgOwner = srgOwner;
@@ -38,37 +38,37 @@ public class ExcData implements Comparable<ExcData>
         this.parameters = parameters;
         this.paramTypes = splitMethodDesc(descriptor);
     }
-    
+
     public String getSrgClassOwner()
     {
         return srgOwner;
     }
-    
+
     public String getSrgMethodName()
     {
         return srgName;
     }
-    
+
     public String getDescriptor()
     {
         return descriptor;
     }
-    
+
     public String[] getExceptions()
     {
         return exceptions;
     }
-    
+
     public String[] getParameters()
     {
         return parameters;
     }
-    
+
     public String[] getParamTypes()
     {
         return paramTypes;
     }
-    
+
     public boolean contains(String s)
     {
         if (srgName.contains(s))
@@ -77,16 +77,16 @@ public class ExcData implements Comparable<ExcData>
             for (String param : parameters)
                 if (param.contains(s))
                     return true;
-        
+
         return false;
     }
-    
+
     @Override
     public int compareTo(ExcData o)
     {
         return this.srgName.compareTo(o.srgName);
     }
-    
+
     public static String[] splitMethodDesc(String desc)
     {
         //\[*L[^;]+;|\[[ZBCSIFDJ]|[ZBCSIFDJ]
@@ -109,17 +109,17 @@ public class ExcData implements Comparable<ExcData>
         }
         Pattern pattern = Pattern.compile("\\[*L[^;]+;|\\[[ZBCSIFDJ]|[ZBCSIFDJ]");
         Matcher matcher = pattern.matcher(x0);
-        
+
         ArrayList<String> listMatches = new ArrayList<String>();
-        
+
         while (matcher.find())
         {
             listMatches.add(matcher.group());
         }
-        
+
         return listMatches.toArray(new String[listMatches.size()]);
     }
-    
+
     @Override
     public String toString()
     {

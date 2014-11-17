@@ -20,49 +20,49 @@ public class ParamCsvData implements Comparable<ParamCsvData>
     private final String srgName;
     private String       mcpName;
     private final int    side;
-    
+
     public ParamCsvData(String srgName, String mcpName, int side)
     {
         this.srgName = srgName;
         this.mcpName = mcpName;
         this.side = side;
     }
-    
+
     public String toCsv()
     {
         return srgName + "," + mcpName + "," + side;
     }
-    
+
     public String getSrgName()
     {
         return srgName;
     }
-    
+
     public String getMcpName()
     {
         return mcpName;
     }
-    
+
     public ParamCsvData setMcpName(String mcpName)
     {
         this.mcpName = mcpName;
         return this;
     }
-    
+
     public int getSide()
     {
         return side;
     }
-    
+
     @Override
     public int compareTo(ParamCsvData o)
     {
         if (o != null)
             return this.srgName.compareTo(o.srgName);
-        
+
         return 1;
     }
-    
+
     public boolean contains(String s)
     {
         return this.mcpName.contains(s);

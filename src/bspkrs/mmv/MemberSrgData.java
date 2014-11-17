@@ -23,7 +23,7 @@ public class MemberSrgData
     private final String  srgPkg;
     private final String  srgName;
     private final boolean isClientOnly;
-    
+
     public MemberSrgData(String obfOwner, String obfName, String srgOwner, String srgPkg, String srgName, boolean isClientOnly)
     {
         this.obfOwner = obfOwner;
@@ -33,37 +33,37 @@ public class MemberSrgData
         this.srgName = srgName;
         this.isClientOnly = isClientOnly;
     }
-    
+
     public String getObfOwner()
     {
         return obfOwner;
     }
-    
+
     public String getObfName()
     {
         return obfName;
     }
-    
+
     public String getSrgOwner()
     {
         return srgOwner;
     }
-    
+
     public String getSrgName()
     {
         return srgName;
     }
-    
+
     public boolean isClientOnly()
     {
         return isClientOnly;
     }
-    
+
     public String getSrgPkg()
     {
         return srgPkg;
     }
-    
+
     public boolean contains(String s)
     {
         return srgName.contains(s) || obfName.contains(s);

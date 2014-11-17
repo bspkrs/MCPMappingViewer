@@ -15,13 +15,13 @@ public class McpBotCommand
         FSSF,
         FSSM;
     }
-    
+
     public enum MemberType
     {
         FIELD,
         METHOD;
     }
-    
+
     public static BotCommand getCommand(MemberType type, Side side, boolean isForced)
     {
         switch (side)
@@ -44,12 +44,12 @@ public class McpBotCommand
                 }
         }
     }
-    
+
     private final BotCommand command;
     private final String     srgName;
     private final String     newName;
     private final String     comment;
-    
+
     public McpBotCommand(BotCommand command, String srgName, String newName, String comment)
     {
         this.command = command;
@@ -57,12 +57,12 @@ public class McpBotCommand
         this.newName = newName;
         this.comment = comment;
     }
-    
+
     public McpBotCommand(BotCommand command, String srgName, String newName)
     {
         this(command, srgName, newName, "");
     }
-    
+
     public static McpBotCommand[] getMcpBotCommands(MemberType type, Side side, boolean isForced, boolean isClientOnly, String srgName, String newName, String comment)
     {
         McpBotCommand[] commands = new McpBotCommand[1];
@@ -71,32 +71,32 @@ public class McpBotCommand
             commands = new McpBotCommand[2];
             commands[1] = new McpBotCommand(getCommand(type, Side.Server, isForced), srgName, newName, comment);
         }
-        
+
         commands[0] = new McpBotCommand(getCommand(type, side, isForced), srgName, newName, comment);
-        
+
         return commands;
     }
-    
+
     public static McpBotCommand[] updateMcpBotCommands(McpBotCommand[] commands, String srgName, String newName, String comment)
     {
         for (int i = 0; i < commands.length; i++)
         {
             commands[i] = new McpBotCommand(commands[i].getCommand(), srgName, newName, comment);
         }
-        
+
         return commands;
     }
-    
+
     public BotCommand getCommand()
     {
         return command;
     }
-    
+
     public String getNewName()
     {
         return newName;
     }
-    
+
     @Override
     public String toString()
     {

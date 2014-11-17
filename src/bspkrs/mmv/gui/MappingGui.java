@@ -128,7 +128,7 @@ public class MappingGui extends JFrame
     private AppVersionChecker             versionChecker;
     private final String                  versionURL            = "http://bspk.rs/Minecraft/MMV/MMV.version";
     private final String                  mcfTopic              = "http://www.minecraftforum.net/topic/2115030-";
-    
+
     // @formatter:off
     public static DefaultTableModel classesDefaultModel = new DefaultTableModel(new Object[][] { {}, }, new String[] { "Pkg name", "SRG name", "Obf name" })
     {
@@ -191,17 +191,17 @@ public class MappingGui extends JFrame
     };
     private JSplitPane splitMethods;
     // @formatter:on
-    
+
     private void savePrefs()
     {
         for (int i = 0; i < Math.min(cmbMCPDirPath.getItemCount(), 8); i++)
             prefs.put(PREFS_KEY_MCPDIR + i, cmbMCPDirPath.getItemAt(i));
-        
+
         for (int i = 0; i < Math.min(cmbFilter.getItemCount(), 20); i++)
             prefs.put(PREFS_KEY_FILTER + i, cmbFilter.getItemAt(i));
-        
+
         prefs.put(PREFS_KEY_SIDE, cmbSide.getSelectedItem().toString());
-        
+
         if (tblClasses.getRowSorter().getSortKeys().size() > 0)
         {
             int i = tblClasses.getRowSorter().getSortKeys().get(0).getColumn() + 1;
@@ -210,7 +210,7 @@ public class MappingGui extends JFrame
         }
         else
             prefs.putInt(PREFS_KEY_CLASS_SORT, 1);
-        
+
         if (tblMethods.getRowSorter().getSortKeys().size() > 0)
         {
             int i = tblMethods.getRowSorter().getSortKeys().get(0).getColumn() + 1;
@@ -219,7 +219,7 @@ public class MappingGui extends JFrame
         }
         else
             prefs.putInt(PREFS_KEY_METHOD_SORT, 1);
-        
+
         if (tblParams.getRowSorter().getSortKeys().size() > 0)
         {
             int i = tblParams.getRowSorter().getSortKeys().get(0).getColumn() + 1;
@@ -228,7 +228,7 @@ public class MappingGui extends JFrame
         }
         else
             prefs.putInt(PREFS_KEY_PARAM_SORT, 1);
-        
+
         if (tblFields.getRowSorter().getSortKeys().size() > 0)
         {
             int i = tblFields.getRowSorter().getSortKeys().get(0).getColumn() + 1;
@@ -238,7 +238,7 @@ public class MappingGui extends JFrame
         else
             prefs.putInt(PREFS_KEY_FIELD_SORT, 1);
     }
-    
+
     private void loadPrefs(boolean sortOnly)
     {
         if (!sortOnly)
@@ -253,7 +253,7 @@ public class MappingGui extends JFrame
                         cmbMCPDirPath.addItem(item);
                 }
             }
-            
+
             model = (DefaultComboBoxModel<String>) cmbFilter.getModel();
             for (int i = 0; i < 20; i++)
             {
@@ -264,9 +264,9 @@ public class MappingGui extends JFrame
                         cmbFilter.addItem(item);
                 }
             }
-            
+
             cmbFilter.setSelectedIndex(-1);
-            
+
             if (cmbMCPDirPath.getItemCount() > 0)
             {
                 btnRefreshTables.setEnabled(true);
@@ -274,33 +274,33 @@ public class MappingGui extends JFrame
             }
             else
                 btnRefreshTables.setEnabled(false);
-            
+
             Side side = Side.valueOf(prefs.get(PREFS_KEY_SIDE, Side.Universal.toString()));
             cmbSide.setSelectedItem(side);
         }
-        
+
         classSort.clear();
         methodSort.clear();
         paramSort.clear();
         fieldSort.clear();
-        
+
         int i = prefs.getInt(PREFS_KEY_CLASS_SORT, 1);
         classSort.add(new RowSorter.SortKey(Math.abs(i) - 1, (i > 0 ? SortOrder.ASCENDING : SortOrder.DESCENDING)));
         tblClasses.getRowSorter().setSortKeys(classSort);
-        
+
         i = prefs.getInt(PREFS_KEY_METHOD_SORT, 1);
         methodSort.add(new RowSorter.SortKey(Math.abs(i) - 1, (i > 0 ? SortOrder.ASCENDING : SortOrder.DESCENDING)));
         tblMethods.getRowSorter().setSortKeys(methodSort);
-        
+
         i = prefs.getInt(PREFS_KEY_PARAM_SORT, 1);
         paramSort.add(new RowSorter.SortKey(Math.abs(i) - 1, (i > 0 ? SortOrder.ASCENDING : SortOrder.DESCENDING)));
         tblParams.getRowSorter().setSortKeys(paramSort);
-        
+
         i = prefs.getInt(PREFS_KEY_FIELD_SORT, 1);
         fieldSort.add(new RowSorter.SortKey(Math.abs(i) - 1, (i > 0 ? SortOrder.ASCENDING : SortOrder.DESCENDING)));
         tblFields.getRowSorter().setSortKeys(fieldSort);
     }
-    
+
     private void checkForUpdates()
     {
         versionChecker = new AppVersionChecker("MCP Mapping Viewer", VERSION_NUMBER, versionURL, mcfTopic,
@@ -311,7 +311,7 @@ public class MappingGui extends JFrame
             showHTMLDialog(MappingGui.this, versionChecker.getDialogMessage()[0], "An update is available", JOptionPane.INFORMATION_MESSAGE);
         }
     }
-    
+
     /**
      * Launch the application.
      */
@@ -341,7 +341,7 @@ public class MappingGui extends JFrame
             }
         });
     }
-    
+
     private static String getPrintableStackTrace(Throwable e, Set<StackTraceElement> stopAt)
     {
         String s = e.toString();
@@ -358,7 +358,7 @@ public class MappingGui extends JFrame
                 if (ste.getClassName().startsWith("javax.swing."))
                     stopHere = true;
             }
-            
+
             if (stopHere)
             {
                 int numHidden = e.getStackTrace().length - numPrinted;
@@ -368,11 +368,11 @@ public class MappingGui extends JFrame
         }
         return s;
     }
-    
+
     private static String getStackTraceMessage(String prefix, Throwable e)
     {
         String s = prefix;
-        
+
         s += "\n" + getPrintableStackTrace(e, Collections.<StackTraceElement> emptySet());
         while (e.getCause() != null)
         {
@@ -382,7 +382,7 @@ public class MappingGui extends JFrame
         }
         return s;
     }
-    
+
     /**
      * Create the application.
      */
@@ -391,13 +391,13 @@ public class MappingGui extends JFrame
         initialize();
         checkForUpdates();
     }
-    
+
     public void setCsvFileEdited(boolean bol)
     {
         btnSave.setEnabled(bol);
         btnGetBotCommands.setEnabled(bol);
     }
-    
+
     /**
      * Initialize the contents of the frame.
      */
@@ -405,13 +405,13 @@ public class MappingGui extends JFrame
     {
         {
             String mcpDirString = prefs.get(PREFS_KEY_MCPDIR + 0, "");
-            
+
             if (!mcpDirString.equals(""))
                 mcpBrowseDir.val = new File(mcpDirString);
             else
                 mcpBrowseDir.val = new File(".");
         }
-        
+
         frmMcpMappingViewer = new JFrame();
         frmMcpMappingViewer.setIconImage(new ImageIcon(MappingGui.class.getResource("/bspkrs/mmv/gui/icon/bspkrs32.png")).getImage());
         frmMcpMappingViewer.addWindowListener(new WindowAdapter()
@@ -426,7 +426,7 @@ public class MappingGui extends JFrame
         frmMcpMappingViewer.setBounds(100, 100, 925, 621);
         frmMcpMappingViewer.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frmMcpMappingViewer.getContentPane().setLayout(new BorderLayout(0, 0));
-        
+
         JSplitPane splitMain = new JSplitPane();
         splitMain.setBorder(null);
         splitMain.setDividerSize(3);
@@ -435,11 +435,11 @@ public class MappingGui extends JFrame
         splitMain.setMinimumSize(new Dimension(179, 80));
         splitMain.setPreferredSize(new Dimension(179, 80));
         splitMain.setOrientation(JSplitPane.VERTICAL_SPLIT);
-        
+
         JScrollPane scrlpnClasses = new JScrollPane();
         scrlpnClasses.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         splitMain.setLeftComponent(scrlpnClasses);
-        
+
         tblClasses = new JTable();
         tblClasses.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         scrlpnClasses.setViewportView(tblClasses);
@@ -451,24 +451,24 @@ public class MappingGui extends JFrame
         tblClasses.setFillsViewportHeight(true);
         tblClasses.setCellSelectionEnabled(true);
         frmMcpMappingViewer.getContentPane().add(splitMain, BorderLayout.CENTER);
-        
+
         JSplitPane splitMembers = new JSplitPane();
         splitMembers.setBorder(null);
         splitMembers.setDividerSize(3);
         splitMembers.setResizeWeight(0.5);
         splitMembers.setOrientation(JSplitPane.VERTICAL_SPLIT);
         splitMain.setRightComponent(splitMembers);
-        
+
         splitMethods = new JSplitPane();
         splitMethods.setBorder(null);
         splitMethods.setDividerSize(3);
         splitMethods.setResizeWeight(0.5);
         splitMembers.setLeftComponent(splitMethods);
-        
+
         JScrollPane scrlpnMethods = new JScrollPane();
         scrlpnMethods.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         splitMethods.setLeftComponent(scrlpnMethods);
-        
+
         tblMethods = new JTable();
         tblMethods.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         tblMethods.getSelectionModel().addListSelectionListener(new MethodTableSelectionListener(tblMethods));
@@ -478,11 +478,11 @@ public class MappingGui extends JFrame
         tblMethods.setEnabled(false);
         tblMethods.setModel(methodsDefaultModel);
         scrlpnMethods.setViewportView(tblMethods);
-        
+
         JScrollPane scrlpnParams = new JScrollPane();
         scrlpnParams.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         splitMethods.setRightComponent(scrlpnParams);
-        
+
         tblParams = new JTable();
         tblParams.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         tblParams.setCellSelectionEnabled(true);
@@ -491,7 +491,7 @@ public class MappingGui extends JFrame
         tblParams.setEnabled(false);
         tblParams.setModel(paramsDefaultModel);
         scrlpnParams.setViewportView(tblParams);
-        
+
         SwingUtilities.invokeLater(new Runnable()
         {
             @Override
@@ -500,11 +500,11 @@ public class MappingGui extends JFrame
                 splitMethods.setDividerLocation(0.8);
             }
         });
-        
+
         JScrollPane scrlpnFields = new JScrollPane();
         scrlpnFields.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         splitMembers.setRightComponent(scrlpnFields);
-        
+
         tblFields = new JTable();
         tblFields.setCellSelectionEnabled(true);
         tblFields.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
@@ -513,72 +513,72 @@ public class MappingGui extends JFrame
         tblFields.setModel(fieldsDefaultModel);
         tblFields.setFillsViewportHeight(true);
         scrlpnFields.setViewportView(tblFields);
-        
+
         JPanel pnlHeader = new JPanel();
         frmMcpMappingViewer.getContentPane().add(pnlHeader, BorderLayout.NORTH);
         pnlHeader.setLayout(new BorderLayout(0, 0));
-        
+
         JPanel pnlControls = new JPanel();
         pnlHeader.add(pnlControls, BorderLayout.NORTH);
         pnlControls.setSize(new Dimension(0, 40));
         pnlControls.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 2));
-        
+
         JLabel lblSide = new JLabel("Side");
         pnlControls.add(lblSide);
-        
+
         cmbSide = new JComboBox<Side>();
         cmbSide.setModel(new DefaultComboBoxModel<Side>(Side.values()));
         pnlControls.add(cmbSide);
-        
+
         cmbMCPDirPath = new JComboBox<String>(new DefaultComboBoxModel<String>());
         cmbMCPDirPath.setPreferredSize(new Dimension(320, 20));
         cmbMCPDirPath.addItemListener(new McpBrowseDirComboItemChanged());
-        
+
         JLabel lblMCPFolder = new JLabel("MCP folder");
         pnlControls.add(lblMCPFolder);
         cmbMCPDirPath.setEditable(true);
         pnlControls.add(cmbMCPDirPath);
-        
+
         JButton btnBrowseFile = new JButton("Browse");
         btnBrowseFile.addActionListener(new BrowseActionListener(cmbMCPDirPath, true, btnBrowseFile, true, mcpBrowseDir));
         pnlControls.add(btnBrowseFile);
-        
+
         btnRefreshTables = new JButton("Load from conf");
         btnRefreshTables.setEnabled(false);
         btnRefreshTables.addActionListener(new RefreshActionListener());
         pnlControls.add(btnRefreshTables);
-        
+
         chkForceRefresh = new JCheckBox("Force reload");
         chkForceRefresh.setToolTipText("Force a reload from the MCP conf folder files instead of the session cache.");
         pnlControls.add(chkForceRefresh);
-        
+
         pnlProgress = new JPanel();
         pnlProgress.setVisible(false);
         pnlHeader.add(pnlProgress, BorderLayout.SOUTH);
         pnlProgress.setLayout(new BorderLayout(0, 0));
-        
+
         progressBar = new JProgressBar();
         progressBar.setStringPainted(true);
         progressBar.setString("");
         progressBar.setForeground(UIManager.getColor("ProgressBar.foreground"));
         pnlProgress.add(progressBar);
-        
+
         pnlFilter = new JPanel();
         FlowLayout flowLayout = (FlowLayout) pnlFilter.getLayout();
         flowLayout.setVgap(2);
         flowLayout.setAlignment(FlowLayout.LEFT);
         pnlFilter.setVisible(true);
         pnlHeader.add(pnlFilter, BorderLayout.CENTER);
-        
+
         JLabel lblFilter = new JLabel("Search");
         pnlFilter.add(lblFilter);
-        
+
         cmbFilter = new JComboBox<String>();
         cmbFilter.setEditable(true);
         cmbFilter.setPreferredSize(new Dimension(300, 20));
         cmbFilter.setMaximumRowCount(10);
         pnlFilter.add(cmbFilter);
-        
+
         btnSearch = new JButton("Go");
         btnSearch.setToolTipText("");
         btnSearch.addActionListener(new SearchActionListener());
@@ -603,7 +603,7 @@ public class MappingGui extends JFrame
             }
         });
         btnSearch.setEnabled(false);
-        
+
         JLabel lblSearchInfo = new JLabel("A note on search");
         lblSearchInfo.addMouseListener(new MouseAdapter()
         {
@@ -621,22 +621,22 @@ public class MappingGui extends JFrame
         lblSearchInfo.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         lblSearchInfo.setForeground(Color.BLUE);
         pnlFilter.add(lblSearchInfo);
-        
+
         JSeparator separator = new JSeparator();
         separator.setPreferredSize(new Dimension(1, 12));
         separator.setOrientation(SwingConstants.VERTICAL);
         pnlFilter.add(separator);
-        
+
         JLabel lblAbout = new JLabel("About");
         pnlFilter.add(lblAbout);
         lblAbout.setForeground(Color.BLUE);
         lblAbout.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        
+
         JSeparator separator_1 = new JSeparator();
         separator_1.setPreferredSize(new Dimension(1, 12));
         separator_1.setOrientation(SwingConstants.VERTICAL);
         pnlFilter.add(separator_1);
-        
+
         btnGetBotCommands = new JButton("Get Command List");
         btnGetBotCommands.setToolTipText("Exports to the system clipboard a listing of MCPBot commands for any edits you have made in the GUI.");
         btnGetBotCommands.setEnabled(false);
@@ -650,22 +650,22 @@ public class MappingGui extends JFrame
                 {
                     Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(commands), null);
                     JOptionPane.showMessageDialog(MappingGui.this, "Commands copied to clipboard: \n" + commands, "MMV - MCPBot Commands", JOptionPane.INFORMATION_MESSAGE);
-                    
+
                     if (chkClearOnCopy.isSelected())
                         btnGetBotCommands.setEnabled(false);
                 }
                 else
                     JOptionPane.showMessageDialog(MappingGui.this, "No commands to copy.", "MMV - MCPBot Commands", JOptionPane.INFORMATION_MESSAGE);
-                
+
                 chkClearOnCopy.setSelected(false);
             }
         });
         pnlFilter.add(btnGetBotCommands);
-        
+
         chkClearOnCopy = new JCheckBox("Clear");
         chkClearOnCopy.setToolTipText("Whether or not to clear the MCPBot command list when the button is clicked.");
         pnlFilter.add(chkClearOnCopy);
-        
+
         btnSave = new JButton("Save CSVs");
         btnSave.setToolTipText("Saves edits you have made in the GUI to your local CSV files.");
         btnSave.setEnabled(false);
@@ -680,13 +680,13 @@ public class MappingGui extends JFrame
                     public void run()
                     {
                         boolean crashed = false;
-                        
+
                         try
                         {
                             IProgressListener progress = new IProgressListener()
                             {
                                 private String currentText;
-                                
+
                                 @Override
                                 public void start(final int max, final String text)
                                 {
@@ -703,7 +703,7 @@ public class MappingGui extends JFrame
                                         }
                                     });
                                 }
-                                
+
                                 @Override
                                 public void set(final int value)
                                 {
@@ -716,7 +716,7 @@ public class MappingGui extends JFrame
                                         }
                                     });
                                 }
-                                
+
                                 @Override
                                 public void setMax(final int max)
                                 {
@@ -730,7 +730,7 @@ public class MappingGui extends JFrame
                                     });
                                 }
                             };
-                            
+
                             progress.start(0, "Saving data to CSV files");
                             currentLoader.saveCSVs(progress);
                             btnSave.setEnabled(false);
@@ -738,11 +738,11 @@ public class MappingGui extends JFrame
                         catch (Exception e)
                         {
                             String s = getStackTraceMessage("An error has occurred - give bspkrs this stack trace (which has been copied to the clipboard)\n", e);
-                            
+
                             System.err.println(s);
-                            
+
                             crashed = true;
-                            
+
                             final String errMsg = s;
                             SwingUtilities.invokeLater(new Runnable()
                             {
@@ -751,7 +751,7 @@ public class MappingGui extends JFrame
                                 {
                                     progressBar.setString(" ");
                                     progressBar.setValue(0);
-                                    
+
                                     Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(errMsg), null);
                                     JOptionPane.showMessageDialog(MappingGui.this, errMsg, "MMV - Error", JOptionPane.ERROR_MESSAGE);
                                 }
@@ -778,10 +778,10 @@ public class MappingGui extends JFrame
                         }
                     }
                 };
-                
+
                 Side side = (Side) cmbSide.getSelectedItem();
                 int option = JOptionPane.YES_OPTION;
-                
+
                 if (side.equals(Side.Universal))
                     option = JOptionPane.showConfirmDialog(
                             MappingGui.this,
@@ -790,13 +790,13 @@ public class MappingGui extends JFrame
                                     "Are you sure you want to save your changes to the CSV files?",
                             "Save CSV Edits?",
                             JOptionPane.YES_NO_OPTION);
-                
+
                 if (option == JOptionPane.YES_OPTION)
                     curTask.start();
             }
         });
         pnlFilter.add(btnSave);
-        
+
         lblAbout.addMouseListener(new MouseAdapter()
         {
             @Override
@@ -821,7 +821,7 @@ public class MappingGui extends JFrame
                 showHTMLDialog(MappingGui.this, message, "About MCP Mapping Viewer", JOptionPane.PLAIN_MESSAGE);
             }
         });
-        
+
         addWindowListener(new WindowAdapter()
         {
             @Override
@@ -830,7 +830,7 @@ public class MappingGui extends JFrame
                 savePrefs();
             }
         });
-        
+
         try
         {
             loadPrefs(false);
@@ -838,9 +838,9 @@ public class MappingGui extends JFrame
         catch (Throwable e)
         {
             String s = getStackTraceMessage("An error has occurred - give bspkrs this stack trace (which has been copied to the clipboard) if the error continues to occur on launch.\n", e);
-            
+
             System.err.println(s);
-            
+
             final String errMsg = s;
             SwingUtilities.invokeLater(new Runnable()
             {
@@ -849,14 +849,14 @@ public class MappingGui extends JFrame
                 {
                     progressBar.setString(" ");
                     progressBar.setValue(0);
-                    
+
                     Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(errMsg), null);
                     JOptionPane.showMessageDialog(MappingGui.this, errMsg, "MMV - Error", JOptionPane.ERROR_MESSAGE);
                 }
             });
         }
     }
-    
+
     class McpBrowseDirComboItemChanged implements ItemListener
     {
         @Override
@@ -871,12 +871,12 @@ public class MappingGui extends JFrame
                     mcpBrowseDir.val = new File(path);
                 else
                     mcpBrowseDir.val = new File(".");
-                
+
                 btnRefreshTables.setEnabled(cmb.getItemCount() > 0);
             }
         }
     }
-    
+
     class FilterComboTextEdited implements ActionListener
     {
         @Override
@@ -885,30 +885,30 @@ public class MappingGui extends JFrame
             if (e.getActionCommand().equals("comboBoxEdited"))
             {
                 String filterText = cmbFilter.getSelectedItem().toString();
-                
+
                 if (filterText == null || filterText.trim().isEmpty())
                     return;
-                
+
                 DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) cmbFilter.getModel();
-                
+
                 if (model.getIndexOf(filterText) != -1)
                     model.removeElement(filterText);
-                
+
                 cmbFilter.insertItemAt(filterText, 0);
                 cmbFilter.setSelectedItem(filterText);
             }
         }
     }
-    
+
     class ClassTableSelectionListener implements ListSelectionListener
     {
         private final JTable table;
-        
+
         public ClassTableSelectionListener(JTable table)
         {
             this.table = table;
         }
-        
+
         @Override
         public void valueChanged(ListSelectionEvent e)
         {
@@ -938,16 +938,16 @@ public class MappingGui extends JFrame
             }
         }
     }
-    
+
     class MethodTableSelectionListener implements ListSelectionListener
     {
         private final JTable table;
-        
+
         public MethodTableSelectionListener(JTable table)
         {
             this.table = table;
         }
-        
+
         @Override
         public void valueChanged(ListSelectionEvent e)
         {
@@ -971,7 +971,7 @@ public class MappingGui extends JFrame
             }
         }
     }
-    
+
     class SearchActionListener implements ActionListener
     {
         @Override
@@ -979,22 +979,22 @@ public class MappingGui extends JFrame
         {
             if (curTask != null && curTask.isAlive() || cmbFilter.getItemCount() == 0)
                 return;
-            
+
             String filterText = cmbFilter.getSelectedItem().toString();
-            
+
             if (filterText != null && !filterText.trim().isEmpty())
             {
                 DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) cmbFilter.getModel();
-                
+
                 if (model.getIndexOf(filterText) != -1)
                     model.removeElement(filterText);
-                
+
                 cmbFilter.insertItemAt(filterText, 0);
                 cmbFilter.setSelectedItem(filterText);
             }
-            
+
             savePrefs();
-            
+
             cmbFilter.setEnabled(false);
             btnSearch.setEnabled(false);
             pnlProgress.setVisible(true);
@@ -1004,22 +1004,22 @@ public class MappingGui extends JFrame
             tblMethods.setEnabled(false);
             tblFields.setModel(fieldsDefaultModel);
             tblFields.setEnabled(false);
-            
+
             loadPrefs(true);
-            
+
             curTask = new Thread()
             {
                 @Override
                 public void run()
                 {
                     boolean crashed = false;
-                    
+
                     try
                     {
                         IProgressListener progress = new IProgressListener()
                         {
                             private String currentText;
-                            
+
                             @Override
                             public void start(final int max, final String text)
                             {
@@ -1036,7 +1036,7 @@ public class MappingGui extends JFrame
                                     }
                                 });
                             }
-                            
+
                             @Override
                             public void set(final int value)
                             {
@@ -1049,7 +1049,7 @@ public class MappingGui extends JFrame
                                     }
                                 });
                             }
-                            
+
                             @Override
                             public void setMax(final int max)
                             {
@@ -1063,13 +1063,13 @@ public class MappingGui extends JFrame
                                 });
                             }
                         };
-                        
+
                         progress.start(0, "Searching MCP objects for input");
                         tblClasses.setModel(currentLoader.getSearchResults(cmbFilter.getSelectedItem().toString(), progress));
                         tblClasses.setEnabled(true);
                         new TableColumnAdjuster(tblClasses).adjustColumns();
                         loadPrefs(true);
-                        
+
                         if (tblClasses.getRowCount() > 0)
                         {
                             String pkg = (String) tblClasses.getModel().getValueAt(0, 0);
@@ -1081,7 +1081,7 @@ public class MappingGui extends JFrame
                             new TableColumnAdjuster(tblMethods).adjustColumns();
                             new TableColumnAdjuster(tblFields).adjustColumns();
                             loadPrefs(true);
-                            
+
                             if (cmbFilter.getSelectedItem().toString().trim().startsWith("field") && tblFields.getRowCount() > 0)
                             {
                                 for (int i = 0; i < tblFields.getRowCount(); i++)
@@ -1092,7 +1092,7 @@ public class MappingGui extends JFrame
                                         tblFields.setRowSelectionInterval(rowIndex, rowIndex);
                                         tblFields.setColumnSelectionInterval(1, 1);
                                         tblFields.requestFocus();
-                                        
+
                                         SwingUtilities.invokeLater(new Runnable()
                                         {
                                             @Override
@@ -1101,7 +1101,7 @@ public class MappingGui extends JFrame
                                                 tblFields.scrollRectToVisible(tblFields.getCellRect(rowIndex, 0, true));
                                             }
                                         });
-                                        
+
                                         break;
                                     }
                                 }
@@ -1116,7 +1116,7 @@ public class MappingGui extends JFrame
                                         tblMethods.setRowSelectionInterval(rowIndex, rowIndex);
                                         tblMethods.setColumnSelectionInterval(1, 1);
                                         tblMethods.requestFocus();
-                                        
+
                                         SwingUtilities.invokeLater(new Runnable()
                                         {
                                             @Override
@@ -1125,24 +1125,24 @@ public class MappingGui extends JFrame
                                                 tblMethods.scrollRectToVisible(tblMethods.getCellRect(rowIndex, 0, true));
                                             }
                                         });
-                                        
+
                                         break;
                                     }
                                 }
-                                
+
                             }
                         }
-                        
+
                         loadPrefs(true);
                     }
                     catch (Exception e)
                     {
                         String s = getStackTraceMessage("An error has occurred - give bspkrs this stack trace (which has been copied to the clipboard)\n", e);
-                        
+
                         System.err.println(s);
-                        
+
                         crashed = true;
-                        
+
                         final String errMsg = s;
                         SwingUtilities.invokeLater(new Runnable()
                         {
@@ -1151,7 +1151,7 @@ public class MappingGui extends JFrame
                             {
                                 progressBar.setString(" ");
                                 progressBar.setValue(0);
-                                
+
                                 Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(errMsg), null);
                                 JOptionPane.showMessageDialog(MappingGui.this, errMsg, "MMV - Error", JOptionPane.ERROR_MESSAGE);
                             }
@@ -1178,11 +1178,11 @@ public class MappingGui extends JFrame
                     }
                 }
             };
-            
+
             curTask.start();
         }
     }
-    
+
     class RefreshActionListener implements ActionListener
     {
         @Override
@@ -1190,39 +1190,39 @@ public class MappingGui extends JFrame
         {
             if (curTask != null && curTask.isAlive())
                 return;
-            
+
             final Side side = (Side) cmbSide.getSelectedItem();
-            
+
             final File mcpDir = mcpBrowseDir.val;
             final File confDir = new File(mcpDir, "conf");
-            
+
             String error = null;
-            
+
             if (!mcpDir.isDirectory())
                 error = "MCP folder not found (at " + mcpDir + ")";
             else if (!confDir.isDirectory())
                 error = "'conf' folder not found in MCP folder (at " + confDir + ")";
-            
+
             if (error != null)
             {
                 JOptionPane.showMessageDialog(MappingGui.this, error, "MMV - Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            
+
             if (cmbMCPDirPath.getSelectedIndex() != 0)
             {
                 String selItem = (String) cmbMCPDirPath.getSelectedItem();
                 DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) cmbMCPDirPath.getModel();
-                
+
                 if (model.getIndexOf(selItem) != -1)
                     model.removeElement(selItem);
-                
+
                 cmbMCPDirPath.insertItemAt(selItem, 0);
                 cmbMCPDirPath.setSelectedItem(selItem);
             }
-            
+
             savePrefs();
-            
+
             pnlFilter.setVisible(false);
             pnlProgress.setVisible(true);
             tblClasses.setModel(classesDefaultModel);
@@ -1231,22 +1231,22 @@ public class MappingGui extends JFrame
             tblMethods.setEnabled(false);
             tblFields.setModel(fieldsDefaultModel);
             tblFields.setEnabled(false);
-            
+
             loadPrefs(true);
-            
+
             curTask = new Thread()
             {
                 @Override
                 public void run()
                 {
                     boolean crashed = false;
-                    
+
                     try
                     {
                         IProgressListener progress = new IProgressListener()
                         {
                             private String currentText;
-                            
+
                             @Override
                             public void start(final int max, final String text)
                             {
@@ -1263,7 +1263,7 @@ public class MappingGui extends JFrame
                                     }
                                 });
                             }
-                            
+
                             @Override
                             public void set(final int value)
                             {
@@ -1276,7 +1276,7 @@ public class MappingGui extends JFrame
                                     }
                                 });
                             }
-                            
+
                             @Override
                             public void setMax(final int max)
                             {
@@ -1290,7 +1290,7 @@ public class MappingGui extends JFrame
                                 });
                             }
                         };
-                        
+
                         if (!mcpInstances.containsKey(mcpDir.getAbsolutePath() + " " + side) || chkForceRefresh.isSelected())
                         {
                             progress.start(0, "Reading MCP configuration");
@@ -1300,7 +1300,7 @@ public class MappingGui extends JFrame
                         }
                         else
                             currentLoader = mcpInstances.get(mcpDir.getAbsolutePath() + " " + side);
-                        
+
                         tblClasses.setModel(currentLoader.getClassModel());
                         tblClasses.setEnabled(true);
                         new TableColumnAdjuster(tblClasses).adjustColumns();
@@ -1309,11 +1309,11 @@ public class MappingGui extends JFrame
                     catch (CantLoadMCPMappingException e)
                     {
                         String s = getStackTraceMessage("", e);
-                        
+
                         System.err.println(s);
-                        
+
                         crashed = true;
-                        
+
                         final String errMsg = s;
                         SwingUtilities.invokeLater(new Runnable()
                         {
@@ -1322,7 +1322,7 @@ public class MappingGui extends JFrame
                             {
                                 progressBar.setString(" ");
                                 progressBar.setValue(0);
-                                
+
                                 JOptionPane.showMessageDialog(MappingGui.this, errMsg, "MMV - Error", JOptionPane.ERROR_MESSAGE);
                             }
                         });
@@ -1330,11 +1330,11 @@ public class MappingGui extends JFrame
                     catch (Exception e)
                     {
                         String s = getStackTraceMessage("An error has occurred - give bspkrs this stack trace (which has been copied to the clipboard)\n", e);
-                        
+
                         System.err.println(s);
-                        
+
                         crashed = true;
-                        
+
                         final String errMsg = s;
                         SwingUtilities.invokeLater(new Runnable()
                         {
@@ -1343,7 +1343,7 @@ public class MappingGui extends JFrame
                             {
                                 progressBar.setString(" ");
                                 progressBar.setValue(0);
-                                
+
                                 Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(errMsg), null);
                                 JOptionPane.showMessageDialog(MappingGui.this, errMsg, "MMV - Error", JOptionPane.ERROR_MESSAGE);
                             }
@@ -1373,22 +1373,22 @@ public class MappingGui extends JFrame
                     }
                 }
             };
-            
+
             curTask.start();
         }
     }
-    
+
     public static void showHTMLDialog(Component parentComponent, Object message, String title, int messageType)
     {
         JLabel label = new JLabel();
         Font font = label.getFont();
-        
+
         StringBuffer style = new StringBuffer("font-family:" + font.getFamily() + ";");
         style.append("font-weight:" + (font.isBold() ? "bold" : "normal") + ";");
         style.append("font-size:" + font.getSize() + "pt;");
-        
+
         JEditorPane ep = new JEditorPane("text/html", "<html><body style=\"" + style + "\">" + message.toString() + "</body></html>");
-        
+
         ep.addHyperlinkListener(new HyperlinkListener()
         {
             @Override

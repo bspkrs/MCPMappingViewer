@@ -30,24 +30,24 @@ import javax.swing.filechooser.FileFilter;
 
 public class BrowseActionListener implements ActionListener
 {
-    
+
     private JComboBox<String> comboBox;
     private boolean           isOpen;
     private Component         parent;
     private JFileChooser      jfc;
     private Reference<File>   defaultDir;
-    
+
     public BrowseActionListener(JComboBox<String> inputField, boolean isOpen, Component parent, boolean dirOnly, Reference<File> defaultDir)
     {
-        
+
         this.defaultDir = defaultDir;
         this.comboBox = inputField;
         this.isOpen = isOpen;
         this.parent = parent;
-        
+
         jfc = new JFileChooser();
         jfc.setFileSelectionMode(dirOnly ? JFileChooser.DIRECTORIES_ONLY : JFileChooser.FILES_ONLY);
-        
+
         if (!dirOnly)
             jfc.addChoosableFileFilter(new FileFilter()
             {
@@ -56,7 +56,7 @@ public class BrowseActionListener implements ActionListener
                 {
                     return "Jars and zips only";
                 }
-                
+
                 @Override
                 public boolean accept(File arg0)
                 {
@@ -65,7 +65,7 @@ public class BrowseActionListener implements ActionListener
                 }
             });
     }
-    
+
     @Override
     public void actionPerformed(ActionEvent arg0)
     {
@@ -75,31 +75,31 @@ public class BrowseActionListener implements ActionListener
             rv = jfc.showOpenDialog(parent);
         else
             rv = jfc.showSaveDialog(parent);
-        
+
         if (rv == JFileChooser.APPROVE_OPTION)
         {
             File f = jfc.getSelectedFile();
-            
+
             String path;
             try
             {
                 path = f.getCanonicalPath();
-                
+
             }
             catch (IOException e)
             {
                 path = f.getAbsolutePath();
             }
-            
+
             DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) comboBox.getModel();
-            
+
             if (model.getIndexOf(path) != -1)
                 model.removeElement(path);
-            
+
             comboBox.insertItemAt(path, 0);
             comboBox.setSelectedItem(path);
         }
-        
+
         defaultDir.val = new File((String) comboBox.getSelectedItem());
     }
 }

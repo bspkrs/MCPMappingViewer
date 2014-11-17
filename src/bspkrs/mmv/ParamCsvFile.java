@@ -37,7 +37,7 @@ public class ParamCsvFile
     private final Map<String, ParamCsvData> srgParamName2ParamCsvData;
     private boolean                         isDirty;
     private String                          headerLine;
-    
+
     public ParamCsvFile(File file, Side side) throws IOException
     {
         this.file = file;
@@ -46,7 +46,7 @@ public class ParamCsvFile
         readFromFile();
         isDirty = false;
     }
-    
+
     public void readFromFile() throws IOException
     {
         Scanner in = new Scanner(new BufferedReader(new FileReader(file)));
@@ -68,7 +68,7 @@ public class ParamCsvFile
             in.close();
         }
     }
-    
+
     public void writeToFile() throws IOException
     {
         if (isDirty)
@@ -78,37 +78,37 @@ public class ParamCsvFile
                 File fileBak = new File(file.getAbsolutePath() + "_" + new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()) + ".bak");
                 file.renameTo(fileBak);
             }
-            
+
             file.createNewFile();
-            
+
             PrintWriter out = new PrintWriter(new FileWriter(file));
             out.println(headerLine);
-            
+
             for (ParamCsvData data : this.srgParamName2ParamCsvData.values())
                 out.println(data.toCsv());
-            
+
             out.close();
-            
+
             isDirty = false;
         }
     }
-    
+
     public boolean hasCsvDataForKey(String srgName)
     {
         return srgParamName2ParamCsvData.containsKey(srgName);
     }
-    
+
     public ParamCsvData getCsvDataForKey(String srgName)
     {
         return srgParamName2ParamCsvData.get(srgName);
     }
-    
+
     public void updateCsvDataForKey(String srgName, ParamCsvData csvData)
     {
         srgParamName2ParamCsvData.put(srgName, csvData);
         isDirty = true;
     }
-    
+
     private boolean sideIn(int i, int[] ar)
     {
         for (int n : ar)
@@ -116,12 +116,12 @@ public class ParamCsvFile
                 return true;
         return false;
     }
-    
+
     public boolean isDirty()
     {
         return isDirty;
     }
-    
+
     public void setIsDirty(boolean bol)
     {
         isDirty = bol;
