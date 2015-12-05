@@ -1,47 +1,35 @@
 package bspkrs.mmv;
 
-import immibis.bon.gui.Side;
 
 public class McpBotCommand
 {
     public enum BotCommand
     {
-        SCF,
-        SCM,
-        FSCF,
-        FSCM,
-        SSF,
-        SSM,
-        FSSF,
-        FSSM;
+        SF,
+        SM,
+        SP,
+        FSF,
+        FSM,
+        FSP;
     }
 
     public enum MemberType
     {
         FIELD,
-        METHOD;
+        METHOD,
+        PARAM;
     }
 
-    public static BotCommand getCommand(MemberType type, Side side, boolean isForced)
+    public static BotCommand getCommand(MemberType type, boolean isForced)
     {
-        switch (side)
+        switch (type)
         {
-            case Server:
-                switch (type)
-                {
-                    case METHOD:
-                        return isForced ? BotCommand.FSSM : BotCommand.SSM;
-                    default:
-                        return isForced ? BotCommand.FSSF : BotCommand.SSF;
-                }
+            case METHOD:
+                return isForced ? BotCommand.FSM : BotCommand.SM;
+            case PARAM:
+                return isForced ? BotCommand.FSP : BotCommand.SP;
             default:
-                switch (type)
-                {
-                    case METHOD:
-                        return isForced ? BotCommand.FSCM : BotCommand.SCM;
-                    default:
-                        return isForced ? BotCommand.FSCF : BotCommand.SCF;
-                }
+                return isForced ? BotCommand.FSF : BotCommand.SF;
         }
     }
 
@@ -63,16 +51,10 @@ public class McpBotCommand
         this(command, srgName, newName, "");
     }
 
-    public static McpBotCommand[] getMcpBotCommands(MemberType type, Side side, boolean isForced, boolean isClientOnly, String srgName, String newName, String comment)
+    public static McpBotCommand[] getMcpBotCommands(MemberType type, boolean isForced, boolean isClientOnly, String srgName, String newName, String comment)
     {
         McpBotCommand[] commands = new McpBotCommand[1];
-        if (side.equals(Side.Universal) && !isClientOnly)
-        {
-            commands = new McpBotCommand[2];
-            commands[1] = new McpBotCommand(getCommand(type, Side.Server, isForced), srgName, newName, comment);
-        }
-
-        commands[0] = new McpBotCommand(getCommand(type, side, isForced), srgName, newName, comment);
+        commands[0] = new McpBotCommand(getCommand(type, isForced), srgName, newName, comment);
 
         return commands;
     }

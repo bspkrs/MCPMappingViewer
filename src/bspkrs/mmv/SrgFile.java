@@ -1,18 +1,18 @@
 /*
  * Copyright (C) 2014 Alex "immibis" Campbell, bspkrs
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation 
- * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, 
- * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the 
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO 
- * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- * 
+ *
  * Modified version of SrgFile.java from BON
  */
 package bspkrs.mmv;
@@ -45,7 +45,7 @@ public class SrgFile
         return parts[parts.length - 1];
     }
 
-    public SrgFile(File f) throws IOException
+    public SrgFile(File f, ExcFile excFile, StaticMethodsFile staticMethods) throws IOException
     {
         Scanner in = new Scanner(new BufferedReader(new FileReader(f)));
         try
@@ -114,6 +114,17 @@ public class SrgFile
                     srgMethodName2MethodData.put(srgName, methodData);
                     class2MethodDataSet.get(srgClassName2ClassData.get(srgPkg + "/" + srgOwner)).add(methodData);
                     srgMethodName2ClassData.put(srgName, srgClassName2ClassData.get(srgPkg + "/" + srgOwner));
+
+                    // Hack in the missing parameter data
+                    ExcData toAdd = new ExcData(srgOwner, srgName, srgDescriptor, new String[0], staticMethods.contains(srgName));
+                    ExcData existing = excFile.srgMethodName2ExcData.get(srgName);
+
+                    if ((existing == null) || (existing.getParameters().length < toAdd.getParameters().length))
+                    {
+                        excFile.srgMethodName2ExcData.put(srgName, toAdd);
+                        for (String parameter : toAdd.getParameters())
+                            excFile.srgParamName2ExcData.put(parameter, toAdd);
+                    }
                 }
                 else
                     in.nextLine();

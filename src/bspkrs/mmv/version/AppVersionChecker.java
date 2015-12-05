@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2014 bspkrs
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation 
- * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, 
- * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the 
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO 
- * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 package bspkrs.mmv.version;
@@ -24,20 +24,20 @@ import java.util.prefs.Preferences;
 
 public class AppVersionChecker
 {
-    private URL           versionURL;
-    private final String  appName;
-    private String        newVersion;
-    private final String  currentVersion;
-    private String        updateURL;
-    private String[]      logMsg;
-    private String[]      dialogMsg;
-    private Preferences   versionCheckTracker;
-    private final String  LAST_VERSION_FOUND  = "lastversionfound";
-    private final String  RUNS_SINCE_LAST_MSG = "runs_since_last_message";
-    private final String  CHECK_ERROR         = "check_error";
-    private String        lastNewVersionFound;
-    private final boolean errorDetected;
-    private int           runsSinceLastMessage;
+    private URL               versionURL;
+    private final String      appName;
+    private String            newVersion;
+    private final String      currentVersion;
+    private String            updateURL;
+    private String[]          logMsg;
+    private String[]          dialogMsg;
+    private final Preferences versionCheckTracker;
+    private final String      LAST_VERSION_FOUND  = "lastversionfound";
+    private final String      RUNS_SINCE_LAST_MSG = "runs_since_last_message";
+    private final String      CHECK_ERROR         = "check_error";
+    private String            lastNewVersionFound;
+    private final boolean     errorDetected;
+    private int               runsSinceLastMessage;
 
     public AppVersionChecker(String appName, String currentVersion, String versionURL, String updateURL, String[] logMsg, String[] dialogMsg, int timeoutMS)
     {
@@ -59,7 +59,7 @@ public class AppVersionChecker
 
         String[] versionLines = loadTextFromURL(this.versionURL, new String[] { CHECK_ERROR }, timeoutMS);
 
-        if (versionLines.length == 0 || versionLines[0].trim().equals("<html>"))
+        if ((versionLines.length == 0) || versionLines[0].trim().equals("<html>"))
             newVersion = CHECK_ERROR;
         else
             newVersion = versionLines[0].trim();
@@ -90,7 +90,7 @@ public class AppVersionChecker
         versionCheckTracker.put(LAST_VERSION_FOUND, lastNewVersionFound);
 
         // Override instantiated updateURL with second line of version file if it exists and is non-blank
-        if (versionLines.length > 1 && versionLines[1].trim().length() != 0)
+        if ((versionLines.length > 1) && (versionLines[1].trim().length() != 0))
             this.updateURL = versionLines[1];
 
         setLogMessage(logMsg);
@@ -151,7 +151,7 @@ public class AppVersionChecker
         return s.replace("{oldVer}", currentVersion).replace("{newVer}", newVersion).replace("{appName}", appName).replace("{updateURL}", updateURL);
     }
 
-    private String[] loadTextFromURL(URL url, String[] defaultValue, int timeoutMS)
+    public static String[] loadTextFromURL(URL url, String[] defaultValue, int timeoutMS)
     {
         List<String> arraylist = new ArrayList<String>();
         Scanner scanner = null;

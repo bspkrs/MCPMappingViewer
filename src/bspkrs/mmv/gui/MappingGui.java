@@ -1,24 +1,22 @@
 /*
  * Copyright (C) 2014 bspkrs
  * Portions Copyright (C) 2014 Alex "immibis" Campbell
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation 
- * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, 
- * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the 
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO 
- * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 package bspkrs.mmv.gui;
 
 import immibis.bon.IProgressListener;
-import immibis.bon.gui.Reference;
-import immibis.bon.gui.Side;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -43,7 +41,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -86,48 +84,46 @@ import javax.swing.table.DefaultTableModel;
 
 import bspkrs.mmv.McpMappingLoader;
 import bspkrs.mmv.McpMappingLoader.CantLoadMCPMappingException;
+import bspkrs.mmv.VersionFetcher;
 import bspkrs.mmv.version.AppVersionChecker;
 
 public class MappingGui extends JFrame
 {
-    public static final String            VERSION_NUMBER        = "0.7.3";
-    private static final long             serialVersionUID      = 1L;
-    private final Preferences             prefs                 = Preferences.userNodeForPackage(MappingGui.class);
-    private JFrame                        frmMcpMappingViewer;
-    private JButton                       btnRefreshTables;
-    private JComboBox<Side>               cmbSide;
-    private JComboBox<String>             cmbMCPDirPath;
-    private JCheckBox                     chkForceRefresh;
-    private JPanel                        pnlProgress;
-    private JProgressBar                  progressBar;
-    private JPanel                        pnlFilter;
-    private JComboBox<String>             cmbFilter;
-    private JButton                       btnSearch;
-    private JButton                       btnGetBotCommands;
-    private JButton                       btnSave;
-    private JCheckBox                     chkClearOnCopy;
-    private final static String           PREFS_KEY_MCPDIR      = "mcpDir";
-    private final static String           PREFS_KEY_FILTER      = "filter";
-    private final static String           PREFS_KEY_SIDE        = "side";
-    private final static String           PREFS_KEY_CLASS_SORT  = "classSort";
-    private final static String           PREFS_KEY_METHOD_SORT = "methodSort";
-    private final static String           PREFS_KEY_PARAM_SORT  = "paramSort";
-    private final static String           PREFS_KEY_FIELD_SORT  = "fieldSort";
-    private List<RowSorter.SortKey>       classSort             = new ArrayList<RowSorter.SortKey>();
-    private List<RowSorter.SortKey>       methodSort            = new ArrayList<RowSorter.SortKey>();
-    private List<RowSorter.SortKey>       paramSort             = new ArrayList<RowSorter.SortKey>();
-    private List<RowSorter.SortKey>       fieldSort             = new ArrayList<RowSorter.SortKey>();
-    private final Reference<File>         mcpBrowseDir          = new Reference<File>();
-    private JTable                        tblClasses;
-    private JTable                        tblMethods;
-    private JTable                        tblFields;
-    private JTable                        tblParams;
-    private Thread                        curTask               = null;
-    private Map<String, McpMappingLoader> mcpInstances          = new HashMap<>();
-    private McpMappingLoader              currentLoader;
-    private AppVersionChecker             versionChecker;
-    private final String                  versionURL            = "http://bspk.rs/Minecraft/MMV/MMV.version";
-    private final String                  mcfTopic              = "http://www.minecraftforum.net/topic/2115030-";
+    public static final String                  VERSION_NUMBER        = "1.0.0";
+    private static final long                   serialVersionUID      = 1L;
+    private final Preferences                   prefs                 = Preferences.userNodeForPackage(MappingGui.class);
+    private JFrame                              frmMcpMappingViewer;
+    private JButton                             btnRefreshTables;
+    private JComboBox<String>                   cmbMappingVersion;
+    private JCheckBox                           chkForceRefresh;
+    private JPanel                              pnlProgress;
+    private JProgressBar                        progressBar;
+    private JPanel                              pnlFilter;
+    private JComboBox<String>                   cmbFilter;
+    private JButton                             btnSearch;
+    private JButton                             btnGetBotCommands;
+    private JButton                             btnSave;
+    private JCheckBox                           chkClearOnCopy;
+    private final static String                 PREFS_KEY_FILTER      = "filter";
+    private final static String                 PREFS_KEY_CLASS_SORT  = "classSort";
+    private final static String                 PREFS_KEY_METHOD_SORT = "methodSort";
+    private final static String                 PREFS_KEY_PARAM_SORT  = "paramSort";
+    private final static String                 PREFS_KEY_FIELD_SORT  = "fieldSort";
+    private final List<RowSorter.SortKey>       classSort             = new ArrayList<RowSorter.SortKey>();
+    private final List<RowSorter.SortKey>       methodSort            = new ArrayList<RowSorter.SortKey>();
+    private final List<RowSorter.SortKey>       paramSort             = new ArrayList<RowSorter.SortKey>();
+    private final List<RowSorter.SortKey>       fieldSort             = new ArrayList<RowSorter.SortKey>();
+    private JTable                              tblClasses;
+    private JTable                              tblMethods;
+    private JTable                              tblFields;
+    private JTable                              tblParams;
+    private Thread                              curTask               = null;
+    private final Map<String, McpMappingLoader> mcpInstances          = new HashMap<>();
+    private final VersionFetcher                versionFetcher        = new VersionFetcher();
+    private McpMappingLoader                    currentLoader;
+    private AppVersionChecker                   versionChecker;
+    private final String                        versionURL            = "http://bspk.rs/Minecraft/MMV/MMV.version";
+    private final String                        mcfTopic              = "http://www.minecraftforum.net/topic/2115030-";
 
     // @formatter:off
     public static DefaultTableModel classesDefaultModel = new DefaultTableModel(new Object[][] { {}, }, new String[] { "Pkg name", "SRG name", "Obf name" })
@@ -136,71 +132,67 @@ public class MappingGui extends JFrame
         boolean[]                 columnEditables  = new boolean[] { false, false, false };
         @SuppressWarnings("rawtypes")
         Class[]                   columnTypes      = new Class[] { String.class, String.class, String.class };
-        
+
         @SuppressWarnings({ "unchecked", "rawtypes" })
         @Override
         public Class getColumnClass(int columnIndex) { return columnTypes[columnIndex]; }
-        
+
         @Override
         public boolean isCellEditable(int row, int column) { return columnEditables[column]; }
     };
-    
+
     public static DefaultTableModel methodsDefaultModel = new DefaultTableModel( new Object[][] { {}, }, new String[] { "MCP Name", "SRG Name", "Obf Name", "SRG Descriptor", "Comment" })
     {
         private static final long serialVersionUID = 1L;
         boolean[]                 columnEditables  = new boolean[] { false, false, false, false, false };
         @SuppressWarnings("rawtypes")
         Class[]                   columnTypes      = new Class[] { String.class, String.class, String.class, String.class, String.class };
-        
+
         @SuppressWarnings({ "unchecked", "rawtypes" })
         @Override
         public Class getColumnClass(int columnIndex) { return columnTypes[columnIndex]; }
-        
+
         @Override
         public boolean isCellEditable(int row, int column) { return columnEditables[column]; }
     };
-    
+
     public static DefaultTableModel paramsDefaultModel = new DefaultTableModel( new Object[][] { {}, }, new String[] { "MCP Name", "SRG Name", "Type" })
     {
         private static final long serialVersionUID = 1L;
         boolean[]                 columnEditables  = new boolean[] { false, false, false };
         @SuppressWarnings("rawtypes")
         Class[]                   columnTypes      = new Class[] { String.class, String.class, String.class };
-        
+
         @SuppressWarnings({ "unchecked", "rawtypes" })
         @Override
         public Class getColumnClass(int columnIndex) { return columnTypes[columnIndex]; }
-        
+
         @Override
         public boolean isCellEditable(int row, int column) { return columnEditables[column]; }
     };
-    
+
     public static DefaultTableModel fieldsDefaultModel = new DefaultTableModel( new Object[][] { {}, }, new String[] { "MCP Name", "SRG Name", "Obf Name", "Comment" } )
     {
         private static final long serialVersionUID = 1L;
         boolean[]                 columnEditables  = new boolean[] { false, false, false, false };
         @SuppressWarnings("rawtypes")
         Class[]                   columnTypes      = new Class[] { String.class, String.class, String.class, String.class };
-        
+
         @SuppressWarnings({ "unchecked", "rawtypes" })
         @Override
         public Class getColumnClass(int columnIndex) { return columnTypes[columnIndex]; }
-        
+
         @Override
         public boolean isCellEditable(int row, int column) { return columnEditables[column]; }
     };
     private JSplitPane splitMethods;
+    private JButton btnGetVersions;
     // @formatter:on
 
     private void savePrefs()
     {
-        for (int i = 0; i < Math.min(cmbMCPDirPath.getItemCount(), 8); i++)
-            prefs.put(PREFS_KEY_MCPDIR + i, cmbMCPDirPath.getItemAt(i));
-
         for (int i = 0; i < Math.min(cmbFilter.getItemCount(), 20); i++)
             prefs.put(PREFS_KEY_FILTER + i, cmbFilter.getItemAt(i));
-
-        prefs.put(PREFS_KEY_SIDE, cmbSide.getSelectedItem().toString());
 
         if (tblClasses.getRowSorter().getSortKeys().size() > 0)
         {
@@ -243,18 +235,7 @@ public class MappingGui extends JFrame
     {
         if (!sortOnly)
         {
-            DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) cmbMCPDirPath.getModel();
-            for (int i = 0; i < 8; i++)
-            {
-                String item = prefs.get(PREFS_KEY_MCPDIR + i, "");
-                if (!item.equals(""))
-                {
-                    if (model.getIndexOf(item) == -1)
-                        cmbMCPDirPath.addItem(item);
-                }
-            }
-
-            model = (DefaultComboBoxModel<String>) cmbFilter.getModel();
+            DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) cmbFilter.getModel();
             for (int i = 0; i < 20; i++)
             {
                 String item = prefs.get(PREFS_KEY_FILTER + i, " ");
@@ -267,16 +248,13 @@ public class MappingGui extends JFrame
 
             cmbFilter.setSelectedIndex(-1);
 
-            if (cmbMCPDirPath.getItemCount() > 0)
+            if (cmbMappingVersion.getItemCount() > 0)
             {
                 btnRefreshTables.setEnabled(true);
-                cmbMCPDirPath.setSelectedIndex(0);
+                cmbMappingVersion.setSelectedIndex(0);
             }
             else
                 btnRefreshTables.setEnabled(false);
-
-            Side side = Side.valueOf(prefs.get(PREFS_KEY_SIDE, Side.Universal.toString()));
-            cmbSide.setSelectedItem(side);
         }
 
         classSort.clear();
@@ -349,7 +327,7 @@ public class MappingGui extends JFrame
         for (StackTraceElement ste : e.getStackTrace())
         {
             boolean stopHere = false;
-            if (stopAt.contains(ste) && numPrinted > 0)
+            if (stopAt.contains(ste) && (numPrinted > 0))
                 stopHere = true;
             else
             {
@@ -403,15 +381,6 @@ public class MappingGui extends JFrame
      */
     private void initialize()
     {
-        {
-            String mcpDirString = prefs.get(PREFS_KEY_MCPDIR + 0, "");
-
-            if (!mcpDirString.equals(""))
-                mcpBrowseDir.val = new File(mcpDirString);
-            else
-                mcpBrowseDir.val = new File(".");
-        }
-
         frmMcpMappingViewer = new JFrame();
         frmMcpMappingViewer.setIconImage(new ImageIcon(MappingGui.class.getResource("/bspkrs/mmv/gui/icon/bspkrs32.png")).getImage());
         frmMcpMappingViewer.addWindowListener(new WindowAdapter()
@@ -523,27 +492,36 @@ public class MappingGui extends JFrame
         pnlControls.setSize(new Dimension(0, 40));
         pnlControls.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 2));
 
-        JLabel lblSide = new JLabel("Side");
-        pnlControls.add(lblSide);
+        cmbMappingVersion = new JComboBox<String>(new DefaultComboBoxModel<String>());
+        cmbMappingVersion.setEditable(false);
+        cmbMappingVersion.setPreferredSize(new Dimension(320, 20));
+        cmbMappingVersion.addItemListener(new MappingVersionsComboItemChanged());
 
-        cmbSide = new JComboBox<Side>();
-        cmbSide.setModel(new DefaultComboBoxModel<Side>(Side.values()));
-        pnlControls.add(cmbSide);
+        JLabel lblMappingVersion = new JLabel("Mapping Version");
+        pnlControls.add(lblMappingVersion);
+        pnlControls.add(cmbMappingVersion);
 
-        cmbMCPDirPath = new JComboBox<String>(new DefaultComboBoxModel<String>());
-        cmbMCPDirPath.setPreferredSize(new Dimension(320, 20));
-        cmbMCPDirPath.addItemListener(new McpBrowseDirComboItemChanged());
+        btnGetVersions = new JButton("Get Versions");
+        btnGetVersions.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                try
+                {
+                    cmbMappingVersion.removeAllItems();
+                    for (String s : versionFetcher.getVersions(chkForceRefresh.isSelected()))
+                    {
+                        cmbMappingVersion.addItem(s);
+                    }
+                }
+                catch (IOException exc)
+                {}
+            }
+        });
+        pnlControls.add(btnGetVersions);
 
-        JLabel lblMCPFolder = new JLabel("MCP folder");
-        pnlControls.add(lblMCPFolder);
-        cmbMCPDirPath.setEditable(true);
-        pnlControls.add(cmbMCPDirPath);
-
-        JButton btnBrowseFile = new JButton("Browse");
-        btnBrowseFile.addActionListener(new BrowseActionListener(cmbMCPDirPath, true, btnBrowseFile, true, mcpBrowseDir));
-        pnlControls.add(btnBrowseFile);
-
-        btnRefreshTables = new JButton("Load from conf");
+        btnRefreshTables = new JButton("Load Mappings");
         btnRefreshTables.setEnabled(false);
         btnRefreshTables.addActionListener(new RefreshActionListener());
         pnlControls.add(btnRefreshTables);
@@ -646,7 +624,7 @@ public class MappingGui extends JFrame
             public void actionPerformed(ActionEvent e)
             {
                 String commands = currentLoader.getBotCommands(chkClearOnCopy.isSelected());
-                if (commands != null && !commands.isEmpty())
+                if ((commands != null) && !commands.isEmpty())
                 {
                     Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(commands), null);
                     JOptionPane.showMessageDialog(MappingGui.this, "Commands copied to clipboard: \n" + commands, "MMV - MCPBot Commands", JOptionPane.INFORMATION_MESSAGE);
@@ -665,137 +643,6 @@ public class MappingGui extends JFrame
         chkClearOnCopy = new JCheckBox("Clear");
         chkClearOnCopy.setToolTipText("Whether or not to clear the MCPBot command list when the button is clicked.");
         pnlFilter.add(chkClearOnCopy);
-
-        btnSave = new JButton("Save CSVs");
-        btnSave.setToolTipText("Saves edits you have made in the GUI to your local CSV files.");
-        btnSave.setEnabled(false);
-        btnSave.addActionListener(new ActionListener()
-        {
-            @Override
-            public void actionPerformed(ActionEvent e)
-            {
-                curTask = new Thread()
-                {
-                    @Override
-                    public void run()
-                    {
-                        boolean crashed = false;
-
-                        try
-                        {
-                            IProgressListener progress = new IProgressListener()
-                            {
-                                private String currentText;
-
-                                @Override
-                                public void start(final int max, final String text)
-                                {
-                                    currentText = text.equals("") ? " " : text;
-                                    SwingUtilities.invokeLater(new Runnable()
-                                    {
-                                        @Override
-                                        public void run()
-                                        {
-                                            progressBar.setString(currentText);
-                                            if (max >= 0)
-                                                progressBar.setMaximum(max);
-                                            progressBar.setValue(0);
-                                        }
-                                    });
-                                }
-
-                                @Override
-                                public void set(final int value)
-                                {
-                                    SwingUtilities.invokeLater(new Runnable()
-                                    {
-                                        @Override
-                                        public void run()
-                                        {
-                                            progressBar.setValue(value);
-                                        }
-                                    });
-                                }
-
-                                @Override
-                                public void setMax(final int max)
-                                {
-                                    SwingUtilities.invokeLater(new Runnable()
-                                    {
-                                        @Override
-                                        public void run()
-                                        {
-                                            progressBar.setMaximum(max);
-                                        }
-                                    });
-                                }
-                            };
-
-                            progress.start(0, "Saving data to CSV files");
-                            currentLoader.saveCSVs(progress);
-                            btnSave.setEnabled(false);
-                        }
-                        catch (Exception e)
-                        {
-                            String s = getStackTraceMessage("An error has occurred - give bspkrs this stack trace (which has been copied to the clipboard)\n", e);
-
-                            System.err.println(s);
-
-                            crashed = true;
-
-                            final String errMsg = s;
-                            SwingUtilities.invokeLater(new Runnable()
-                            {
-                                @Override
-                                public void run()
-                                {
-                                    progressBar.setString(" ");
-                                    progressBar.setValue(0);
-
-                                    Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(errMsg), null);
-                                    JOptionPane.showMessageDialog(MappingGui.this, errMsg, "MMV - Error", JOptionPane.ERROR_MESSAGE);
-                                }
-                            });
-                        }
-                        finally
-                        {
-                            if (!crashed)
-                            {
-                                SwingUtilities.invokeLater(new Runnable()
-                                {
-                                    @Override
-                                    public void run()
-                                    {
-                                        progressBar.setString(" ");
-                                        progressBar.setValue(0);
-                                        cmbFilter.setEnabled(true);
-                                    }
-                                });
-                            }
-                            pnlProgress.setVisible(false);
-                            cmbFilter.setEnabled(true);
-                            btnSearch.setEnabled(true);
-                        }
-                    }
-                };
-
-                Side side = (Side) cmbSide.getSelectedItem();
-                int option = JOptionPane.YES_OPTION;
-
-                if (side.equals(Side.Universal))
-                    option = JOptionPane.showConfirmDialog(
-                            MappingGui.this,
-                            "When using Forge (Side == Universal), saving local edits to the CSV files will likely\n" +
-                                    "mess up future Forge decompilation runs due to how the Forge patches are applied.\n\n" +
-                                    "Are you sure you want to save your changes to the CSV files?",
-                            "Save CSV Edits?",
-                            JOptionPane.YES_NO_OPTION);
-
-                if (option == JOptionPane.YES_OPTION)
-                    curTask.start();
-            }
-        });
-        pnlFilter.add(btnSave);
 
         lblAbout.addMouseListener(new MouseAdapter()
         {
@@ -816,7 +663,8 @@ public class MappingGui extends JFrame
                         "<a href=\"https://github.com/bspkrs/MCPMappingViewer\">Github Repo</a><br/>" +
                         "<a href=\"https://github.com/bspkrs/MCPMappingViewer/blob/master/change.log\">Change Log</a><br/>" +
                         "<a href=\"http://bspk.rs/MC/MCPMappingViewer/index.html\">Binary Downloads</a><br/>" +
-                        "<a href=\"https://raw.github.com/bspkrs/MCPMappingViewer/master/LICENSE\">License</a><br/>" +
+                        "<a href=\"https://raw.githubusercontent.com/bspkrs/MCPMappingViewer/master/LICENSE\">License</a><br/>" +
+                        "<a href=\"https://raw.githubusercontent.com/google/gson/master/LICENSE\">GSON License</a><br/>" +
                         "<a href=\"https://twitter.com/bspkrs\">bspkrs on Twitter</a></center>";
                 showHTMLDialog(MappingGui.this, message, "About MCP Mapping Viewer", JOptionPane.PLAIN_MESSAGE);
             }
@@ -857,7 +705,7 @@ public class MappingGui extends JFrame
         }
     }
 
-    class McpBrowseDirComboItemChanged implements ItemListener
+    class MappingVersionsComboItemChanged implements ItemListener
     {
         @Override
         public void itemStateChanged(ItemEvent e)
@@ -866,12 +714,6 @@ public class MappingGui extends JFrame
             {
                 @SuppressWarnings("unchecked")
                 JComboBox<String> cmb = (JComboBox<String>) e.getSource();
-                String path = (String) cmb.getSelectedItem();
-                if (!path.isEmpty())
-                    mcpBrowseDir.val = new File(path);
-                else
-                    mcpBrowseDir.val = new File(".");
-
                 btnRefreshTables.setEnabled(cmb.getItemCount() > 0);
             }
         }
@@ -886,7 +728,7 @@ public class MappingGui extends JFrame
             {
                 String filterText = cmbFilter.getSelectedItem().toString();
 
-                if (filterText == null || filterText.trim().isEmpty())
+                if ((filterText == null) || filterText.trim().isEmpty())
                     return;
 
                 DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) cmbFilter.getModel();
@@ -924,6 +766,8 @@ public class MappingGui extends JFrame
                     tblMethods.setEnabled(true);
                     tblFields.setModel(currentLoader.getFieldModel(pkg + "/" + name));
                     tblFields.setEnabled(true);
+                    tblParams.setModel(paramsDefaultModel);
+                    tblParams.setEnabled(true);
                     new TableColumnAdjuster(tblMethods).adjustColumns();
                     new TableColumnAdjuster(tblFields).adjustColumns();
                     loadPrefs(true);
@@ -934,6 +778,8 @@ public class MappingGui extends JFrame
                     tblMethods.setEnabled(false);
                     tblFields.setModel(fieldsDefaultModel);
                     tblFields.setEnabled(false);
+                    tblParams.setModel(paramsDefaultModel);
+                    tblParams.setEnabled(false);
                 }
             }
         }
@@ -977,12 +823,12 @@ public class MappingGui extends JFrame
         @Override
         public void actionPerformed(ActionEvent e)
         {
-            if (curTask != null && curTask.isAlive() || cmbFilter.getItemCount() == 0)
+            if (((curTask != null) && curTask.isAlive()) || (cmbFilter.getItemCount() == 0))
                 return;
 
             String filterText = cmbFilter.getSelectedItem().toString();
 
-            if (filterText != null && !filterText.trim().isEmpty())
+            if ((filterText != null) && !filterText.trim().isEmpty())
             {
                 DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) cmbFilter.getModel();
 
@@ -1002,6 +848,8 @@ public class MappingGui extends JFrame
             tblClasses.setEnabled(false);
             tblMethods.setModel(methodsDefaultModel);
             tblMethods.setEnabled(false);
+            tblParams.setModel(paramsDefaultModel);
+            tblParams.setEnabled(false);
             tblFields.setModel(fieldsDefaultModel);
             tblFields.setEnabled(false);
 
@@ -1051,6 +899,21 @@ public class MappingGui extends JFrame
                             }
 
                             @Override
+                            public void set(final int value, final String text)
+                            {
+                                currentText = text.equals("") ? " " : text;
+                                SwingUtilities.invokeLater(new Runnable()
+                                {
+                                    @Override
+                                    public void run()
+                                    {
+                                        progressBar.setValue(value);
+                                        progressBar.setString(currentText);
+                                    }
+                                });
+                            }
+
+                            @Override
                             public void setMax(final int max)
                             {
                                 SwingUtilities.invokeLater(new Runnable()
@@ -1078,11 +941,13 @@ public class MappingGui extends JFrame
                             tblMethods.setEnabled(true);
                             tblFields.setModel(currentLoader.getFieldModel(pkg + "/" + name));
                             tblFields.setEnabled(true);
+                            tblParams.setModel(paramsDefaultModel);
+                            tblParams.setEnabled(true);
                             new TableColumnAdjuster(tblMethods).adjustColumns();
                             new TableColumnAdjuster(tblFields).adjustColumns();
                             loadPrefs(true);
 
-                            if (cmbFilter.getSelectedItem().toString().trim().startsWith("field") && tblFields.getRowCount() > 0)
+                            if (cmbFilter.getSelectedItem().toString().trim().startsWith("field") && (tblFields.getRowCount() > 0))
                             {
                                 for (int i = 0; i < tblFields.getRowCount(); i++)
                                 {
@@ -1106,7 +971,7 @@ public class MappingGui extends JFrame
                                     }
                                 }
                             }
-                            else if (cmbFilter.getSelectedItem().toString().trim().startsWith("func") && tblMethods.getRowCount() > 0)
+                            else if (cmbFilter.getSelectedItem().toString().trim().startsWith("func") && (tblMethods.getRowCount() > 0))
                             {
                                 for (int i = 0; i < tblMethods.getRowCount(); i++)
                                 {
@@ -1188,39 +1053,10 @@ public class MappingGui extends JFrame
         @Override
         public void actionPerformed(ActionEvent e)
         {
-            if (curTask != null && curTask.isAlive())
+            if ((curTask != null) && curTask.isAlive())
                 return;
 
-            final Side side = (Side) cmbSide.getSelectedItem();
-
-            final File mcpDir = mcpBrowseDir.val;
-            final File confDir = new File(mcpDir, "conf");
-
-            String error = null;
-
-            if (!mcpDir.isDirectory())
-                error = "MCP folder not found (at " + mcpDir + ")";
-            else if (!confDir.isDirectory())
-                error = "'conf' folder not found in MCP folder (at " + confDir + ")";
-
-            if (error != null)
-            {
-                JOptionPane.showMessageDialog(MappingGui.this, error, "MMV - Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            if (cmbMCPDirPath.getSelectedIndex() != 0)
-            {
-                String selItem = (String) cmbMCPDirPath.getSelectedItem();
-                DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) cmbMCPDirPath.getModel();
-
-                if (model.getIndexOf(selItem) != -1)
-                    model.removeElement(selItem);
-
-                cmbMCPDirPath.insertItemAt(selItem, 0);
-                cmbMCPDirPath.setSelectedItem(selItem);
-            }
-
+            final String mappingVersion = (String) cmbMappingVersion.getSelectedItem();
             savePrefs();
 
             pnlFilter.setVisible(false);
@@ -1229,6 +1065,8 @@ public class MappingGui extends JFrame
             tblClasses.setEnabled(false);
             tblMethods.setModel(methodsDefaultModel);
             tblMethods.setEnabled(false);
+            tblParams.setModel(paramsDefaultModel);
+            tblParams.setEnabled(false);
             tblFields.setModel(fieldsDefaultModel);
             tblFields.setEnabled(false);
 
@@ -1278,6 +1116,21 @@ public class MappingGui extends JFrame
                             }
 
                             @Override
+                            public void set(final int value, final String text)
+                            {
+                                currentText = text.equals("") ? " " : text;
+                                SwingUtilities.invokeLater(new Runnable()
+                                {
+                                    @Override
+                                    public void run()
+                                    {
+                                        progressBar.setValue(value);
+                                        progressBar.setString(currentText);
+                                    }
+                                });
+                            }
+
+                            @Override
                             public void setMax(final int max)
                             {
                                 SwingUtilities.invokeLater(new Runnable()
@@ -1291,15 +1144,15 @@ public class MappingGui extends JFrame
                             }
                         };
 
-                        if (!mcpInstances.containsKey(mcpDir.getAbsolutePath() + " " + side) || chkForceRefresh.isSelected())
+                        if (!mcpInstances.containsKey(mappingVersion) || chkForceRefresh.isSelected())
                         {
                             progress.start(0, "Reading MCP configuration");
-                            currentLoader = new McpMappingLoader(MappingGui.this, side, mcpDir, progress);
-                            mcpInstances.put(mcpDir.getAbsolutePath() + " " + side, currentLoader);
+                            currentLoader = new McpMappingLoader(MappingGui.this, mappingVersion, progress);
+                            mcpInstances.put(mappingVersion, currentLoader);
                             chkForceRefresh.setSelected(false);
                         }
                         else
-                            currentLoader = mcpInstances.get(mcpDir.getAbsolutePath() + " " + side);
+                            currentLoader = mcpInstances.get(mappingVersion);
 
                         tblClasses.setModel(currentLoader.getClassModel());
                         tblClasses.setEnabled(true);
@@ -1368,7 +1221,7 @@ public class MappingGui extends JFrame
                         pnlFilter.setVisible(true);
                         cmbFilter.setEnabled(true);
                         btnSearch.setEnabled(true);
-                        btnSave.setEnabled(currentLoader.hasPendingEdits());
+                        //                        btnSave.setEnabled(currentLoader.hasPendingEdits());
                         btnGetBotCommands.setEnabled(currentLoader.hasPendingCommands());
                     }
                 }
@@ -1395,12 +1248,14 @@ public class MappingGui extends JFrame
             public void hyperlinkUpdate(HyperlinkEvent e)
             {
                 if (e.getEventType().equals(HyperlinkEvent.EventType.ACTIVATED))
+                {
                     try
                     {
                         Desktop.getDesktop().browse(e.getURL().toURI());
                     }
                     catch (Throwable ignore)
                     {}
+                }
             }
         });
         // Dunno why, but if I do this the About dialog no longer gets cut off...

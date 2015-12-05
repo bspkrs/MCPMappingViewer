@@ -1,17 +1,17 @@
 /*
  * Copyright (C) 2014 bspkrs
  * Portions Copyright (C) 2014 Alex "immibis" Campbell
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation 
- * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, 
- * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the 
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO 
- * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 package bspkrs.mmv;
@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.regex.Pattern;
 
 public class ExcFile
 {
@@ -43,8 +42,6 @@ public class ExcFile
         Scanner in = new Scanner(new FileReader(f));
         try
         {
-            final Pattern pattern = Pattern.compile("^(.*?)\\.(.*?)\\((.*?)=(.*?)\\|(.*?)$");
-
             while (in.hasNextLine())
             {
                 if (in.hasNext("#"))
@@ -52,29 +49,6 @@ public class ExcFile
                     in.nextLine();
                     continue;
                 }
-
-                //                String line = in.nextLine();
-                //                
-                //                Matcher matcher = pattern.matcher(line);
-                //                if (matcher.find())
-                //                {
-                //                    String srgOwner = matcher.group(1);
-                //                    String srgName = matcher.group(2);
-                //                    String descriptor = matcher.group(3);
-                //                    String excs = matcher.group(4);
-                //                    String params = matcher.group(5);
-                //                    
-                //                    ExcData toAdd = new ExcData(srgOwner, srgName, descriptor,
-                //                            (excs.length() > 0 ? excs.split(",") : new String[0]),
-                //                            (params.length() > 0 ? params.split(",") : new String[0]));
-                //                    
-                //                    srgMethodName2ExcData.put(srgName, toAdd);
-                //                    
-                //                    for (String parameter : toAdd.getParameters())
-                //                        srgParamName2ExcData.put(parameter, toAdd);
-                //                }
-                //                else
-                //                    System.out.println("exc line failed regex: " + line);
 
                 in.useDelimiter("\\.");
                 String srgOwner = in.next();
@@ -99,7 +73,7 @@ public class ExcFile
 
                 ExcData existing = srgMethodName2ExcData.get(srgName);
 
-                if (existing == null || existing.getParameters().length < toAdd.getParameters().length)
+                if ((existing == null) || (existing.getParameters().length < toAdd.getParameters().length))
                 {
                     srgMethodName2ExcData.put(srgName, toAdd);
 

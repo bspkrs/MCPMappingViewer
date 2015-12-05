@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 bspkrs
+ * Copyright (C) 2015 bspkrs
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,35 +15,44 @@
  */
 package bspkrs.mmv;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
 
-public class MethodSrgData extends MemberSrgData implements Comparable<MethodSrgData>
+public class StaticMethodsFile
 {
-    private final String obfDescriptor;
-    private final String srgDescriptor;
+    private final File  file;
+    public List<String> staticMethods;
 
-    public MethodSrgData(String obfOwner, String obfName, String obfDescriptor, String srgOwner, String srgPkg, String srgName, String srgDescriptor, boolean isClientOnly)
+    public StaticMethodsFile(File file) throws IOException
     {
-        super(obfOwner, obfName, srgOwner, srgPkg, srgName, isClientOnly);
-        this.obfDescriptor = obfDescriptor;
-        this.srgDescriptor = srgDescriptor;
+        this.file = file;
+        staticMethods = new ArrayList<String>();
+        readFromFile();
     }
 
-    public String getObfDescriptor()
+    public void readFromFile() throws IOException
     {
-        return obfDescriptor;
+        Scanner in = new Scanner(new BufferedReader(new FileReader(file)));
+        try
+        {
+            while (in.hasNextLine())
+            {
+                staticMethods.add(in.nextLine());
+            }
+        }
+        finally
+        {
+            in.close();
+        }
     }
 
-    public String getSrgDescriptor()
+    public boolean contains(String srgName)
     {
-        return srgDescriptor;
-    }
-
-    @Override
-    public int compareTo(MethodSrgData o)
-    {
-        if (o != null)
-            return getSrgName().compareTo(o.getSrgName());
-        else
-            return 1;
+        return staticMethods.contains(srgName);
     }
 }

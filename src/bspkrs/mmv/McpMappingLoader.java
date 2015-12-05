@@ -1,30 +1,30 @@
 /*
  * Copyright (C) 2014 bspkrs
  * Portions Copyright (C) 2014 Alex "immibis" Campbell
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation 
- * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, 
- * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the 
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO 
- * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 package bspkrs.mmv;
 
 import immibis.bon.IProgressListener;
-import immibis.bon.gui.Side;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.DigestException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -48,94 +48,99 @@ public class McpMappingLoader
         }
     }
 
-    private final File                                   mcpDir;
+    private final File                                   baseDir                 = new File(new File(System.getProperty("user.home")), ".cache/MCPMappingViewer");
+    private final String                                 baseSrgDir              = "{mc_ver}";
+    private final String                                 baseMappingDir          = "{mc_ver}/{channel}_{map_ver}";
+    private final String                                 baseMappingUrl          = "http://export.mcpbot.bspk.rs/mcp_{channel}/{map_ver}-{mc_ver}/mcp_{channel}-{map_ver}-{mc_ver}.zip";
+    private final String                                 baseSrgUrl              = "http://export.mcpbot.bspk.rs/mcp/{mc_ver}/mcp-{mc_ver}-srg.zip";
+
+    private final File                                   srgDir;
+    private final File                                   mappingDir;
     private final File                                   srgFile;
     private final File                                   excFile;
-    private final Side                                   side;
+    private final File                                   staticMethodsFile;
     private SrgFile                                      srgFileData;
     private ExcFile                                      excFileData;
+    private StaticMethodsFile                            staticMethods;
     private CsvFile                                      csvFieldData, csvMethodData;
     private ParamCsvFile                                 csvParamData;
-    private MappingGui                                   parentGui;
-    private final Map<String, McpBotCommand[]>           commandMap              = new TreeMap<String, McpBotCommand[]>();           // srgName -> McpBotCommand
-
+    private final MappingGui                             parentGui;
+    private final Map<String, McpBotCommand[]>           commandMap              = new TreeMap<String, McpBotCommand[]>();                                                              // srgName -> McpBotCommand
     public final Map<MethodSrgData, CsvData>             srgMethodData2CsvData   = new TreeMap<MethodSrgData, CsvData>();
     public final Map<FieldSrgData, CsvData>              srgFieldData2CsvData    = new TreeMap<FieldSrgData, CsvData>();
     public final Map<ExcData, Map<String, ParamCsvData>> excData2MapParamCsvData = new TreeMap<ExcData, Map<String, ParamCsvData>>();
 
-    public McpMappingLoader(MappingGui parentGui, Side side, File mcpDir, IProgressListener progress) throws IOException, CantLoadMCPMappingException
+    public McpMappingLoader(MappingGui parentGui, String mappingString, IProgressListener progress) throws IOException, CantLoadMCPMappingException, NoSuchAlgorithmException, DigestException
     {
+        progress.setMax(6);
+        progress.set(0);
         this.parentGui = parentGui;
-        this.mcpDir = mcpDir;
-        this.side = side;
 
-        String loadFailureReason = "";
-        switch (side)
-        {
-            case Universal:
-                if (new File(mcpDir, "conf/packaged.srg").exists())
-                {
-                    srgFile = new File(mcpDir, "conf/packaged.srg");
-                    excFile = new File(mcpDir, "conf/packaged.exc");
-                }
-                else
-                {
-                    srgFile = new File(mcpDir, "conf/joined.srg");
-                    excFile = new File(mcpDir, "conf/joined.exc");
-                }
-                loadFailureReason = "Unable to find packaged.srg or joined.srg. Try using side Client or Server.";
-                break;
+        // mappingString: <mc>_<channel>_<ver>, eg, 1.8_snapshot_20151118
+        String[] tokens = mappingString.split("_");
+        if (tokens.length < 3)
+            throw new CantLoadMCPMappingException("Invalid mapping string specified.");
 
-            case Client:
-                srgFile = new File(mcpDir, "conf/client.srg");
-                excFile = new File(mcpDir, "conf/joined.exc");
-                loadFailureReason = "Unable to find client.srg. If using Forge, use side Universal.";
-                break;
+        progress.set(0, "Fetching SRG data");
+        srgDir = getSubDirForZip(tokens, baseSrgUrl, baseSrgDir);
+        progress.set(1, "Fetching CSV data");
+        mappingDir = getSubDirForZip(tokens, baseMappingUrl, baseMappingDir);
 
-            case Server:
-                srgFile = new File(mcpDir, "conf/server.srg");
-                excFile = new File(mcpDir, "conf/joined.exc");
-                loadFailureReason = "Unable to find server.srg. If using Forge, use side Universal.";
-                break;
-
-            default:
-                throw new AssertionError("side is " + side);
-        }
+        srgFile = new File(srgDir, "joined.srg");
+        excFile = new File(srgDir, "joined.exc");
+        staticMethodsFile = new File(srgDir, "static_methods.txt");
 
         if (!srgFile.exists())
-            throw new CantLoadMCPMappingException(loadFailureReason);
+            throw new CantLoadMCPMappingException("Unable to find joined.srg. Your MCP conf folder may be corrupt.");
 
         if (!excFile.exists())
-            throw new CantLoadMCPMappingException("Unable to find " + ((new File(mcpDir, "conf/packaged.srg").exists()) ? "packaged" : "joined")
-                    + ".exc. Your MCP conf folder may be corrupt.");
+            throw new CantLoadMCPMappingException("Unable to find joined.exc. Your MCP conf folder may be corrupt.");
 
-        if (progress != null)
-            progress.setMax(4);
-        if (progress != null)
-            progress.set(0);
+        if (!staticMethodsFile.exists())
+            throw new CantLoadMCPMappingException("Unable to find static_methods.txt. Your MCP conf folder may be corrupt.");
+
+        progress.set(2, "Loading CSV data");
         loadCsvMapping();
-        if (progress != null)
-            progress.set(1);
+        progress.set(3, "Loading SRG data");
         loadSrgMapping();
-        if (progress != null)
-            progress.set(2);
+        progress.set(4, "Linking SRG data with CSV data");
         linkSrgDataToCsvData();
-        if (progress != null)
-            progress.set(3);
+        progress.set(5, "Linking EXC data with CSV data");
         linkExcDataToSetParamCsvData();
+    }
+
+    private File getSubDirForZip(String[] tokens, String baseZipUrl, String baseSubDir) throws CantLoadMCPMappingException, NoSuchAlgorithmException, DigestException, IOException
+    {
+        if (!baseDir.exists() && !baseDir.mkdirs())
+            throw new CantLoadMCPMappingException("Application data folder does not exist and cannot be created.");
+
+        File subDir = new File(baseDir, replaceTokens(baseSubDir, tokens));
+        if (!subDir.exists() && !subDir.mkdirs())
+            throw new CantLoadMCPMappingException("Data folder does not exist and cannot be created.");
+
+        RemoteZipHandler rzh = new RemoteZipHandler(replaceTokens(baseZipUrl, tokens), subDir, "SHA1");
+        rzh.checkRemoteZip();
+
+        return subDir;
+    }
+
+    private String replaceTokens(String s, String[] tokens)
+    {
+        return s.replace("{mc_ver}", tokens[0]).replace("{channel}", tokens[1]).replace("{map_ver}", tokens[2]);
     }
 
     private void loadSrgMapping() throws IOException
     {
-        srgFileData = new SrgFile(srgFile);
+        staticMethods = new StaticMethodsFile(staticMethodsFile);
         excFileData = new ExcFile(excFile);
+        srgFileData = new SrgFile(srgFile, excFileData, staticMethods);
     }
 
     private void loadCsvMapping() throws IOException
     {
-        csvFieldData = new CsvFile(new File(mcpDir, "conf/fields.csv"), side);
-        csvMethodData = new CsvFile(new File(mcpDir, "conf/methods.csv"), side);
-        csvParamData = new ParamCsvFile(new File(mcpDir, "conf/params.csv"), side);
+        csvFieldData = new CsvFile(new File(mappingDir, "fields.csv"));
+        csvMethodData = new CsvFile(new File(mappingDir, "methods.csv"));
+        csvParamData = new ParamCsvFile(new File(mappingDir, "params.csv"));
     }
 
     private void linkSrgDataToCsvData()
@@ -165,7 +170,7 @@ public class McpMappingLoader
     {
         for (Entry<String, ExcData> excData : excFileData.srgMethodName2ExcData.entrySet())
         {
-            if (!excData2MapParamCsvData.containsKey(excData.getValue()) && excData.getValue().getParameters().length > 0)
+            if (!excData2MapParamCsvData.containsKey(excData.getValue()) && (excData.getValue().getParameters().length > 0))
             {
                 TreeMap<String, ParamCsvData> params = new TreeMap<String, ParamCsvData>();
                 for (String srgName : excData.getValue().getParameters())
@@ -176,20 +181,6 @@ public class McpMappingLoader
             }
             else if (excData2MapParamCsvData.containsKey(excData.getValue()))
                 System.out.println("EXC method param " + excData.getKey() + " has multiple entries in CSV file!");
-        }
-    }
-
-    public static String getMCVer(File mcpDir) throws IOException
-    {
-        try (Scanner in = new Scanner(new File(mcpDir, "conf/version.cfg")))
-        {
-            while (in.hasNextLine())
-            {
-                String line = in.nextLine();
-                if (line.startsWith("ClientVersion"))
-                    return line.split("=")[1].trim();
-            }
-            return "unknown";
         }
     }
 
@@ -216,14 +207,14 @@ public class McpMappingLoader
             }
             else
             {
-                csvData = new CsvData(srgName, mcpName.trim(), side.intSide[0], comment.trim());
+                csvData = new CsvData(srgName, mcpName.trim(), 2, comment.trim());
             }
 
             McpBotCommand[] commands;
 
             if (!commandMap.containsKey(srgName))
             {
-                commands = McpBotCommand.getMcpBotCommands(type, side, isForced, memberData.isClientOnly(),
+                commands = McpBotCommand.getMcpBotCommands(type, isForced, memberData.isClientOnly(),
                         csvData.getSrgName(), csvData.getMcpName(), csvData.getComment());
             }
             else
@@ -255,38 +246,9 @@ public class McpMappingLoader
         return !commandMap.isEmpty();
     }
 
-    public boolean hasPendingEdits()
-    {
-        return csvFieldData.isDirty() || csvMethodData.isDirty() || csvParamData.isDirty();
-    }
-
-    public void saveCSVs(IProgressListener progress) throws IOException
-    {
-        if (progress != null)
-        {
-            progress.setMax(2);
-            progress.set(0);
-        }
-
-        csvFieldData.writeToFile();
-
-        if (progress != null)
-            progress.set(1);
-
-        csvMethodData.writeToFile();
-
-        if (progress != null)
-            progress.set(2);
-    }
-
-    public File getMcpDir()
-    {
-        return this.mcpDir;
-    }
-
     public TableModel getSearchResults(String input, IProgressListener progress)
     {
-        if (input == null || input.trim().isEmpty())
+        if ((input == null) || input.trim().isEmpty())
             return getClassModel();
 
         if (progress != null)
@@ -312,8 +274,8 @@ public class McpMappingLoader
             {
                 for (MethodSrgData methodData : entry.getValue())
                 {
-                    CsvData csv = this.srgMethodData2CsvData.get(methodData);
-                    if (methodData.contains(input) || (csv != null && csv.contains(input)))
+                    CsvData csv = srgMethodData2CsvData.get(methodData);
+                    if (methodData.contains(input) || ((csv != null) && csv.contains(input)))
                     {
                         results.add(entry.getKey());
                         break;
@@ -332,8 +294,8 @@ public class McpMappingLoader
             {
                 for (FieldSrgData fieldData : entry.getValue())
                 {
-                    CsvData csv = this.srgFieldData2CsvData.get(fieldData);
-                    if (fieldData.contains(input) || (csv != null && csv.contains(input)))
+                    CsvData csv = srgFieldData2CsvData.get(fieldData);
+                    if (fieldData.contains(input) || ((csv != null) && csv.contains(input)))
                     {
                         results.add(entry.getKey());
                         break;
@@ -347,7 +309,7 @@ public class McpMappingLoader
 
     public TableModel getClassModel()
     {
-        return new ClassModel(this.srgFileData.srgClassName2ClassData.values());
+        return new ClassModel(srgFileData.srgClassName2ClassData.values());
     }
 
     public TableModel getMethodModel(String srgPkgAndOwner)
@@ -373,13 +335,10 @@ public class McpMappingLoader
     @SuppressWarnings("rawtypes")
     public class ClassModel extends AbstractTableModel
     {
-        private static final long              serialVersionUID    = 1L;
-        public final String[]                  uniColumnNames      = { "Pkg name", "SRG name", "Obf name", "Client Only" };
-        public final String[]                  columnNames         = { "Pkg name", "SRG name", "Obf name" };
-        private final Class[]                  uniColumnTypes      = { String.class, String.class, String.class, Boolean.class };
-        private final Class[]                  columnTypes         = { String.class, String.class, String.class };
-        private final boolean[]                uniIsColumnEditable = { false, false, false, false };
-        private final boolean[]                isColumnEditable    = { false, false, false };
+        private static final long              serialVersionUID = 1L;
+        public final String[]                  columnNames      = { "Pkg name", "SRG name", "Obf name" };
+        private final Class[]                  columnTypes      = { String.class, String.class, String.class };
+        private final boolean[]                isColumnEditable = { false, false, false };
         private final Object[][]               data;
         private final Collection<ClassSrgData> collectionRef;
 
@@ -387,10 +346,7 @@ public class McpMappingLoader
         {
             collectionRef = map;
 
-            if (side.equals(Side.Universal))
-                data = new Object[collectionRef.size()][uniColumnNames.length];
-            else
-                data = new Object[collectionRef.size()][columnNames.length];
+            data = new Object[collectionRef.size()][columnNames.length];
 
             int i = 0;
 
@@ -399,10 +355,6 @@ public class McpMappingLoader
                 data[i][0] = classData.getSrgPkgName();
                 data[i][1] = classData.getSrgName();
                 data[i][2] = classData.getObfName();
-
-                if (side.equals(Side.Universal))
-                    data[i][3] = classData.isClientOnly();
-
                 i++;
             }
         }
@@ -416,25 +368,14 @@ public class McpMappingLoader
         @Override
         public int getColumnCount()
         {
-            if (side.equals(Side.Universal))
-                return uniColumnNames.length;
-            else
-                return columnNames.length;
+            return columnNames.length;
         }
 
         @Override
         public String getColumnName(int columnIndex)
         {
-            if (side.equals(Side.Universal))
-            {
-                if (columnIndex < uniColumnNames.length && columnIndex >= 0)
-                    return uniColumnNames[columnIndex];
-            }
-            else
-            {
-                if (columnIndex < columnNames.length && columnIndex >= 0)
-                    return columnNames[columnIndex];
-            }
+            if ((columnIndex < columnNames.length) && (columnIndex >= 0))
+                return columnNames[columnIndex];
 
             return "";
         }
@@ -442,16 +383,8 @@ public class McpMappingLoader
         @Override
         public Class<?> getColumnClass(int columnIndex)
         {
-            if (side.equals(Side.Universal))
-            {
-                if (columnIndex < uniColumnTypes.length && columnIndex >= 0)
-                    return uniColumnTypes[columnIndex];
-            }
-            else
-            {
-                if (columnIndex < columnTypes.length && columnIndex >= 0)
-                    return columnTypes[columnIndex];
-            }
+            if ((columnIndex < columnTypes.length) && (columnIndex >= 0))
+                return columnTypes[columnIndex];
 
             return String.class;
         }
@@ -459,16 +392,8 @@ public class McpMappingLoader
         @Override
         public boolean isCellEditable(int rowIndex, int columnIndex)
         {
-            if (side.equals(Side.Universal))
-            {
-                if (columnIndex < uniIsColumnEditable.length && columnIndex >= 0)
-                    return uniIsColumnEditable[columnIndex];
-            }
-            else
-            {
-                if (columnIndex < isColumnEditable.length && columnIndex >= 0)
-                    return isColumnEditable[columnIndex];
-            }
+            if ((columnIndex < isColumnEditable.length) && (columnIndex >= 0))
+                return isColumnEditable[columnIndex];
 
             return false;
         }
@@ -483,13 +408,10 @@ public class McpMappingLoader
     @SuppressWarnings("rawtypes")
     public class MethodModel extends AbstractTableModel
     {
-        private static final long        serialVersionUID    = 1L;
-        private final String[]           uniColumnNames      = { "MCP Name", "SRG Name", "Obf Name", "SRG Descriptor", "Comment", "Client Only" };
-        private final String[]           columnNames         = { "MCP Name", "SRG Name", "Obf Name", "SRG Descriptor", "Comment" };
-        private final Class[]            uniColumnTypes      = { String.class, String.class, String.class, String.class, String.class, Boolean.class };
-        private final Class[]            columnTypes         = { String.class, String.class, String.class, String.class, String.class };
-        private final boolean[]          uniIsColumnEditable = { true, false, false, false, true, false };
-        private final boolean[]          isColumnEditable    = { true, false, false, false, true };
+        private static final long        serialVersionUID = 1L;
+        private final String[]           columnNames      = { "MCP Name", "SRG Name", "Obf Name", "SRG Descriptor", "Comment" };
+        private final Class[]            columnTypes      = { String.class, String.class, String.class, String.class, String.class };
+        private final boolean[]          isColumnEditable = { true, false, false, false, true };
         private final Object[][]         data;
         private final Set<MethodSrgData> setRef;
 
@@ -497,10 +419,7 @@ public class McpMappingLoader
         {
             setRef = srgMethodSet;
 
-            if (side.equals(Side.Universal))
-                data = new Object[setRef.size()][uniColumnNames.length];
-            else
-                data = new Object[setRef.size()][columnNames.length];
+            data = new Object[setRef.size()][columnNames.length];
 
             int i = 0;
 
@@ -521,9 +440,6 @@ public class McpMappingLoader
                 data[i][2] = methodData.getObfName();
                 data[i][3] = methodData.getSrgDescriptor();
 
-                if (side.equals(Side.Universal))
-                    data[i][5] = methodData.isClientOnly();
-
                 i++;
             }
         }
@@ -537,25 +453,14 @@ public class McpMappingLoader
         @Override
         public int getColumnCount()
         {
-            if (side.equals(Side.Universal))
-                return uniColumnNames.length;
-            else
-                return columnNames.length;
+            return columnNames.length;
         }
 
         @Override
         public String getColumnName(int columnIndex)
         {
-            if (side.equals(Side.Universal))
-            {
-                if (columnIndex < uniColumnNames.length && columnIndex >= 0)
-                    return uniColumnNames[columnIndex];
-            }
-            else
-            {
-                if (columnIndex < columnNames.length && columnIndex >= 0)
-                    return columnNames[columnIndex];
-            }
+            if ((columnIndex < columnNames.length) && (columnIndex >= 0))
+                return columnNames[columnIndex];
 
             return "";
         }
@@ -563,16 +468,8 @@ public class McpMappingLoader
         @Override
         public Class<?> getColumnClass(int columnIndex)
         {
-            if (side.equals(Side.Universal))
-            {
-                if (columnIndex < uniColumnTypes.length && columnIndex >= 0)
-                    return uniColumnTypes[columnIndex];
-            }
-            else
-            {
-                if (columnIndex < columnTypes.length && columnIndex >= 0)
-                    return columnTypes[columnIndex];
-            }
+            if ((columnIndex < columnTypes.length) && (columnIndex >= 0))
+                return columnTypes[columnIndex];
 
             return String.class;
         }
@@ -580,16 +477,8 @@ public class McpMappingLoader
         @Override
         public boolean isCellEditable(int rowIndex, int columnIndex)
         {
-            if (side.equals(Side.Universal))
-            {
-                if (columnIndex < uniIsColumnEditable.length && columnIndex >= 0)
-                    return uniIsColumnEditable[columnIndex];
-            }
-            else
-            {
-                if (columnIndex < isColumnEditable.length && columnIndex >= 0)
-                    return isColumnEditable[columnIndex];
-            }
+            if ((columnIndex < isColumnEditable.length) && (columnIndex >= 0))
+                return isColumnEditable[columnIndex];
 
             return false;
         }
@@ -605,7 +494,7 @@ public class McpMappingLoader
         {
             data[rowIndex][columnIndex] = aValue;
 
-            if (columnIndex == 4 && aValue != null && (data[rowIndex][0] == null || data[rowIndex][0].toString().trim().isEmpty()))
+            if ((columnIndex == 4) && (aValue != null) && ((data[rowIndex][0] == null) || data[rowIndex][0].toString().trim().isEmpty()))
                 return; // if only the comment has been set, don't bother adding a command
 
             String srgName = (String) data[rowIndex][1];
@@ -667,7 +556,7 @@ public class McpMappingLoader
         @Override
         public String getColumnName(int columnIndex)
         {
-            if (columnIndex < columnNames.length && columnIndex >= 0)
+            if ((columnIndex < columnNames.length) && (columnIndex >= 0))
                 return columnNames[columnIndex];
 
             return "";
@@ -676,7 +565,7 @@ public class McpMappingLoader
         @Override
         public Class<?> getColumnClass(int columnIndex)
         {
-            if (columnIndex < columnTypes.length && columnIndex >= 0)
+            if ((columnIndex < columnTypes.length) && (columnIndex >= 0))
                 return columnTypes[columnIndex];
 
             return String.class;
@@ -685,7 +574,7 @@ public class McpMappingLoader
         @Override
         public boolean isCellEditable(int rowIndex, int columnIndex)
         {
-            if (columnIndex < isColumnEditable.length && columnIndex >= 0)
+            if ((columnIndex < isColumnEditable.length) && (columnIndex >= 0))
                 return isColumnEditable[columnIndex];
 
             return false;
@@ -721,11 +610,7 @@ public class McpMappingLoader
             }
             else
             {
-                int intSide = side.intSide[0];
-                if (csvMethodData.hasCsvDataForKey(excData.getSrgMethodName()))
-                    intSide = csvMethodData.getCsvDataForKey(excData.getSrgMethodName()).getSide();
-
-                csvData = new ParamCsvData(srgName, mcpName, intSide);
+                csvData = new ParamCsvData(srgName, mcpName, 2);
                 excData2MapParamCsvData.get(excData).put(srgName, csvData);
             }
 
@@ -737,13 +622,10 @@ public class McpMappingLoader
     @SuppressWarnings("rawtypes")
     public class FieldModel extends AbstractTableModel
     {
-        private static final long       serialVersionUID    = 1L;
-        private final String[]          uniColumnNames      = { "MCP Name", "SRG Name", "Obf Name", "Comment", "Client Only" };
-        private final String[]          columnNames         = { "MCP Name", "SRG Name", "Obf Name", "Comment" };
-        private final Class[]           uniColumnTypes      = { String.class, String.class, String.class, String.class, Boolean.class };
-        private final Class[]           columnTypes         = { String.class, String.class, String.class, String.class };
-        private final boolean[]         uniIsColumnEditable = { true, false, false, true, false };
-        private final boolean[]         isColumnEditable    = { true, false, false, true };
+        private static final long       serialVersionUID = 1L;
+        private final String[]          columnNames      = { "MCP Name", "SRG Name", "Obf Name", "Comment" };
+        private final Class[]           columnTypes      = { String.class, String.class, String.class, String.class };
+        private final boolean[]         isColumnEditable = { true, false, false, true };
         private final Object[][]        data;
         private final Set<FieldSrgData> setRef;
 
@@ -751,10 +633,7 @@ public class McpMappingLoader
         {
             setRef = srgFieldSet;
 
-            if (side.equals(Side.Universal))
-                data = new Object[setRef.size()][uniColumnNames.length];
-            else
-                data = new Object[setRef.size()][columnNames.length];
+            data = new Object[setRef.size()][columnNames.length];
 
             int i = 0;
 
@@ -774,9 +653,6 @@ public class McpMappingLoader
                 data[i][1] = fieldData.getSrgName();
                 data[i][2] = fieldData.getObfName();
 
-                if (side.equals(Side.Universal))
-                    data[i][4] = fieldData.isClientOnly();
-
                 i++;
             }
         }
@@ -790,25 +666,14 @@ public class McpMappingLoader
         @Override
         public int getColumnCount()
         {
-            if (side.equals(Side.Universal))
-                return uniColumnNames.length;
-            else
-                return columnNames.length;
+            return columnNames.length;
         }
 
         @Override
         public String getColumnName(int columnIndex)
         {
-            if (side.equals(Side.Universal))
-            {
-                if (columnIndex < uniColumnNames.length && columnIndex >= 0)
-                    return uniColumnNames[columnIndex];
-            }
-            else
-            {
-                if (columnIndex < columnNames.length && columnIndex >= 0)
-                    return columnNames[columnIndex];
-            }
+            if ((columnIndex < columnNames.length) && (columnIndex >= 0))
+                return columnNames[columnIndex];
 
             return "";
         }
@@ -816,16 +681,8 @@ public class McpMappingLoader
         @Override
         public Class<?> getColumnClass(int columnIndex)
         {
-            if (side.equals(Side.Universal))
-            {
-                if (columnIndex < uniColumnTypes.length && columnIndex >= 0)
-                    return uniColumnTypes[columnIndex];
-            }
-            else
-            {
-                if (columnIndex < columnTypes.length && columnIndex >= 0)
-                    return columnTypes[columnIndex];
-            }
+            if ((columnIndex < columnTypes.length) && (columnIndex >= 0))
+                return columnTypes[columnIndex];
 
             return String.class;
         }
@@ -833,16 +690,8 @@ public class McpMappingLoader
         @Override
         public boolean isCellEditable(int rowIndex, int columnIndex)
         {
-            if (side.equals(Side.Universal))
-            {
-                if (columnIndex < uniIsColumnEditable.length && columnIndex >= 0)
-                    return uniIsColumnEditable[columnIndex];
-            }
-            else
-            {
-                if (columnIndex < isColumnEditable.length && columnIndex >= 0)
-                    return isColumnEditable[columnIndex];
-            }
+            if ((columnIndex < isColumnEditable.length) && (columnIndex >= 0))
+                return isColumnEditable[columnIndex];
 
             return false;
         }
@@ -858,7 +707,7 @@ public class McpMappingLoader
         {
             data[rowIndex][columnIndex] = aValue;
 
-            if (columnIndex == 3 && aValue != null && (data[rowIndex][0] == null || data[rowIndex][0].toString().trim().isEmpty()))
+            if ((columnIndex == 3) && (aValue != null) && ((data[rowIndex][0] == null) || data[rowIndex][0].toString().trim().isEmpty()))
                 return; // if only the comment has been set, don't bother adding a command
 
             String srgName = (String) data[rowIndex][1];
