@@ -146,7 +146,6 @@ public class RemoteZipHandler
         return arraylist.toArray(new String[arraylist.size()]);
     }
 
-    @SuppressWarnings("resource")
     public static String[] loadTextFromFile(File file, String[] defaultValue)
     {
         ArrayList<String> lines = new ArrayList<String>();

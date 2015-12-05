@@ -1,7 +1,6 @@
 package bspkrs.mmv;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -18,7 +17,6 @@ import com.google.gson.Gson;
 public class VersionFetcher
 {
     private final String jsonUrl = "http://export.mcpbot.bspk.rs/versions.json";
-    private final File   baseDir = new File(new File(System.getenv("APPDATA")), "/.mmv/");
     private List<String> versions;
 
     @SuppressWarnings("unchecked")
