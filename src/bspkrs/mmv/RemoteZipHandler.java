@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2015 bspkrs
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package bspkrs.mmv;
 
 import java.io.File;
@@ -125,8 +140,8 @@ public class RemoteZipHandler
         try
         {
             URLConnection uc = url.openConnection();
-            InputStream is = uc.getInputStream();
             uc.addRequestProperty("User-Agent", "MMV/" + MappingGui.VERSION_NUMBER);
+            InputStream is = uc.getInputStream();
             scanner = new Scanner(is, "UTF-8");
 
             while (scanner.hasNextLine())
@@ -172,16 +187,13 @@ public class RemoteZipHandler
 
     public static String getFileDigest(InputStream is, String digestType) throws NoSuchAlgorithmException, IOException
     {
-
         MessageDigest md = MessageDigest.getInstance(digestType);
         byte[] dataBytes = new byte[1024];
 
         int nread = 0;
 
         while ((nread = is.read(dataBytes)) != -1)
-        {
             md.update(dataBytes, 0, nread);
-        };
 
         is.close();
 
@@ -190,9 +202,7 @@ public class RemoteZipHandler
         //convert the byte to hex format
         StringBuffer sb = new StringBuffer("");
         for (int i = 0; i < mdbytes.length; i++)
-        {
             sb.append(Integer.toString((mdbytes[i] & 0xff) + 0x100, 16).substring(1));
-        }
         return sb.toString();
     }
 
@@ -206,10 +216,8 @@ public class RemoteZipHandler
         ZipEntry ze = zis.getNextEntry();
         try
         {
-
             while (ze != null)
             {
-
                 String fileName = ze.getName();
                 File newFile = new File(destDir, fileName);
                 if (ze.isDirectory())
@@ -234,7 +242,6 @@ public class RemoteZipHandler
         }
         finally
         {
-
             zis.closeEntry();
             zis.close();
         }
