@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 bspkrs
+ * Copyright (C) 2015 bspkrs
  * Portions Copyright (C) 2014 Alex "immibis" Campbell
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
