@@ -1,0 +1,76 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            name "central snapshots"
+            url "https://oss.sonatype.org/content/repositories/snapshots/"
+        }
+        maven {
+            name "gradle plugins"
+            url "https://plugins.gradle.org/m2/"
+        }
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+
+ext.mainClassName = "bspkrs.mmv.gui.MappingGui"
+
+// Setting up java version stuff
+
+def javaVersion = '1.7'
+
+[compileJava, compileTestJava].each { cJava ->
+    cJava.sourceCompatibility = cJava.targetCompatibility = javaVersion
+}
+eclipse.jdt {
+    sourceCompatibility = targetCompatibility = javaVersion
+}
+idea.project.languageLevel = javaVersion
+
+// End java version stuff
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile group: 'com.google.code.gson', name: 'gson', version: '2.4'
+}
+
+[compileJava, compileTestJava].each { cJava ->
+    cJava.options.compilerArgs += ['-Xlint:unchecked']
+    cJava.options.encoding = 'UTF-8'
+    cJava.options.incremental = true
+    cJava.options.fork = true
+}
+
+processResources {
+    from 'LICENSE'
+}
+
+apply plugin: 'com.github.johnrengelman.shadow'
+build.dependsOn(shadowJar)
+
+shadowJar {
+    dependencies {
+        include dependency('com.googe.code.gson:gson')
+    }
+}
+
+jar.manifest {
+    attributes 'Main-Class': mainClassName
+}
+
+task run(type: JavaExec) {
+  classpath = sourceSets.main.runtimeClasspath
+
+  main = mainClassName
+}

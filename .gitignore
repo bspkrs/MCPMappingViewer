@@ -1,3 +1,22 @@
-bin
-dist
-eclipse/
+# package
+*.jar
+
+# eclipse
+.classpath
+.project
+.metadata/
+.settings/
+.recommenders/
+bin/
+
+# (no) idea
+.idea
+*.iml
+*.ipr
+*.iws
+out/
+
+# gradle
+/.gradle/
+/build/
+!/gradle/wrapper/gradle-wrapper.jar
