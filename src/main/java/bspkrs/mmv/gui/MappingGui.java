@@ -263,19 +263,19 @@ public class MappingGui extends JFrame
         fieldSort.clear();
 
         int i = prefs.getInt(PREFS_KEY_CLASS_SORT, 1);
-        classSort.add(new RowSorter.SortKey(Math.abs(i) - 1, (i > 0 ? SortOrder.ASCENDING : SortOrder.DESCENDING)));
+        classSort.add(new RowSorter.SortKey(Math.abs(i) - 1, i > 0 ? SortOrder.ASCENDING : SortOrder.DESCENDING));
         tblClasses.getRowSorter().setSortKeys(classSort);
 
         i = prefs.getInt(PREFS_KEY_METHOD_SORT, 1);
-        methodSort.add(new RowSorter.SortKey(Math.abs(i) - 1, (i > 0 ? SortOrder.ASCENDING : SortOrder.DESCENDING)));
+        methodSort.add(new RowSorter.SortKey(Math.abs(i) - 1, i > 0 ? SortOrder.ASCENDING : SortOrder.DESCENDING));
         tblMethods.getRowSorter().setSortKeys(methodSort);
 
         i = prefs.getInt(PREFS_KEY_PARAM_SORT, 1);
-        paramSort.add(new RowSorter.SortKey(Math.abs(i) - 1, (i > 0 ? SortOrder.ASCENDING : SortOrder.DESCENDING)));
+        paramSort.add(new RowSorter.SortKey(Math.abs(i) - 1, i > 0 ? SortOrder.ASCENDING : SortOrder.DESCENDING));
         tblParams.getRowSorter().setSortKeys(paramSort);
 
         i = prefs.getInt(PREFS_KEY_FIELD_SORT, 1);
-        fieldSort.add(new RowSorter.SortKey(Math.abs(i) - 1, (i > 0 ? SortOrder.ASCENDING : SortOrder.DESCENDING)));
+        fieldSort.add(new RowSorter.SortKey(Math.abs(i) - 1, i > 0 ? SortOrder.ASCENDING : SortOrder.DESCENDING));
         tblFields.getRowSorter().setSortKeys(fieldSort);
     }
 
@@ -327,7 +327,7 @@ public class MappingGui extends JFrame
         for (StackTraceElement ste : e.getStackTrace())
         {
             boolean stopHere = false;
-            if (stopAt.contains(ste) && (numPrinted > 0))
+            if (stopAt.contains(ste) && numPrinted > 0)
                 stopHere = true;
             else
             {
@@ -624,7 +624,7 @@ public class MappingGui extends JFrame
             public void actionPerformed(ActionEvent e)
             {
                 String commands = currentLoader.getBotCommands(chkClearOnCopy.isSelected());
-                if ((commands != null) && !commands.isEmpty())
+                if (commands != null && !commands.isEmpty())
                 {
                     Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(commands), null);
                     JOptionPane.showMessageDialog(MappingGui.this, "Commands copied to clipboard: \n" + commands, "MMV - MCPBot Commands", JOptionPane.INFORMATION_MESSAGE);
@@ -651,11 +651,11 @@ public class MappingGui extends JFrame
             {
                 MappingGui.class.getClassLoader();
                 String imgsrc = MappingGui.class.getResource("/bspkrs/mmv/gui/icon/bspkrs.png").toString();
-                String year = (new SimpleDateFormat("yyyy").format(new Date()));
+                String year = new SimpleDateFormat("yyyy").format(new Date());
                 String message = "<center><img src=\"" + imgsrc + "\"/><br/>" +
                         "MCP Mapping Viewer v" + VERSION_NUMBER + "<br/>" +
-                        "Copyright (C) " + year + " bspkrs<br/>" +
-                        "Portions Copyright (C) " + year + " Alex \"immibis\" Campbell<br/><br/>" +
+                        "Copyright (C) 2013-" + year + " bspkrs<br/>" +
+                        "Portions Copyright (C) 2013 Alex \"immibis\" Campbell<br/><br/>" +
                         "Author: bspkrs<br/>" +
                         "Credits: immibis (for <a href=\"https://github.com/immibis/bearded-octo-nemesis\">BON</a> code), " +
                         "Searge et al (for <a href=\"http://mcp.ocean-labs.de\">MCP</a>)<br/><br/>" +
@@ -728,7 +728,7 @@ public class MappingGui extends JFrame
             {
                 String filterText = cmbFilter.getSelectedItem().toString();
 
-                if ((filterText == null) || filterText.trim().isEmpty())
+                if (filterText == null || filterText.trim().isEmpty())
                     return;
 
                 DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) cmbFilter.getModel();
@@ -823,12 +823,12 @@ public class MappingGui extends JFrame
         @Override
         public void actionPerformed(ActionEvent e)
         {
-            if (((curTask != null) && curTask.isAlive()) || (cmbFilter.getItemCount() == 0))
+            if (curTask != null && curTask.isAlive() || cmbFilter.getItemCount() == 0)
                 return;
 
             String filterText = cmbFilter.getSelectedItem().toString();
 
-            if ((filterText != null) && !filterText.trim().isEmpty())
+            if (filterText != null && !filterText.trim().isEmpty())
             {
                 DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) cmbFilter.getModel();
 
@@ -947,7 +947,7 @@ public class MappingGui extends JFrame
                             new TableColumnAdjuster(tblFields).adjustColumns();
                             loadPrefs(true);
 
-                            if (cmbFilter.getSelectedItem().toString().trim().startsWith("field") && (tblFields.getRowCount() > 0))
+                            if (cmbFilter.getSelectedItem().toString().trim().startsWith("field") && tblFields.getRowCount() > 0)
                             {
                                 for (int i = 0; i < tblFields.getRowCount(); i++)
                                 {
@@ -971,7 +971,7 @@ public class MappingGui extends JFrame
                                     }
                                 }
                             }
-                            else if (cmbFilter.getSelectedItem().toString().trim().startsWith("func") && (tblMethods.getRowCount() > 0))
+                            else if (cmbFilter.getSelectedItem().toString().trim().startsWith("func") && tblMethods.getRowCount() > 0)
                             {
                                 for (int i = 0; i < tblMethods.getRowCount(); i++)
                                 {
@@ -1053,7 +1053,7 @@ public class MappingGui extends JFrame
         @Override
         public void actionPerformed(ActionEvent e)
         {
-            if ((curTask != null) && curTask.isAlive())
+            if (curTask != null && curTask.isAlive())
                 return;
 
             final String mappingVersion = (String) cmbMappingVersion.getSelectedItem();
