@@ -61,7 +61,7 @@ build.dependsOn(shadowJar)
 
 shadowJar {
     dependencies {
-        include dependency('com.googe.code.gson:gson')
+        include dependency('com.google.code.gson:gson')
     }
 }
 

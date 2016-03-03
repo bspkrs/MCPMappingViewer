@@ -2,8 +2,8 @@
 <launch4jConfig>
   <dontWrapJar>false</dontWrapJar>
   <headerType>gui</headerType>
-  <jar>C:\Users\aboyle\Desktop\MC\github\MCPMappingViewer\dist\MCPMappingViewer_0.7.3.jar</jar>
-  <outfile>C:\Users\aboyle\Desktop\MC\github\MCPMappingViewer\dist\MCPMappingViewer_0.7.3.exe</outfile>
+  <jar>C:\Users\aboyle\Desktop\MC\github\MCPMappingViewer\build\libs\MCPMappingViewer_1.0.0.jar</jar>
+  <outfile>C:\Users\aboyle\Desktop\MC\github\MCPMappingViewer\build\libs\MCPMappingViewer_1.0.0.exe</outfile>
   <errTitle></errTitle>
   <cmdLine></cmdLine>
   <chdir>.</chdir>
@@ -16,21 +16,21 @@
   <jre>
     <path></path>
     <bundledJre64Bit>false</bundledJre64Bit>
-    <minVersion>1.6.0</minVersion>
+    <minVersion>1.7.0</minVersion>
     <maxVersion></maxVersion>
     <jdkPreference>preferJre</jdkPreference>
     <runtimeBits>64/32</runtimeBits>
   </jre>
   <versionInfo>
-    <fileVersion>0.7.3.0</fileVersion>
-    <txtFileVersion>0.7.3</txtFileVersion>
-    <fileDescription>MCP Mapping Viewer 0.7.3</fileDescription>
-    <copyright>Copyright 2014 bspkrs, portions Copyright 2014 Alex &quot;Immibis&quot; Campbell</copyright>
-    <productVersion>0.7.3.0</productVersion>
-    <txtProductVersion>0.7.3</txtProductVersion>
+    <fileVersion>1.0.0.0</fileVersion>
+    <txtFileVersion>1.0.0</txtFileVersion>
+    <fileDescription>MCP Mapping Viewer 1.0.0</fileDescription>
+    <copyright>Copyright 2013-2016 bspkrs, portions Copyright 2013 Alex &quot;Immibis&quot; Campbell</copyright>
+    <productVersion>1.0.0.0</productVersion>
+    <txtProductVersion>1.0.0</txtProductVersion>
     <productName>MCP Mapping Viewer</productName>
     <companyName></companyName>
-    <internalName>MCPMappingViewer_0.7.3</internalName>
-    <originalFilename>MCPMappingViewer_0.7.3.exe</originalFilename>
+    <internalName>MCPMappingViewer_1.0.0</internalName>
+    <originalFilename>MCPMappingViewer_1.0.0.exe</originalFilename>
   </versionInfo>
 </launch4jConfig>
