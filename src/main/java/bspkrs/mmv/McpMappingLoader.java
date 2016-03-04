@@ -65,7 +65,7 @@ public class McpMappingLoader
     private CsvFile                                      csvFieldData, csvMethodData;
     private ParamCsvFile                                 csvParamData;
     private final MappingGui                             parentGui;
-    private final Map<String, McpBotCommand[]>           commandMap              = new TreeMap<String, McpBotCommand[]>();                                                              // srgName -> McpBotCommand
+    private final Map<String, McpBotCommand>             commandMap              = new TreeMap<String, McpBotCommand>();                                                                // srgName -> McpBotCommand
     public final Map<MethodSrgData, CsvData>             srgMethodData2CsvData   = new TreeMap<MethodSrgData, CsvData>();
     public final Map<FieldSrgData, CsvData>              srgFieldData2CsvData    = new TreeMap<FieldSrgData, CsvData>();
     public final Map<ExcData, Map<String, ParamCsvData>> excData2MapParamCsvData = new TreeMap<ExcData, Map<String, ParamCsvData>>();
@@ -170,7 +170,7 @@ public class McpMappingLoader
     {
         for (Entry<String, ExcData> excData : excFileData.srgMethodName2ExcData.entrySet())
         {
-            if (!excData2MapParamCsvData.containsKey(excData.getValue()) && (excData.getValue().getParameters().length > 0))
+            if (!excData2MapParamCsvData.containsKey(excData.getValue()) && excData.getValue().getParameters().length > 0)
             {
                 TreeMap<String, ParamCsvData> params = new TreeMap<String, ParamCsvData>();
                 for (String srgName : excData.getValue().getParameters())
@@ -210,18 +210,7 @@ public class McpMappingLoader
                 csvData = new CsvData(srgName, mcpName.trim(), 2, comment.trim());
             }
 
-            McpBotCommand[] commands;
-
-            if (!commandMap.containsKey(srgName))
-            {
-                commands = McpBotCommand.getMcpBotCommands(type, isForced, memberData.isClientOnly(),
-                        csvData.getSrgName(), csvData.getMcpName(), csvData.getComment());
-            }
-            else
-                commands = McpBotCommand.updateMcpBotCommands(commandMap.get(srgName),
-                        csvData.getSrgName(), csvData.getMcpName(), csvData.getComment());
-
-            commandMap.put(srgName, commands);
+            commandMap.put(srgName, McpBotCommand.getMcpBotCommand(type, isForced, csvData.getSrgName(), csvData.getMcpName(), csvData.getComment()));
         }
 
         return csvData;
@@ -231,9 +220,8 @@ public class McpMappingLoader
     {
         String r = "";
 
-        for (McpBotCommand[] commands : commandMap.values())
-            for (McpBotCommand command : commands)
-                r += command.toString() + "\n";
+        for (McpBotCommand command : commandMap.values())
+            r += command.toString() + "\n";
 
         if (clear)
             commandMap.clear();
@@ -248,7 +236,7 @@ public class McpMappingLoader
 
     public TableModel getSearchResults(String input, IProgressListener progress)
     {
-        if ((input == null) || input.trim().isEmpty())
+        if (input == null || input.trim().isEmpty())
             return getClassModel();
 
         if (progress != null)
@@ -275,7 +263,7 @@ public class McpMappingLoader
                 for (MethodSrgData methodData : entry.getValue())
                 {
                     CsvData csv = srgMethodData2CsvData.get(methodData);
-                    if (methodData.contains(input) || ((csv != null) && csv.contains(input)))
+                    if (methodData.contains(input) || csv != null && csv.contains(input))
                     {
                         results.add(entry.getKey());
                         break;
@@ -295,7 +283,7 @@ public class McpMappingLoader
                 for (FieldSrgData fieldData : entry.getValue())
                 {
                     CsvData csv = srgFieldData2CsvData.get(fieldData);
-                    if (fieldData.contains(input) || ((csv != null) && csv.contains(input)))
+                    if (fieldData.contains(input) || csv != null && csv.contains(input))
                     {
                         results.add(entry.getKey());
                         break;
@@ -374,7 +362,7 @@ public class McpMappingLoader
         @Override
         public String getColumnName(int columnIndex)
         {
-            if ((columnIndex < columnNames.length) && (columnIndex >= 0))
+            if (columnIndex < columnNames.length && columnIndex >= 0)
                 return columnNames[columnIndex];
 
             return "";
@@ -383,7 +371,7 @@ public class McpMappingLoader
         @Override
         public Class<?> getColumnClass(int columnIndex)
         {
-            if ((columnIndex < columnTypes.length) && (columnIndex >= 0))
+            if (columnIndex < columnTypes.length && columnIndex >= 0)
                 return columnTypes[columnIndex];
 
             return String.class;
@@ -392,7 +380,7 @@ public class McpMappingLoader
         @Override
         public boolean isCellEditable(int rowIndex, int columnIndex)
         {
-            if ((columnIndex < isColumnEditable.length) && (columnIndex >= 0))
+            if (columnIndex < isColumnEditable.length && columnIndex >= 0)
                 return isColumnEditable[columnIndex];
 
             return false;
@@ -459,7 +447,7 @@ public class McpMappingLoader
         @Override
         public String getColumnName(int columnIndex)
         {
-            if ((columnIndex < columnNames.length) && (columnIndex >= 0))
+            if (columnIndex < columnNames.length && columnIndex >= 0)
                 return columnNames[columnIndex];
 
             return "";
@@ -468,7 +456,7 @@ public class McpMappingLoader
         @Override
         public Class<?> getColumnClass(int columnIndex)
         {
-            if ((columnIndex < columnTypes.length) && (columnIndex >= 0))
+            if (columnIndex < columnTypes.length && columnIndex >= 0)
                 return columnTypes[columnIndex];
 
             return String.class;
@@ -477,7 +465,7 @@ public class McpMappingLoader
         @Override
         public boolean isCellEditable(int rowIndex, int columnIndex)
         {
-            if ((columnIndex < isColumnEditable.length) && (columnIndex >= 0))
+            if (columnIndex < isColumnEditable.length && columnIndex >= 0)
                 return isColumnEditable[columnIndex];
 
             return false;
@@ -494,7 +482,7 @@ public class McpMappingLoader
         {
             data[rowIndex][columnIndex] = aValue;
 
-            if ((columnIndex == 4) && (aValue != null) && ((data[rowIndex][0] == null) || data[rowIndex][0].toString().trim().isEmpty()))
+            if (columnIndex == 4 && aValue != null && (data[rowIndex][0] == null || data[rowIndex][0].toString().trim().isEmpty()))
                 return; // if only the comment has been set, don't bother adding a command
 
             String srgName = (String) data[rowIndex][1];
@@ -556,7 +544,7 @@ public class McpMappingLoader
         @Override
         public String getColumnName(int columnIndex)
         {
-            if ((columnIndex < columnNames.length) && (columnIndex >= 0))
+            if (columnIndex < columnNames.length && columnIndex >= 0)
                 return columnNames[columnIndex];
 
             return "";
@@ -565,7 +553,7 @@ public class McpMappingLoader
         @Override
         public Class<?> getColumnClass(int columnIndex)
         {
-            if ((columnIndex < columnTypes.length) && (columnIndex >= 0))
+            if (columnIndex < columnTypes.length && columnIndex >= 0)
                 return columnTypes[columnIndex];
 
             return String.class;
@@ -574,7 +562,7 @@ public class McpMappingLoader
         @Override
         public boolean isCellEditable(int rowIndex, int columnIndex)
         {
-            if ((columnIndex < isColumnEditable.length) && (columnIndex >= 0))
+            if (columnIndex < isColumnEditable.length && columnIndex >= 0)
                 return isColumnEditable[columnIndex];
 
             return false;
@@ -599,8 +587,9 @@ public class McpMappingLoader
 
             ExcData excData = excFileData.srgParamName2ExcData.get(srgName);
             ParamCsvData csvData = null;
+            boolean isForced = csvParamData.hasCsvDataForKey(srgName);
 
-            if (csvParamData.hasCsvDataForKey(srgName))
+            if (isForced)
             {
                 csvData = csvParamData.getCsvDataForKey(srgName);
                 if (!mcpName.trim().equals(csvData.getMcpName()))
@@ -613,6 +602,8 @@ public class McpMappingLoader
                 csvData = new ParamCsvData(srgName, mcpName, 2);
                 excData2MapParamCsvData.get(excData).put(srgName, csvData);
             }
+
+            commandMap.put(srgName, McpBotCommand.getMcpBotCommand(MemberType.PARAM, isForced, csvData.getSrgName(), csvData.getMcpName(), ""));
 
             csvParamData.updateCsvDataForKey(srgName, csvData);
             parentGui.setCsvFileEdited(true);
@@ -672,7 +663,7 @@ public class McpMappingLoader
         @Override
         public String getColumnName(int columnIndex)
         {
-            if ((columnIndex < columnNames.length) && (columnIndex >= 0))
+            if (columnIndex < columnNames.length && columnIndex >= 0)
                 return columnNames[columnIndex];
 
             return "";
@@ -681,7 +672,7 @@ public class McpMappingLoader
         @Override
         public Class<?> getColumnClass(int columnIndex)
         {
-            if ((columnIndex < columnTypes.length) && (columnIndex >= 0))
+            if (columnIndex < columnTypes.length && columnIndex >= 0)
                 return columnTypes[columnIndex];
 
             return String.class;
@@ -690,7 +681,7 @@ public class McpMappingLoader
         @Override
         public boolean isCellEditable(int rowIndex, int columnIndex)
         {
-            if ((columnIndex < isColumnEditable.length) && (columnIndex >= 0))
+            if (columnIndex < isColumnEditable.length && columnIndex >= 0)
                 return isColumnEditable[columnIndex];
 
             return false;
@@ -707,7 +698,7 @@ public class McpMappingLoader
         {
             data[rowIndex][columnIndex] = aValue;
 
-            if ((columnIndex == 3) && (aValue != null) && ((data[rowIndex][0] == null) || data[rowIndex][0].toString().trim().isEmpty()))
+            if (columnIndex == 3 && aValue != null && (data[rowIndex][0] == null || data[rowIndex][0].toString().trim().isEmpty()))
                 return; // if only the comment has been set, don't bother adding a command
 
             String srgName = (String) data[rowIndex][1];

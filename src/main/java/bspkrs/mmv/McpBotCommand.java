@@ -1,6 +1,5 @@
 package bspkrs.mmv;
 
-
 public class McpBotCommand
 {
     public enum BotCommand
@@ -51,22 +50,9 @@ public class McpBotCommand
         this(command, srgName, newName, "");
     }
 
-    public static McpBotCommand[] getMcpBotCommands(MemberType type, boolean isForced, boolean isClientOnly, String srgName, String newName, String comment)
+    public static McpBotCommand getMcpBotCommand(MemberType type, boolean isForced, String srgName, String newName, String comment)
     {
-        McpBotCommand[] commands = new McpBotCommand[1];
-        commands[0] = new McpBotCommand(getCommand(type, isForced), srgName, newName, comment);
-
-        return commands;
-    }
-
-    public static McpBotCommand[] updateMcpBotCommands(McpBotCommand[] commands, String srgName, String newName, String comment)
-    {
-        for (int i = 0; i < commands.length; i++)
-        {
-            commands[i] = new McpBotCommand(commands[i].getCommand(), srgName, newName, comment);
-        }
-
-        return commands;
+        return new McpBotCommand(getCommand(type, isForced), srgName, newName, comment);
     }
 
     public BotCommand getCommand()

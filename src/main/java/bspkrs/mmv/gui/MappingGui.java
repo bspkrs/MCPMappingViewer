@@ -102,7 +102,6 @@ public class MappingGui extends JFrame
     private JComboBox<String>                   cmbFilter;
     private JButton                             btnSearch;
     private JButton                             btnGetBotCommands;
-    private JButton                             btnSave;
     private JCheckBox                           chkClearOnCopy;
     private final static String                 PREFS_KEY_FILTER      = "filter";
     private final static String                 PREFS_KEY_CLASS_SORT  = "classSort";
@@ -372,7 +371,6 @@ public class MappingGui extends JFrame
 
     public void setCsvFileEdited(boolean bol)
     {
-        btnSave.setEnabled(bol);
         btnGetBotCommands.setEnabled(bol);
     }
 
