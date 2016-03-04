@@ -31,11 +31,11 @@ import javax.swing.filechooser.FileFilter;
 public class BrowseActionListener implements ActionListener
 {
 
-    private JComboBox<String> comboBox;
-    private boolean           isOpen;
-    private Component         parent;
-    private JFileChooser      jfc;
-    private Reference<File>   defaultDir;
+    private final JComboBox<String> comboBox;
+    private final boolean           isOpen;
+    private final Component         parent;
+    private final JFileChooser      jfc;
+    private final Reference<File>   defaultDir;
 
     public BrowseActionListener(JComboBox<String> inputField, boolean isOpen, Component parent, boolean dirOnly, Reference<File> defaultDir)
     {
