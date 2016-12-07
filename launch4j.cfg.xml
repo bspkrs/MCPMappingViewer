@@ -2,20 +2,22 @@
 <launch4jConfig>
   <dontWrapJar>false</dontWrapJar>
   <headerType>gui</headerType>
-  <jar>C:\Users\aboyle\Desktop\MC\github\MCPMappingViewer\build\libs\MCPMappingViewer_1.0.0.jar</jar>
-  <outfile>C:\Users\aboyle\Desktop\MC\github\MCPMappingViewer\build\libs\MCPMappingViewer_1.0.0.exe</outfile>
+  <jar>C:\Users\aboyle\repos\MCPMappingViewer\build\libs\MCPMappingViewer-all.jar</jar>
+  <outfile>C:\Users\aboyle\repos\MCPMappingViewer\build\libs\MCPMappingViewer_1.0.0.exe</outfile>
   <errTitle></errTitle>
   <cmdLine></cmdLine>
   <chdir>.</chdir>
   <priority>normal</priority>
   <downloadUrl>http://java.com/download</downloadUrl>
   <supportUrl>http://www.minecraftforum.net/topic/2115030-</supportUrl>
-  <stayAlive>false</stayAlive>
+  <stayAlive>true</stayAlive>
+  <restartOnCrash>false</restartOnCrash>
   <manifest></manifest>
   <icon>C:\Users\aboyle\Dropbox\bspkrs256.ico</icon>
   <jre>
     <path></path>
     <bundledJre64Bit>false</bundledJre64Bit>
+    <bundledJreAsFallback>false</bundledJreAsFallback>
     <minVersion>1.7.0</minVersion>
     <maxVersion></maxVersion>
     <jdkPreference>preferJre</jdkPreference>
@@ -32,5 +34,7 @@
     <companyName></companyName>
     <internalName>MCPMappingViewer_1.0.0</internalName>
     <originalFilename>MCPMappingViewer_1.0.0.exe</originalFilename>
+    <trademarks></trademarks>
+    <language>ENGLISH_US</language>
   </versionInfo>
 </launch4jConfig>

@@ -108,7 +108,7 @@ public class RemoteZipHandler
             }
 
             // Check hash of downloaded file to ensure we received it correctly
-            if ((digestType != null) && !remoteHash.isEmpty())
+            if (digestType != null && !remoteHash.isEmpty())
             {
                 String downloadHash = getFileDigest(new FileInputStream(localZip), digestType);
                 if (!remoteHash.equals(downloadHash))
@@ -121,7 +121,7 @@ public class RemoteZipHandler
                 localZip.delete();
 
             // save new hash after successful extract
-            if ((digestType != null) && !remoteHash.isEmpty())
+            if (digestType != null && !remoteHash.isEmpty())
             {
                 if (digestFile.exists())
                     digestFile.delete();
@@ -230,6 +230,8 @@ public class RemoteZipHandler
                 {
                     if (newFile.exists())
                         newFile.delete();
+                    if (newFile.getParentFile() != null && !newFile.getParentFile().exists())
+                        newFile.getParentFile().mkdirs();
                     FileOutputStream fos = new FileOutputStream(newFile);
                     int len;
                     while ((len = zis.read(buffer)) > 0)

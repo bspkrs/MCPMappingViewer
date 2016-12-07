@@ -16,8 +16,6 @@
  */
 package bspkrs.mmv.gui;
 
-import immibis.bon.IProgressListener;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -86,10 +84,11 @@ import bspkrs.mmv.McpMappingLoader;
 import bspkrs.mmv.McpMappingLoader.CantLoadMCPMappingException;
 import bspkrs.mmv.VersionFetcher;
 import bspkrs.mmv.version.AppVersionChecker;
+import immibis.bon.IProgressListener;
 
 public class MappingGui extends JFrame
 {
-    public static final String                  VERSION_NUMBER        = "1.0.0";
+    public static final String                  VERSION_NUMBER        = "1.0.1";
     private static final long                   serialVersionUID      = 1L;
     private final Preferences                   prefs                 = Preferences.userNodeForPackage(MappingGui.class);
     private JFrame                              frmMcpMappingViewer;
@@ -282,7 +281,9 @@ public class MappingGui extends JFrame
     {
         versionChecker = new AppVersionChecker("MCP Mapping Viewer", VERSION_NUMBER, versionURL, mcfTopic,
                 new String[] { "{appName} {oldVer} is out of date! Visit {updateURL} to download the latest release ({newVer})." },
-                new String[] { "{appName} {oldVer} is out of date! <br/><br/>Download the latest release ({newVer}) from <a href=\"{updateURL}\">{updateURL}</a>." }, 5000);
+                new String[] {
+                        "{appName} {oldVer} is out of date! <br/><br/>Download the latest release ({newVer}) from <a href=\"{updateURL}\">{updateURL}</a>." },
+                5000);
         if (!versionChecker.isCurrentVersion())
         {
             showHTMLDialog(MappingGui.this, versionChecker.getDialogMessage()[0], "An update is available", JOptionPane.INFORMATION_MESSAGE);
@@ -625,7 +626,8 @@ public class MappingGui extends JFrame
                 if (commands != null && !commands.isEmpty())
                 {
                     Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(commands), null);
-                    JOptionPane.showMessageDialog(MappingGui.this, "Commands copied to clipboard: \n" + commands, "MMV - MCPBot Commands", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(MappingGui.this, "Commands copied to clipboard: \n" + commands, "MMV - MCPBot Commands",
+                            JOptionPane.INFORMATION_MESSAGE);
 
                     if (chkClearOnCopy.isSelected())
                         btnGetBotCommands.setEnabled(false);
@@ -683,7 +685,9 @@ public class MappingGui extends JFrame
         }
         catch (Throwable e)
         {
-            String s = getStackTraceMessage("An error has occurred - give bspkrs this stack trace (which has been copied to the clipboard) if the error continues to occur on launch.\n", e);
+            String s = getStackTraceMessage(
+                    "An error has occurred - give bspkrs this stack trace (which has been copied to the clipboard) if the error continues to occur on launch.\n",
+                    e);
 
             System.err.println(s);
 
@@ -1000,7 +1004,8 @@ public class MappingGui extends JFrame
                     }
                     catch (Exception e)
                     {
-                        String s = getStackTraceMessage("An error has occurred - give bspkrs this stack trace (which has been copied to the clipboard)\n", e);
+                        String s = getStackTraceMessage(
+                                "An error has occurred - give bspkrs this stack trace (which has been copied to the clipboard)\n", e);
 
                         System.err.println(s);
 
@@ -1180,7 +1185,8 @@ public class MappingGui extends JFrame
                     }
                     catch (Exception e)
                     {
-                        String s = getStackTraceMessage("An error has occurred - give bspkrs this stack trace (which has been copied to the clipboard)\n", e);
+                        String s = getStackTraceMessage(
+                                "An error has occurred - give bspkrs this stack trace (which has been copied to the clipboard)\n", e);
 
                         System.err.println(s);
 
