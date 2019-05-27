@@ -39,6 +39,8 @@ public class SrgFile
     public final Map<String, ClassSrgData>             srgMethodName2ClassData  = new TreeMap<String, ClassSrgData>();            // func_12345_a -> ClassSrgData
     public final Map<String, ClassSrgData>             srgFieldName2ClassData   = new TreeMap<String, ClassSrgData>();            // field_12345_a -> ClassSrgData
 
+    SrgFile() {} // FIXME Needed so that TSrgFile can extend SrgFile. A shared interface/abstract probably makes more sense
+
     public static String getLastComponent(String s)
     {
         String[] parts = s.split("/");

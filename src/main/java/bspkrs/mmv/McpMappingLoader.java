@@ -52,7 +52,8 @@ public class McpMappingLoader
     private final String                                 baseSrgDir              = "{mc_ver}";
     private final String                                 baseMappingDir          = "{mc_ver}/{channel}_{map_ver}";
     private final String                                 baseMappingUrl          = "http://export.mcpbot.bspk.rs/mcp_{channel}/{map_ver}-{mc_ver}/mcp_{channel}-{map_ver}-{mc_ver}.zip";
-    private final String                                 baseSrgUrl              = "http://export.mcpbot.bspk.rs/mcp/{mc_ver}/mcp-{mc_ver}-srg.zip";
+    private final String                                 newBaseSrgUrl           = "https://files.minecraftforge.net/maven/de/oceanlabs/mcp/mcp_config/{mc_ver}/mcp_config-{mc_ver}.zip";
+    private final String                                 oldBaseSrgUrl           = "http://export.mcpbot.bspk.rs/mcp/{mc_ver}/mcp-{mc_ver}-srg.zip";
 
     private final File                                   srgDir;
     private final File                                   mappingDir;
@@ -81,14 +82,20 @@ public class McpMappingLoader
         if (tokens.length < 3)
             throw new CantLoadMCPMappingException("Invalid mapping string specified.");
 
+        boolean isNew = tokens[0].compareTo("1.13") >= 0;
+        String baseSrgUrl = isNew ? newBaseSrgUrl : oldBaseSrgUrl;
+        String srgFileName = isNew ? "config/joined.tsrg" : "joined.srg";
+        String excFileName = isNew ? "config/exceptions.txt" : "joined.exc";
+        String staticMethodsFileName = isNew ? "config/static_methods.txt" : "static_methods.txt";
+
         progress.set(0, "Fetching SRG data");
         srgDir = getSubDirForZip(tokens, baseSrgUrl, baseSrgDir);
         progress.set(1, "Fetching CSV data");
         mappingDir = getSubDirForZip(tokens, baseMappingUrl, baseMappingDir);
 
-        srgFile = new File(srgDir, "joined.srg");
-        excFile = new File(srgDir, "joined.exc");
-        staticMethodsFile = new File(srgDir, "static_methods.txt");
+        srgFile = new File(srgDir, srgFileName);
+        excFile = new File(srgDir, excFileName);
+        staticMethodsFile = new File(srgDir, staticMethodsFileName);
 
         if (!srgFile.exists())
             throw new CantLoadMCPMappingException("Unable to find joined.srg. Your MCP conf folder may be corrupt.");
@@ -102,7 +109,7 @@ public class McpMappingLoader
         progress.set(2, "Loading CSV data");
         loadCsvMapping();
         progress.set(3, "Loading SRG data");
-        loadSrgMapping();
+        loadSrgMapping(isNew);
         progress.set(4, "Linking SRG data with CSV data");
         linkSrgDataToCsvData();
         progress.set(5, "Linking EXC data with CSV data");
@@ -129,11 +136,13 @@ public class McpMappingLoader
         return s.replace("{mc_ver}", tokens[0]).replace("{channel}", tokens[1]).replace("{map_ver}", tokens[2]);
     }
 
-    private void loadSrgMapping() throws IOException
+    private void loadSrgMapping(boolean newFormat) throws IOException
     {
         staticMethods = new StaticMethodsFile(staticMethodsFile);
         excFileData = new ExcFile(excFile);
-        srgFileData = new SrgFile(srgFile, excFileData, staticMethods);
+        srgFileData = newFormat
+                ? new TSrgFile(srgFile, excFileData, staticMethods)
+                : new SrgFile(srgFile, excFileData, staticMethods);
     }
 
     private void loadCsvMapping() throws IOException
