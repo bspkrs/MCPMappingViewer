@@ -83,6 +83,9 @@ public class McpMappingLoader
             throw new CantLoadMCPMappingException("Invalid mapping string specified.");
 
         boolean isNew = tokens[0].compareTo("1.13") >= 0;
+        if (tokens[0].contains("1.9") || tokens[0].contains("1.8") || tokens[0].contains("1.7"))
+            isNew = false;
+
         String baseSrgUrl = isNew ? newBaseSrgUrl : oldBaseSrgUrl;
         String srgFileName = isNew ? "config/joined.tsrg" : "joined.srg";
         String excFileName = isNew ? "config/exceptions.txt" : "joined.exc";
