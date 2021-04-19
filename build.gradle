@@ -1,26 +1,13 @@
-buildscript {
-    repositories {
-        mavenCentral()
-        maven {
-            name "central snapshots"
-            url "https://oss.sonatype.org/content/repositories/snapshots/"
-        }
-        maven {
-            name "gradle plugins"
-            url "https://plugins.gradle.org/m2/"
-        }
-        jcenter()
-    }
 
-    dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
-    }
+plugins {
+    id 'java'
+    id 'eclipse'
+    id 'idea'
+    id 'com.github.johnrengelman.shadow' version '1.2.3'
+    id 'edu.sc.seis.launch4j' version '2.4.6'
 }
 
-apply plugin: 'java'
-apply plugin: 'eclipse'
-apply plugin: 'idea'
-
+version = '1.0.1'
 ext.mainClassName = "bspkrs.mmv.gui.MappingGui"
 
 // Setting up java version stuff
@@ -56,10 +43,14 @@ processResources {
     from 'LICENSE'
 }
 
-apply plugin: 'com.github.johnrengelman.shadow'
 build.dependsOn(shadowJar)
 
+jar {
+    destinationDir = temporaryDir
+}
+
 shadowJar {
+    classifier = ''
     dependencies {
         include dependency('com.google.code.gson:gson')
     }
@@ -67,6 +58,19 @@ shadowJar {
 
 jar.manifest {
     attributes 'Main-Class': mainClassName
+}
+
+createExe {
+    dependsOn 'build'
+    mainClassName = mainClassName
+    copyConfigurable = project.tasks.shadowJar.outputs.files
+    jar = "lib/${project.tasks.shadowJar.archiveName}"
+    outputDir = 'libs'
+    outfile = tasks.shadowJar.archiveName - '.jar' + '.exe'
+    productName = 'MCP Mapping Viewer'
+    icon = "${projectDir}/MCPMappingViewer.ico"
+    supportUrl = 'http://www.minecraftforum.net/topic/2115030-'
+    copyright = 'Copyright 2013-2019 bspkrs, portions Copyright 2013 Alex "Immibis" Campbell'
 }
 
 task run(type: JavaExec) {
