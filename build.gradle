@@ -1,35 +1,27 @@
-
 plugins {
     id 'java'
+    id 'java-library'
     id 'eclipse'
     id 'idea'
-    id 'com.github.johnrengelman.shadow' version '1.2.3'
-    id 'edu.sc.seis.launch4j' version '2.4.6'
+    id 'com.github.johnrengelman.shadow' version '6.1.0'
+    id 'edu.sc.seis.launch4j' version '2.5.0'
 }
 
 version = '1.0.1'
 ext.mainClassName = "bspkrs.mmv.gui.MappingGui"
 
-// Setting up java version stuff
-
-def javaVersion = '1.7'
-
-[compileJava, compileTestJava].each { cJava ->
-    cJava.sourceCompatibility = cJava.targetCompatibility = javaVersion
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
 }
-eclipse.jdt {
-    sourceCompatibility = targetCompatibility = javaVersion
-}
-idea.project.languageLevel = javaVersion
-
-// End java version stuff
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    compile group: 'com.google.code.gson', name: 'gson', version: '2.4'
+    implementation 'com.google.code.gson:gson:2.8.6'
 }
 
 [compileJava, compileTestJava].each { cJava ->
@@ -46,14 +38,18 @@ processResources {
 build.dependsOn(shadowJar)
 
 jar {
-    destinationDir = temporaryDir
+    destinationDirectory = temporaryDir
 }
 
 shadowJar {
-    classifier = ''
+    archiveClassifier.set('')
     dependencies {
-        include dependency('com.google.code.gson:gson')
+        include 'com.google.code.gson:gson:2.8.6'
     }
+}
+
+wrapper {
+    distributionType = Wrapper.DistributionType.ALL
 }
 
 jar.manifest {
@@ -64,12 +60,12 @@ createExe {
     dependsOn 'build'
     mainClassName = mainClassName
     copyConfigurable = project.tasks.shadowJar.outputs.files
-    jar = "lib/${project.tasks.shadowJar.archiveName}"
+    jar = "lib/${project.tasks.shadowJar.archiveFileName}"
     outputDir = 'libs'
     outfile = tasks.shadowJar.archiveName - '.jar' + '.exe'
     productName = 'MCP Mapping Viewer'
     icon = "${projectDir}/MCPMappingViewer.ico"
-    supportUrl = 'http://www.minecraftforum.net/topic/2115030-'
+    supportUrl = 'https://www.minecraftforum.net/topic/2115030'
     copyright = 'Copyright 2013-2019 bspkrs, portions Copyright 2013 Alex "Immibis" Campbell'
 }
 
