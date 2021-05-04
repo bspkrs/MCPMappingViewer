@@ -95,6 +95,7 @@ public class MappingGui extends JFrame
     private JButton                             btnRefreshTables;
     private JComboBox<String>                   cmbMappingVersion;
     private JCheckBox                           chkForceRefresh;
+    private JCheckBox                           chkShowSnapshots;
     private JPanel                              pnlProgress;
     private JProgressBar                        progressBar;
     private JPanel                              pnlFilter;
@@ -500,6 +501,9 @@ public class MappingGui extends JFrame
         pnlControls.add(lblMappingVersion);
         pnlControls.add(cmbMappingVersion);
 
+        chkShowSnapshots = new JCheckBox("Show Snapshots");
+        chkShowSnapshots.setToolTipText("Show snapshot versions, otherwise only show stable versions.");
+
         btnGetVersions = new JButton("Get Versions");
         btnGetVersions.addActionListener(new ActionListener()
         {
@@ -509,16 +513,15 @@ public class MappingGui extends JFrame
                 try
                 {
                     cmbMappingVersion.removeAllItems();
-                    for (String s : versionFetcher.getVersions(chkForceRefresh.isSelected()))
-                    {
+                    for (String s : versionFetcher.getVersions(chkShowSnapshots.isSelected()))
                         cmbMappingVersion.addItem(s);
-                    }
                 }
                 catch (IOException exc)
                 {}
             }
         });
         pnlControls.add(btnGetVersions);
+        pnlControls.add(chkShowSnapshots);
 
         btnRefreshTables = new JButton("Load Mappings");
         btnRefreshTables.setEnabled(false);
