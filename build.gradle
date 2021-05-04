@@ -3,7 +3,7 @@ plugins {
     id 'java-library'
     id 'eclipse'
     id 'idea'
-    id 'com.github.johnrengelman.shadow' version '6.1.0'
+    id 'com.github.johnrengelman.shadow' version '7.0.0'
     id 'edu.sc.seis.launch4j' version '2.5.0'
 }
 
@@ -43,9 +43,6 @@ jar {
 
 shadowJar {
     archiveClassifier.set('')
-    dependencies {
-        include 'com.google.code.gson:gson:2.8.6'
-    }
 }
 
 wrapper {
