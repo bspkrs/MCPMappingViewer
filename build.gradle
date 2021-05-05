@@ -7,7 +7,7 @@ plugins {
     id 'edu.sc.seis.launch4j' version '2.5.0'
 }
 
-version = '1.0.1'
+version = '1.0.2'
 ext.mainClassName = "bspkrs.mmv.gui.MappingGui"
 
 java {
@@ -63,7 +63,8 @@ createExe {
     productName = 'MCP Mapping Viewer'
     icon = "${projectDir}/MCPMappingViewer.ico"
     supportUrl = 'https://www.minecraftforum.net/topic/2115030'
-    copyright = 'Copyright 2013-2019 bspkrs, portions Copyright 2013 Alex "Immibis" Campbell'
+    copyright = 'Copyright 2013-2021 bspkrs, portions Copyright 2013-2014 Alex "Immibis" Campbell'
+    version = "${project.version}"
 }
 
 task run(type: JavaExec) {
