@@ -29,7 +29,7 @@ import com.google.gson.Gson;
 
 public class VersionFetcher
 {
-    private final String jsonUrl = "http://export.mcpbot.bspk.rs/versions.json";
+    private final String jsonUrl = "https://maven.minecraftforge.net/de/oceanlabs/mcp/versions.json";
     private List<String> versions;
 
     @SuppressWarnings("unchecked")
