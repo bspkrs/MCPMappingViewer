@@ -53,7 +53,7 @@ public class McpMappingLoader
     private final String                                 baseMappingDir          = "{mc_ver}/{channel}_{map_ver}";
     private final String                                 baseMappingUrl          = "https://maven.minecraftforge.net/de/oceanlabs/mcp/mcp_{channel}/{map_ver}-{mc_ver}/mcp_{channel}-{map_ver}-{mc_ver}.zip";
     private final String                                 newBaseSrgUrl           = "https://maven.minecraftforge.net/de/oceanlabs/mcp/mcp_config/{mc_ver}/mcp_config-{mc_ver}.zip";
-    private final String                                 oldBaseSrgUrl           = "http://export.mcpbot.bspk.rs/mcp/{mc_ver}/mcp-{mc_ver}-srg.zip";
+    private final String                                 oldBaseSrgUrl           = "https://maven.minecraftforge.net/de/oceanlabs/mcp/mcp/{mc_ver}/mcp-{mc_ver}-srg.zip";
 
     private final File                                   srgDir;
     private final File                                   mappingDir;
