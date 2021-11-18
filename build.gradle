@@ -7,7 +7,7 @@ plugins {
     id 'edu.sc.seis.launch4j' version '2.5.0'
 }
 
-version = '1.0.2'
+version = '1.0.3'
 ext.mainClassName = "bspkrs.mmv.gui.MappingGui"
 
 java {
