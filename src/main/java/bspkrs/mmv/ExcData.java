@@ -99,7 +99,7 @@ public class ExcData implements Comparable<ExcData>
 
     public static String[] splitMethodDesc(String desc)
     {
-        //\[*L[^;]+;|\[[ZBCSIFDJ]|[ZBCSIFDJ]
+        //\[*(?:L[^;]+;|[ZBCSIFDJ])
         int beginIndex = desc.indexOf('(');
         int endIndex = desc.lastIndexOf(')');
         if (((beginIndex == -1) && (endIndex != -1)) || ((beginIndex != -1) && (endIndex == -1)))
@@ -117,7 +117,7 @@ public class ExcData implements Comparable<ExcData>
         {
             x0 = desc.substring(beginIndex + 1, endIndex);
         }
-        Pattern pattern = Pattern.compile("\\[*L[^;]+;|\\[[ZBCSIFDJ]|[ZBCSIFDJ]");
+        Pattern pattern = Pattern.compile("\\[*(?:L[^;]+;|[ZBCSIFDJ])");
         Matcher matcher = pattern.matcher(x0);
 
         ArrayList<String> listMatches = new ArrayList<String>();
