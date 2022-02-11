@@ -1,3 +1,5 @@
+*** This project is no longer maintained ***
+
 MCP Mapping Viewer
 =================
 A small GUI for viewing the mappings from Minecraft obfuscated code names to MCP code names.
@@ -15,7 +17,7 @@ Run `gradlew build` from your favorite command line facilities
 
 * * *
 
-Copyright (C) 2013-2016 bspkrs<br/>
+Copyright (C) 2013-2022 bspkrs<br/>
 Portions Copyright (C) 2013 Alex "immibis" Campbell (see BON_LICENSE.txt for details)
 GSON is licensed under the Apache License 2.0 (see GSON_LICENSE.txt for details)
 
